@@ -92,10 +92,10 @@
                   <p>In this tutorial, we will cover:</p>
 
                   <ol>
-                    <li>Brief introduction to Generative Models.</li>
-                    <li>What are GAN’s?</li>
-                    <li>Why and where to use GAN's?</li>
-                    <li>Project on how to use GAN's to generate MNIST data.</li>
+                    <li><b>Brief introduction to Generative Models.</b></li>
+                    <li><b>What are GAN’s?</b></li>
+                    <li><b>Why and where to use GAN's?</b></li>
+                    <li><b>Project on how to use GAN's to generate MNIST data.</b></li>
                   </ol>
 
                   <p>There are usually two types of Generative Modelling techniques:</p>
@@ -108,22 +108,22 @@
                   <p>So, the first question arises that why should we study GAN's and more generally Generative Modelling?</p>
 
                   <ol>
-                    <li>It has been found that Generative models prove to be great test of our ability to use high-dimensional complicated probability distribution.</li>
-                    <li>Generative models help us to simulate possible future or models before implementing them or simulate Reinforcement Learning techniques. This helps to make the system more robust as we train the agent in a simulated environment that's built entirely by the Generative models rather than making and feeding the environment by hand where there can be some loopholes.</li>
-                    <li>Generative models are easy to parallelize on a GPU and the cost for the mistakes is not that high as can be while creating environment by hand.</li>
-                    <li>Generative models can handle the missing data in a dataset more efficiently. It can learn and generate the missing data and even generate missing labels in the unlabeled data.</li>
-                    <li>Generative models are great for speech modelling, text to image, generating word embedding’s etc.</li>
+                    <p><li>It has been found that Generative models prove to be great test of our ability to use high-dimensional complicated probability distribution.</li></p>
+                    <p><li>Generative models help us to simulate possible future or models before implementing them or simulate Reinforcement Learning techniques. <br>This helps to make the system more robust as we train the agent in a simulated environment that's built entirely by the Generative models rather than making and feeding the environment by hand where there can be some loopholes.</li></p>
+                    <p><li>Generative models are easy to parallelize on a GPU and the cost for the mistakes is not that high as can be while creating environment by hand.</li></p>
+                    <p><li>Generative models can handle the missing data in a dataset more efficiently. It can learn and generate the missing data and even generate missing labels in the unlabeled data.</li></p>
+                    <p><li>Generative models are great for speech modelling, text to image, generating word embedding’s etc.</li></p>
                   </ol>
 
                   <p>Now, you must be thinking that there are other generative models as well that do a good work, so why study GAN's specifically? GAN's have some special properties due to which they are better than others as a generative model.
 
                     <ol>
-                      <li>Firstly, the GAN's use a latent code as compared to other adversarial networks like PixelCNN.</li>
-                      <li>GAN's are asymptotically consistent unlike the Variational Autoencoders.</li>
-                      <li>Also, to make a GAN, no Markov Chains are required.</li>
-                      <li>GAN's are also often regarded as producing the best samples in the output as compared to other conventional approaches. For example, in a paper by Lotter et al, 2016, it shows that when we want to generate the next frame in a video, using the conventional approaches like using the Mean Squared Error (MSE) leads to a blurry image at the output because that output is formed by averaging
-                     over all the previous frames. In contrast to MSE, using GAN's use adversarial loss technique to generate the image and hence the image obtained at the output is crisp.</li>
-                      <li>GAN's or Generative Adversarial Networks take a collection of training examples and forms some representation of probability distribution. Like Variational Autoencoders are good at getting a high likelihood, GAN's can generate real life examples.</li>
+                      <p><li>Firstly, the GAN's use a latent code as compared to other adversarial networks like PixelCNN.</li></p>
+                      <p><li>GAN's are asymptotically consistent unlike the Variational Autoencoders.</li></p>
+                      <p><li>Also, to make a GAN, no Markov Chains are required.</li></p>
+                      <p><li>GAN's are also often regarded as producing the best samples in the output as compared to other conventional approaches. For example, in a paper by Lotter et al, 2016, it shows that when we want to generate the next frame in a video, using the conventional approaches like using the Mean Squared Error (MSE) leads to a blurry image at the output because that output is formed by averaging
+                     over all the previous frames. In contrast to MSE, using GAN's use adversarial loss technique to generate the image and hence the image obtained at the output is crisp.</li></p>
+                      <p><li>GAN's or Generative Adversarial Networks take a collection of training examples and forms some representation of probability distribution. Like Variational Autoencoders are good at getting a high likelihood, GAN's can generate real life examples.</li></p>
                     </ol>
 
                     <p>So, let's dive into the world of GAN's.</p>
@@ -175,35 +175,35 @@
 
                       <p>In other words, <b>Discriminator (D)</b> and <b>Generator (G)</b> play a <b>two-player minimax game</b> with value function <b>V (G, D)</b> as shown below:</p>
 
-                      <img src="anujdutt9.github.io\img\GAN\1.png" alt="anujdutt9.github.io\img\GAN\1.png" width="600" align="middle">
+                      <img src="anujdutt9.github.io\img\GAN\1.png" alt="anujdutt9.github.io\img\GAN\1.png" align="middle" width="600" >
 
                       <p>where,<br>
                       &nbsp &nbsp <b>D(x)</b> represents the probability that "x" came from original data rather than generated data.<br>
                       &nbsp &nbsp <b>D(G(z))</b> is the factor that the Discriminator wants to minimize and the Generator wants to maximize.</p>
 
                       <p>Now let’s have a look at the Algorithm that governs the minmax game that we discussed above.</p>
-                      <img src="anujdutt9.github.io\img\GAN\3.png" alt="anujdutt9.github.io\img\GAN\3.png" width="600" align="middle">
+                      <img src="anujdutt9.github.io\img\GAN\3.png" alt="anujdutt9.github.io\img\GAN\3.png" align="middle" width="600" >
 
                       <p>As we can see from the algorithm given above, firstly the Discrimintaor is updated by ascending its stocastic gradient for "k" number of steps. For each "k" steps, the Generator Network is trained once.</p>
 
                       <p>The discriminator is optimized in order to increase the likelihood of giving a high probability to the real data and a low probability to the fake data.</p>
                       <p>The following equation, also the cost/loss equation for the Discriminator, is used to train the discriminator as shown below:</p>
 
-                      <img src="anujdutt9.github.io\img\GAN\2.png" alt="anujdutt9.github.io\img\GAN\2.png" width="500" align="middle">
+                      <img src="anujdutt9.github.io\img\GAN\2.png" alt="anujdutt9.github.io\img\GAN\2.png" align="middle" width="500">
 
                       <p>In the above equation, the aim of our optimizer is to maximize the first part of the above equation i.e. maximize(D(x)) and minimize the other term i.e. minimize(D(G(z)).<br>
                       Why do we do this? Because we know that when we train the Discriminator, it tries to make the value of D(G(z)) near to "0" and the generator tries to make the value D(G(z)) near to "1".</p>
 
                       <p>Then we optimize the Generator as discussed in order to increase the probability of data being rated highly. </p>
                       <p>The following equation is used to train the Generator: </p>
-                      <img src="anujdutt9.github.io\img\GAN\4.png" alt="anujdutt9.github.io\img\GAN\4.png" width="400" align="middle">
+                      <img src="anujdutt9.github.io\img\GAN\4.png" alt="anujdutt9.github.io\img\GAN\4.png" align="middle" width="400">
 
                       <p>While optimizing for the generator, we want to maximize the term D(G(x)).</p>
                       <p>By alternating the gradient optimizations between the Generator and the Discriminator using the above given expressions on new batch of real and generated data each time, the GAN slowly starts converging and produces data that is as realistic as the network is capable of modelling.</p>
 
                       <p>We have been talking about the Discriminator a lot in the above discussion. So, how do we define an optimal discriminator.</p>
                       <p> For a fixed Generator, the optimal discriminator is given by the following ratio:</p>
-                      <img src="anujdutt9.github.io\img\GAN\5.png" alt="anujdutt9.github.io\img\GAN\5.png" width="400" align="middle">
+                      <img src="anujdutt9.github.io\img\GAN\5.png" alt="anujdutt9.github.io\img\GAN\5.png" align="middle" width="400">
                       <p>where,<br></p>
                       &nbsp &nbsp <b>pdata</b> is the training data distribution <br>
                       &nbsp &nbsp <b>pg</b> is the generative distribution
