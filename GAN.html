@@ -102,7 +102,16 @@
 
                   <ol>
                     <li><b>Density Estimation:</b> where you take some points on a 1-D number line and fit a Gaussian (normal/bell shape) curve and fit a density function to them.</li>
+                    <figure>
+                      <center><img src="anujdutt9.github.io\img\GAN\density.png" alt="anujdutt9.github.io\img\GAN\density.png"></center>
+                      <figcaption>Fig. 1: Density Estimation using Maximum Likelihood [Source: GAN NIPS Tutorial]</figcaption>
+                    </figure>
+
                     <li><b>Sample Generation:</b> where you take a machine, observe some examples from a distribution and create some new examples from that distribution.</li>
+                    <figure>
+                      <center><img src="anujdutt9.github.io\img\GAN\sample.png" alt="anujdutt9.github.io\img\GAN\sample.png"></center>
+                      <figcaption>Fig. 2: Sample Generation</figcaption>
+                    </figure>
                   </ol>
 
                   <p>So, the first question arises that why should we study GAN's and more generally Generative Modelling?</p>
@@ -128,13 +137,13 @@
 
 		                   <p><li>Also, to make a GAN, no Markov Chains are required.</li></p>
 
-		                   <p><li>GAN's are also often regarded as producing the best samples in the output as compared to other conventional approaches. For example, in a paper by Lotter et al, 2016, it shows that when we want to generate the next frame in a video, using the conventional approaches like using the Mean Squared Error (MSE) leads to a blurry image at the output because that output is formed by averaging
+		                   <p><li>GAN's are also often regarded as producing the best samples in the output as compared to other conventional approaches. For example, in a paper by Lotter et al, 2016, it shows that when we want to generate the next video frame, using the conventional approaches like using the Mean Squared Error (MSE) leads to a blurry image at the output because that output is formed by averaging
                      over all the previous frames. In contrast to MSE, using GAN's use adversarial loss technique to generate the image and hence the image obtained at the output is crisp.</li></p>
 
                      <figure>
 
                        <center><img src="anujdutt9.github.io\img\GAN\23.png" alt="anujdutt9.github.io\img\GAN\23.png" width="400"></center>
-                       <figcaption>Fig. 1: Next Video Frame Prediction using MSE and Adversarial Network.</figcaption>
+                       <figcaption>Fig. 3: Next Video Frame Prediction using MSE and Adversarial Network [Source: GAN NIPS Tutorial].</figcaption>
                      </figure>
 
 
@@ -156,6 +165,11 @@
                     <p>As the name suggests, the goal of a discriminator is to discriminate between the real and the fake data. It is more like a binary classifier that classifies the inputs as real or from the training data and fake or generated data.<br>
                     It uses a neural network (or any other network) to learn the input functions from the data and hence during testing it can classify that whether the test data is from a training set i.e. the one it has seen earlier or the fake data.</p>
 
+                    <figure>
+                      <center><img src="anujdutt9.github.io\img\GAN\GAN.png" alt="anujdutt9.github.io\img\GAN\GAN.png" width="500"></center>
+                      <figcaption>Fig. 4: Generative Adversarial Network (GAN) Architecture. </figcaption>
+                    </figure>
+
                     <h3>Generator (G):</h3>
                     <p>As the name suggests, the goal of the generator is to generate the data similar to some models from the training data.</p>
 
@@ -173,7 +187,7 @@
 
                     <figure>
                       <img src="anujdutt9.github.io\img\GAN\11.png" alt="anujdutt9.github.io\img\GAN\11.png" align="middle" width="600", height="500">
-                      <figcaption>Fig. 2: Working of Discriminator and Generator in a Generative Adversarial Network.</figcaption>
+                      <figcaption>Fig. 5: Working of Discriminator and Generator in a Generative Adversarial Network.</figcaption>
                     </figure>
 
                     <li><p>In case of a Generator, we input the data as random noise. The generator is also a Neural Network (or any other network) which generates an output data. This data is sent to the discriminator for classification.</p></li>
