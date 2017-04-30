@@ -151,8 +151,11 @@
 
                     <h3>Generator (G):</h3>
                     <p>As the name suggests, the goal of the generator is to generate the data similar to some models from the training data.</p>
+
                     <p>So how does it actually work?</p>
+
                     <p>The input to the generator is a noise data which is almost equal to or smaller than the dimensions of the input data. The generator network also uses a neural network to generate an output data. <br>This data is then sent to the discriminator which tells that whether the data generated is real or fake and if fake then how far is it from the original/real data. This error is fed back into the neural network to learn the data representations. After some training, the generator is able to output the data that the discriminator classifies as real and the generator is able to fool the discriminator. <br>This process does not end at a single iteration. There can be thousands of iterations before the generator is able to produce data similar to the real data.</p>
+
                     <p>You can see the working of the generator as a Reinforcement Learning problem. When the discriminator classifies the generated image as fake, there is a negative reward that is awarded to the generator network. The generator network continuously tries to maximize the reward and minimize the error.</p>
 
                     <h3>GAN Working:</h3>
