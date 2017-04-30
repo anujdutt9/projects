@@ -182,16 +182,17 @@
                     </ol>
 
                       <p>In other words, <b>Discriminator (D)</b> and <b>Generator (G)</b> play a <b>two-player minimax game</b> with value function <b>V (G, D)</b> as shown below:</p>
-		      <figure>
+		      <center>
                          <img src="anujdutt9.github.io\img\GAN\1.png" alt="anujdutt9.github.io\img\GAN\1.png" align="middle" width="600" >
-		      </figure>
+		      </center>
                       <p>where,<br>
                       &nbsp &nbsp <b>D(x)</b> represents the probability that "x" came from original data rather than generated data.<br>
                       &nbsp &nbsp <b>D(G(z))</b> is the factor that the Discriminator wants to minimize and the Generator wants to maximize.</p>
 
                       <p>Now let’s have a look at the Algorithm that governs the minmax game that we discussed above.</p>
-                      <img src="anujdutt9.github.io\img\GAN\3.png" alt="anujdutt9.github.io\img\GAN\3.png" align="middle" width="600" >
-
+                      <center>
+			<img src="anujdutt9.github.io\img\GAN\3.png" alt="anujdutt9.github.io\img\GAN\3.png" align="middle" width="600" >
+		      </center>
                       <p>As we can see from the algorithm given above, firstly the Discrimintaor is updated by ascending its stocastic gradient for "k" number of steps. For each "k" steps, the Generator Network is trained once.</p>
 
                       <p>The discriminator is optimized in order to increase the likelihood of giving a high probability to the real data and a low probability to the fake data.</p>
