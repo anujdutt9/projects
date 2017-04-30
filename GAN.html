@@ -163,7 +163,7 @@
 
                     <figure>
                       <img src="anujdutt9.github.io\img\GAN\11.png" alt="anujdutt9.github.io\img\GAN\11.png" align="middle" width="600", height="500">
-                      <figcaption>Fig.1: Working of Discriminator and Generator in a Generative Adversarial Network.</figcaption>
+                      <figcaption>Fig. 1: Working of Discriminator and Generator in a Generative Adversarial Network.</figcaption>
                     </figure>
 
                     <li><p>In case of a Generator, we input the data as random noise. The generator is also a Neural Network (or any other network) which generates an output data. This data is sent to the discriminator for classification.</p></li>
@@ -182,9 +182,10 @@
                     </ol>
 
                       <p>In other words, <b>Discriminator (D)</b> and <b>Generator (G)</b> play a <b>two-player minimax game</b> with value function <b>V (G, D)</b> as shown below:</p>
-
-                      <img src="anujdutt9.github.io\img\GAN\1.png" alt="anujdutt9.github.io\img\GAN\1.png" align="middle" width="600" >
-
+		      <figure>
+                         <img src="anujdutt9.github.io\img\GAN\1.png" alt="anujdutt9.github.io\img\GAN\1.png" align="middle" width="600" >
+			 <figcaption> Fig. 2: Algorithm explaining working of GAN's.</figcaption>
+		      </figure>
                       <p>where,<br>
                       &nbsp &nbsp <b>D(x)</b> represents the probability that "x" came from original data rather than generated data.<br>
                       &nbsp &nbsp <b>D(G(z))</b> is the factor that the Discriminator wants to minimize and the Generator wants to maximize.</p>
@@ -211,8 +212,10 @@
 
                       <p>We have been talking about the Discriminator a lot in the above discussion. So, how do we define an optimal discriminator.</p>
                       <p> For a fixed Generator, the optimal discriminator is given by the following ratio:</p>
-                      <img src="anujdutt9.github.io\img\GAN\5.png" alt="anujdutt9.github.io\img\GAN\5.png" align="middle" width="400">
-                      <p>where,<br></p>
+                      <figure>
+			<img src="anujdutt9.github.io\img\GAN\5.png" alt="anujdutt9.github.io\img\GAN\5.png" align="middle" width="400">
+		      </figure>
+		      <p>where,<br></p>
                       &nbsp &nbsp <b>pdata</b> is the training data distribution <br>
                       &nbsp &nbsp <b>pg</b> is the generative distribution
 
