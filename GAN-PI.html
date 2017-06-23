@@ -102,18 +102,12 @@
 
                   <ol>
                     <li><b>Density Estimation:</b> where you take some points on a 1-D number line and fit a Gaussian (normal/bell shape) curve and fit a density function to them.</li>
-                    <figure>
-                      <center><img src="anujdutt9.github.io\img\GAN\density.png" alt="anujdutt9.github.io\img\GAN\density.png" width="500"></center>
-                      <center><figcaption><small>Fig. 1: Density Estimation using Maximum Likelihood [Source: GAN NIPS Tutorial]</small></figcaption></center>
-                    </figure>
+                    <p align='center'><img src="anujdutt9.github.io\img\GAN\density.png" alt=""></p>
 
 					<p></p>
 
                     <li><b>Sample Generation:</b> where you take a machine, observe some examples from a distribution and create some new examples from that distribution.</li>
-                    <figure>
-                      <center><img src="anujdutt9.github.io\img\GAN\sample.png" alt="anujdutt9.github.io\img\GAN\sample.png"></center>
-                      <center><figcaption><small>Fig. 2: Sample Generation</small></figcaption></center>
-                    </figure>
+                    <p align='center'><img src="anujdutt9.github.io\img\GAN\sample.png" alt=""></p>
                   </ol>
 
                   <p align='justify'>So, the first question arises that why should we study GAN's and more generally Generative Modelling?</p>
@@ -135,14 +129,9 @@
 		                  <li><p align='justify'>GAN's are also often regarded as producing the best samples in the output as compared to other conventional approaches.</p></li>
                       <p align='justify'>For example, in a paper by Lotter et al, 2016, it shows that when we want to generate the next video frame, using the conventional approaches like using the Mean Squared Error (MSE) leads to a blurry image at the output because that output is formed by averaging
                      over all the previous frames.</p>
-                     <p align='justify'>In contrast to MSE, using GAN's use adversarial loss technique to generate the image and hence the image obtained at the output is crisp.</p>
-
-                     <figure>
-                       <center><img src="anujdutt9.github.io\img\GAN\23.png" alt="anujdutt9.github.io\img\GAN\23.png" width="400"></center>
-                       <center><figcaption><small>Fig. 3: Next Video Frame Prediction using MSE and Adversarial Network [Source: GAN NIPS Tutorial]</small></figcaption></center>
-                     </figure>
-
-	                     <li><p align='justify'>GAN's or Generative Adversarial Networks take a collection of training examples and forms some representation of probability distribution. Like Variational Autoencoders are good at getting a high likelihood, GAN's can generate real life examples.</p></li>
+                      <p align='justify'>In contrast to MSE, using GAN's use adversarial loss technique to generate the image and hence the image obtained at the output is crisp.</p>
+                      <p align='center'><img src="anujdutt9.github.io\img\GAN\23.png" alt=""></p>
+                      <li><p align='justify'>GAN's or Generative Adversarial Networks take a collection of training examples and forms some representation of probability distribution. Like Variational Autoencoders are good at getting a high likelihood, GAN's can generate real life examples.</p></li>
                     </ol>
 
                     <p align='justify'>So, let's dive into the world of GAN's.</p>
@@ -159,11 +148,8 @@
                     <h3>Discriminator (D):</h3>
                     <p align='justify'>As the name suggests, the goal of a discriminator is to discriminate between the real and the fake data. It is more like a binary classifier that classifies the inputs as real or from the training data and fake or generated data.</p>
                     <p align='justify'>It uses a neural network (or any other network) to learn the input functions from the data and hence during testing it can classify that whether the test data is from a training set i.e. the one it has seen earlier or the fake data.</p>
+                    <p align='center'><img src="anujdutt9.github.io\img\GAN\GAN.png" alt=""></p>
 
-                    <figure>
-                      <center><img src="anujdutt9.github.io\img\GAN\GAN.png" alt="anujdutt9.github.io\img\GAN\GAN.png" width="500"></center>
-                      <center><figcaption><small>Fig. 4: Generative Adversarial Network (GAN) Architecture</small></figcaption></center>
-                    </figure>
 
                     <h3>Generator (G):</h3>
                     <p align='justify'>As the name suggests, the goal of the generator is to generate the data similar to some models from the training data.</p>
@@ -178,16 +164,12 @@
                     <p>The figure below shows and summarizes the working of the Discriminator and a Generator in a GAN:</p>
                     <ol>
                         <li>Firstly we take the training data and take a sample "x" from it. This data is input to a Discriminator which is essentially a Neural Network (or any other network). This network gets trained on the trainig data and hence, on the output the discriminator D(x) tries to classify each of the training samples as "1" i.e. real/original data.</li>
-
-                    <figure>
-                      <img src="anujdutt9.github.io\img\GAN\11.png" alt="anujdutt9.github.io\img\GAN\11.png" align="middle" width="600", height="500">
-                      <center><figcaption><small>Fig. 5: Working of Discriminator and Generator in a Generative Adversarial Network</small></figcaption></center>
-                    </figure>
-
-                    <li>In case of a Generator, we input the data as random noise. The generator is also a Neural Network (or any other network) which generates an output data. This data is sent to the discriminator for classification.</li>
-                    <li>The Discriminator (D) tries to make the factor D(G(z)) as near to zero i.e. fake data detected whereas the Generator tries to make the factor D(G(z)) as near to "1" as possible i.e. the discriminator is fooled by the generator's output.</li>
-                    <li>Finally, at the end, both of thm settle down at a point called the saddle point. This point is where the Discriminator classifies the generated images as real rather than fake.</li>
+                        <p align='center'><img src="anujdutt9.github.io\img\GAN\11.png" alt=""></p>
+                        <li>In case of a Generator, we input the data as random noise. The generator is also a Neural Network (or any other network) which generates an output data. This data is sent to the discriminator for classification.</li>
+                        <li>The Discriminator (D) tries to make the factor D(G(z)) as near to zero i.e. fake data detected whereas the Generator tries to make the factor D(G(z)) as near to "1" as possible i.e. the discriminator is fooled by the generator's output.</li>
+                        <li>Finally, at the end, both of thm settle down at a point called the saddle point. This point is where the Discriminator classifies the generated images as real rather than fake.</li>
                     </ol>
+
 
                     <h3>Mathematical Notations:</h3>
                     <ol>
@@ -200,41 +182,28 @@
                     </ol>
 
                       <p align='justify'>In other words, <b>Discriminator (D)</b> and <b>Generator (G)</b> play a <b>two-player minimax game</b> with value function <b>V (G, D)</b> as shown below:</p>
-		                    <center>
-                         <img src="anujdutt9.github.io\img\GAN\1.png" alt="anujdutt9.github.io\img\GAN\1.png" align="middle" width="600" >
-		                     </center>
+                      <p align='center'><img src="anujdutt9.github.io\img\GAN\1.png" alt=""></p>
                       <p align='justify'>where,</p>
                       &nbsp &nbsp <b>D(x)</b> represents the probability that "x" came from original data rather than generated data.<br>
                       &nbsp &nbsp <b>D(G(z))</b> is the factor that the Discriminator wants to minimize and the Generator wants to maximize.</p>
 
                       <p align='justify'>Now let’s have a look at the Algorithm that governs the minmax game that we discussed above.</p>
-                      <center>
-			                     <img src="anujdutt9.github.io\img\GAN\3.png" alt="anujdutt9.github.io\img\GAN\3.png" align="middle" width="600" >
-		                  </center>
+                      <p align='center'><img src="anujdutt9.github.io\img\GAN\3.png" alt=""></p>
                       <p align='justify'>As we can see from the algorithm given above, firstly the Discrimintaor is updated by ascending its stocastic gradient for "k" number of steps. For each "k" steps, the Generator Network is trained once.</p>
-
                       <p align='justify'>The discriminator is optimized in order to increase the likelihood of giving a high probability to the real data and a low probability to the fake data.</p>
                       <p align='justify'>The following equation, also the cost/loss equation for the Discriminator, is used to train the discriminator as shown below:</p>
-
-                      <center>
-                      <img src="anujdutt9.github.io\img\GAN\2.png" alt="anujdutt9.github.io\img\GAN\2.png" align="middle" width="500">
-                      </center>
-
+                      <p align='center'><img src="anujdutt9.github.io\img\GAN\2.png" alt=""></p>
                       <p align='justify'>In the above equation, the aim of our optimizer is to maximize the first part of the above equation i.e. maximize(D(x)) and minimize the other term i.e. minimize(D(G(z)).<br>
                       Why do we do this? Because we know that when we train the Discriminator, it tries to make the value of D(G(z)) near to "0" and the generator tries to make the value D(G(z)) near to "1".</p>
 
                       <p align='justify'>Then we optimize the Generator as discussed in order to increase the probability of data being rated highly. </p>
                       <p align='justify'>The following equation is used to train the Generator: </p>
-                      <center><img src="anujdutt9.github.io\img\GAN\4.png" alt="anujdutt9.github.io\img\GAN\4.png" align="middle" width="400"></center>
-
+                      <p align='center'><img src="anujdutt9.github.io\img\GAN\4.png" alt=""></p>
                       <p align='justify'>While optimizing for the generator, we want to maximize the term D(G(x)).</p>
                       <p align='justify'>By alternating the gradient optimizations between the Generator and the Discriminator using the above given expressions on new batch of real and generated data each time, the GAN slowly starts converging and produces data that is as realistic as the network is capable of modelling.</p>
-
                       <p align='justify'>We have been talking about the Discriminator a lot in the above discussion. So, how do we define an optimal discriminator.</p>
                       <p align='justify'> For a fixed Generator, the optimal discriminator is given by the following ratio:</p>
-                      <center>
-			                   <img src="anujdutt9.github.io\img\GAN\5.png" alt="anujdutt9.github.io\img\GAN\5.png" align="middle" width="400">
-		                  </center>
+                      <p align='center'><img src="anujdutt9.github.io\img\GAN\5.png" alt=""></p>
 		                  <p>where,</p>
                       &nbsp &nbsp <b>pdata</b> is the training data distribution <br>
                       &nbsp &nbsp <b>pg</b> is the generative distribution
@@ -248,7 +217,6 @@
                       <p align='justify'>The discriminator and generator are trained in an alternating fashion. Over time the discriminator learns ways to discriminate between the real data and the fake data. This helps making the generator more robust.</p>
                       <p align='justify'>Also, note that some people also like to train these networks in a different way. In this approach, for each "n" number of iterations of the discriminator, we train the generator once, thereby making both the generator and the discriminator more robust.</p>
                       <p align='justify'>The only drawback of this approach is that it takes a lot of time and iterations before the generator fools the discriminator. In more common terms, the generator and discriminator can be seen as playing a min-max game using a feed forward neural network.</p>
-
                       <p align='justify'>Following are the steps used to train a GAN:</p>
 
                       <ol>
