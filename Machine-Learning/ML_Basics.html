@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Intro to ML #1: ML Basics</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Theme CSS -->
+    <link href="css/clean-blog.min.css" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+</head>
+
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    Menu <i class="fa fa-bars"></i>
+                </button>
+                <!--<a class="navbar-brand" href="index.html">Start Bootstrap</a> -->
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="index.html">Home</a>
+                    </li>
+                    <li>
+                        <a href="about.html">About</a>
+                    </li>
+                    <li>
+                        <a href="index.html">Blog</a>
+                    </li>
+                    <li>
+                        <a href="http://www.anujdutt.com.s3-website-us-east-1.amazonaws.com/">Profile</a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Page Header -->
+    <!-- Set your background image for this header on the line below. -->
+    <header class="intro-header" style="background-image: url('img/cover.png')">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <div class="post-heading">
+                        <h1>Intro to Machine Learning:</h1>
+                        <h1>Machine Learning Basics</h1>
+                        <h2 class="subheading">Intro to Basics of Supervised vs Unsupervised, Classification vs Regression</h2>
+                        <span class="meta">Posted on June 18, 2017</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Post Content -->
+    <article>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+
+                  <p><b>Hello Everyone !!!</b></p>
+                  <p>Thanks for continuing with this post.</p>
+
+                  <p align='justify'> Before we get started and dive deep into the Machine Learning Algorithms and their working, let's get to know what are the various types of Machine Learning Algorithms first.</p>
+
+                  <p align='justify'>Machine Learning Algorithms can broadly divided into two categories:</p>
+
+                  <ol>
+                    <li>Supervised Learning</li>
+                    <li>Unsupervised Learning</li>
+                  </ol>
+
+                  <h3>Supervised Learning:</h3>
+                  <p align='justify'>This is a type of Machine Learning in which all the data points in the dataset are labelled i.e. for every input <b>x</b> there is an output <b>y</b>. The aim in such type of Machine Learning Algorithms is to find/estimate the label of new data points using the hypothesis formed using the given labelled dataset.</p>
+                  <p align='justify'>One good example of this type of Machine Learning is <b>Handwritten Digit Recognition</b> using MNIST dataset.</p>
+                  <p align='center'><img src="http://multithreaded.stitchfix.com/assets/images/blog/chainer-post/MNIST.png" alt=""></p>
+                  <p align='justify'>In this, the aim is to predict the labels for the images of digits using the hypothesis formed by training on the training dataset. The training dataset is image of digits as 28x28 matrix each accompanied with the corresponding label i.e. the digit in the image.</p>
+                  <p align='justify'>Another very common example of this type of Machine Learning is <b>Breast Tumor Problem</b>. In this problem the aim is to classify that whether the Tumor is Malignant or Benign based upon its size and using the hypothesis learned from the training data.</p>
+                  <p align='justify'>One more thing to learn before we move ahead. We have been talking a lot about the <b>hypothesis</b> in the above discussion. But what is it afterall ??</p>
+                  <p align='justify'>A <b>Hypothesis</b> can be thought of a function, something like, for example,</p>
+                  <p align='center'><b>y = mx + b</b></p>
+                  <p>where,</p>
+                  <p><b>x:</b> is the input data or the <b>features</b> in a dataset</p>
+                  <p><b>y:</b> represents the <b>labels</b> in the dataset</p>
+                  <p><b>m</b> & <b>b</b>: represent the slope and the y-intercept or in terms of Machine Learning we call these as <b>Hyperparameters</b>.</p>
+                  <p align='center'><img src="anujdutt9.github.io/img/Machine-Learning/SL.png" alt=""></p>
+                  <p align='justify'>Hence, the Hypothesis is formed by learning these Hyperparameters on the training data. For new data points, we use this Hypothesis to predict the label or if we see in terms of the equation shown above, the aim is to get values of <b>y</b> corresponding to new values of <b>x</b> using the trained Hyperparameters.</p>
+
+
+                  <h3>Unsupervised Learning:</h3>
+                  <p align='justify'>So after <b>Supervised Learning</b>, we move to second type of Machine Learning Algorithms called the <b>Unsupervised Learning</b>. So waht is <b>Unsupervised Learning ??</b> Yes, you guessed it right. In this, we don't have any labelled data. Hence, given an unlabelled dataset, we try to find patterns in the data maybe by clustering the data with similar features or finding some pattern in the data.</p>
+                  <p align='justify'>Let us consider an example of Unsupervised Learning. Say, if we are given an unlabelled dataset of images of shoes, shirts and pants i.e. no labels for the images as in MNIST dataset. Hence, how do we find out the label for a new input image ?? One way is that we group the thing looking like the same in images like group shoes , shirts and pants seperately and classify the new image to one of the groups.</p>
+                  <p align='justify'>Hence, this way without having the labels, we have classified the new data.</p>
+
+                  <h3>Classification:</h3>
+                  <p align='justify'>Did you noticed that in above discussions, we used a terminology "Classification" and "Classifier". I think it'll be good for us to know about these now than later on.</p>
+                  <p align='justify'><b>Classification</b>, as the name suggests, is used for classiying the data points into labels or classes. One example of classification is predicting the label for the images from MNIST dataset or telling if the Tumor is Malignant or Benign based on its size.</p>
+                  <p align='center'><img src="https://wingshore.files.wordpress.com/2014/11/tumor2.png" alt=""></p>
+
+                  <h3>Regression:</h3>
+                  <p align='justify'><b>Regresion</b>, unlike Classification is used when we need a continuous output value rther than discrete value. For example, given the price of a house corresponding to its square foot area, if we need to find the price of a new house, then we will</p>
+                  <p align='center'><img src="https://blog.knowledgent.com/wp-content/uploads/2015/11/Linear_Photo2.jpg" alt=""></p>
+                  <p align='justify'>use Regression as we don't want a classification like a Yes or No or a label, but we want a continuous valued output i.e the Price.</p>
+
+                  <p align='justify'><b><i>Great work on completing this tutorial, let's move to <a href="#"><b>Introduction to Machine Learning: Linear Regression</b></a></i></b></p>
+					        <p align='justify'><b><i> For more projects and code, follow me on <a href="https://github.com/anujdutt9">Github</a></i></b></p>
+                  <p align='justify'><b>Please feel free to leave any comments, suggestions, corrections if any, below.</b></p>
+                </div>
+            </div>
+        </div>
+    </article>
+
+    <hr>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <ul class="list-inline text-center">
+                        <li>
+                            <a href="https://twitter.com/MaverickGoose9">
+                                <span class="fa-stack fa-lg">
+                                    <i class="fa fa-circle fa-stack-2x"></i>
+                                    <i class="fa fa-twitter fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.facebook.com/anuj.dutt">
+                                <span class="fa-stack fa-lg">
+                                    <i class="fa fa-circle fa-stack-2x"></i>
+                                    <i class="fa fa-facebook fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/anujdutt9">
+                                <span class="fa-stack fa-lg">
+                                    <i class="fa fa-circle fa-stack-2x"></i>
+                                    <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li>
+						<li>
+                            <a href="https://www.linkedin.com/in/anuj-dutt-a0230b54/">
+                                <span class="fa-stack fa-lg">
+                                    <i class="fa fa-circle fa-stack-2x"></i>
+                                    <i class="fa fa-linkedin fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li>
+
+                    </ul>
+                    <p class="copyright text-muted">Copyright &copy; anujdutt9.github.io 2017</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="vendor/jquery/jquery.min.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="vendor/bootstrap/js/bootstrap.min.js"></script>
+
+    <!-- Contact Form JavaScript -->
+    <script src="js/jqBootstrapValidation.js"></script>
+    <script src="js/contact_me.js"></script>
+
+    <!-- Theme JavaScript -->
+    <script src="js/clean-blog.min.js"></script>
+
+</body>
+</html>
