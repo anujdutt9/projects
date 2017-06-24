@@ -102,12 +102,12 @@
 
                   <ol>
                     <li><b>Density Estimation:</b> where you take some points on a 1-D number line and fit a Gaussian (normal/bell shape) curve and fit a density function to them.</li>
-                    <p align='center'><img src="anujdutt9.github.io\img\GAN\density.png" alt="" height='42' width='42'></p>
+                    <p align='center'><img src="https://ai2-s2-public.s3.amazonaws.com/figures/2016-11-08/172d19688ebac586cda9cc291816b5bba4b81f41/9-Figure8-1.png" alt="" height='500' width='500'></p>
 
 					<p></p>
 
                     <li><b>Sample Generation:</b> where you take a machine, observe some examples from a distribution and create some new examples from that distribution.</li>
-                    <p align='center'><img src="anujdutt9.github.io\img\GAN\sample.png" alt=""></p>
+                    <p align='center'><img src="https://mingliblog.files.wordpress.com/2017/01/gan-samples-1.png?w=840" alt=""></p>
                   </ol>
 
                   <p align='justify'>So, the first question arises that why should we study GAN's and more generally Generative Modelling?</p>
@@ -130,7 +130,7 @@
                       <p align='justify'>For example, in a paper by Lotter et al, 2016, it shows that when we want to generate the next video frame, using the conventional approaches like using the Mean Squared Error (MSE) leads to a blurry image at the output because that output is formed by averaging
                      over all the previous frames.</p>
                       <p align='justify'>In contrast to MSE, using GAN's use adversarial loss technique to generate the image and hence the image obtained at the output is crisp.</p>
-                      <p align='center'><img src="anujdutt9.github.io\img\GAN\23.png" alt=""></p>
+                      <p align='center'><img src="https://s3-ap-south-1.amazonaws.com/av-blog-media/wp-content/uploads/2017/06/11191244/a2.png" alt=""></p>
                       <li><p align='justify'>GAN's or Generative Adversarial Networks take a collection of training examples and forms some representation of probability distribution. Like Variational Autoencoders are good at getting a high likelihood, GAN's can generate real life examples.</p></li>
                     </ol>
 
@@ -148,7 +148,7 @@
                     <h3>Discriminator (D):</h3>
                     <p align='justify'>As the name suggests, the goal of a discriminator is to discriminate between the real and the fake data. It is more like a binary classifier that classifies the inputs as real or from the training data and fake or generated data.</p>
                     <p align='justify'>It uses a neural network (or any other network) to learn the input functions from the data and hence during testing it can classify that whether the test data is from a training set i.e. the one it has seen earlier or the fake data.</p>
-                    <p align='center'><img src="anujdutt9.github.io\img\GAN\GAN.png" alt=""></p>
+                    <p align='center'><img src="http://www.kdnuggets.com/wp-content/uploads/generative-adversarial-network.png" alt=""></p>
 
 
                     <h3>Generator (G):</h3>
@@ -163,32 +163,32 @@
                     <h3>GAN Working:</h3>
                     <p>The figure below shows and summarizes the working of the Discriminator and a Generator in a GAN:</p>
                     <ol>
-                        <li>Firstly we take the training data and take a sample "x" from it. This data is input to a Discriminator which is essentially a Neural Network (or any other network). This network gets trained on the trainig data and hence, on the output the discriminator D(x) tries to classify each of the training samples as "1" i.e. real/original data.</li>
-                        <p align='center'><img src="anujdutt9.github.io\img\GAN\11.png" alt=""></p>
-                        <li>In case of a Generator, we input the data as random noise. The generator is also a Neural Network (or any other network) which generates an output data. This data is sent to the discriminator for classification.</li>
-                        <li>The Discriminator (D) tries to make the factor D(G(z)) as near to zero i.e. fake data detected whereas the Generator tries to make the factor D(G(z)) as near to "1" as possible i.e. the discriminator is fooled by the generator's output.</li>
-                        <li>Finally, at the end, both of thm settle down at a point called the saddle point. This point is where the Discriminator classifies the generated images as real rather than fake.</li>
+                        <li><p align='justify'>Firstly we take the training data and take a sample "x" from it. This data is input to a Discriminator which is essentially a Neural Network (or any other network). This network gets trained on the trainig data and hence, on the output the discriminator D(x) tries to classify each of the training samples as "1" i.e. real/original data.</p></li>
+                        <p align='center'><img src="https://wiki.tum.de/download/attachments/23562510/GAN%20model.png?version=1&modificationDate=1484578959557&api=v2" alt="" height='600' width='600'></p>
+                        <li><p align='justify'>In case of a Generator, we input the data as random noise. The generator is also a Neural Network (or any other network) which generates an output data. This data is sent to the discriminator for classification.</p></li>
+                        <li><p align='justify'>The Discriminator (D) tries to make the factor D(G(z)) as near to zero i.e. fake data detected whereas the Generator tries to make the factor D(G(z)) as near to "1" as possible i.e. the discriminator is fooled by the generator's output.</p></li>
+                        <li><p align='justify'>Finally, at the end, both of thm settle down at a point called the saddle point. This point is where the Discriminator classifies the generated images as real rather than fake.</p></li>
                     </ol>
 
 
                     <h3>Mathematical Notations:</h3>
                     <ol>
-                        <li>Let us consider two random variables "x" and "y" where "x" represents the observed or the real data and "y" represents the target or generated data.</li>
-                        <li>Then, the joint distribution for x and y is given as P(x,y) where P(x,y) is the probability density over the two variables.</li>
-                        <li>A Discriminator evaluates the conditional probability P(y|x) i.e. probability of y given x. Ex. given the input vector of pixels from MNIST dataset, what is the probability that y = 1 i.e. the label of the pixel values is "1".</li>
-                        <li>On the other hand a Generator model allows us to evaluate the joint probability P(x,y).</li>
-                        <li>This shows that we can propose value pairs of the form (x,y) and do rejection sampling to obtain samples x and y from P(x,y) or in simple terms you can say that we can input a random number of form [0,1] and output a picture of a bird.</li>
-                        <li>In practice, the discriminator takes as input a set of random data which can be either real (x) or generated (G(z)) where "z" is the random noise data, and it produces the probability of the generator data being real (P(x)).</li>
+                        <li><p align='justify'>Let us consider two random variables "x" and "y" where "x" represents the observed or the real data and "y" represents the target or generated data.</p></li>
+                        <li><p align='justify'>Then, the joint distribution for x and y is given as P(x,y) where P(x,y) is the probability density over the two variables.</p></li>
+                        <li><p align='justify'>A Discriminator evaluates the conditional probability P(y|x) i.e. probability of y given x. Ex. given the input vector of pixels from MNIST dataset, what is the probability that y = 1 i.e. the label of the pixel values is "1".</p></li>
+                        <li><p align='justify'>On the other hand a Generator model allows us to evaluate the joint probability P(x,y).</p></li>
+                        <li><p align='justify'>This shows that we can propose value pairs of the form (x,y) and do rejection sampling to obtain samples x and y from P(x,y) or in simple terms you can say that we can input a random number of form [0,1] and output a picture of a bird.</p></li>
+                        <li><p align='justify'>In practice, the discriminator takes as input a set of random data which can be either real (x) or generated (G(z)) where "z" is the random noise data, and it produces the probability of the generator data being real (P(x)).</p></li>
                     </ol>
 
                       <p align='justify'>In other words, <b>Discriminator (D)</b> and <b>Generator (G)</b> play a <b>two-player minimax game</b> with value function <b>V (G, D)</b> as shown below:</p>
-                      <p align='center'><img src="anujdutt9.github.io\img\GAN\1.png" alt=""></p>
+                      <p align='center'><img src="anujdutt9.github.io\img\GAN\1.png" alt="" width='500'></p>
                       <p align='justify'>where,</p>
                       &nbsp &nbsp <b>D(x)</b> represents the probability that "x" came from original data rather than generated data.<br>
                       &nbsp &nbsp <b>D(G(z))</b> is the factor that the Discriminator wants to minimize and the Generator wants to maximize.</p>
 
                       <p align='justify'>Now let’s have a look at the Algorithm that governs the minmax game that we discussed above.</p>
-                      <p align='center'><img src="anujdutt9.github.io\img\GAN\3.png" alt=""></p>
+                      <p align='center'><img src="anujdutt9.github.io\img\GAN\3.png" alt="" width='500'></p>
                       <p align='justify'>As we can see from the algorithm given above, firstly the Discrimintaor is updated by ascending its stocastic gradient for "k" number of steps. For each "k" steps, the Generator Network is trained once.</p>
                       <p align='justify'>The discriminator is optimized in order to increase the likelihood of giving a high probability to the real data and a low probability to the fake data.</p>
                       <p align='justify'>The following equation, also the cost/loss equation for the Discriminator, is used to train the discriminator as shown below:</p>
