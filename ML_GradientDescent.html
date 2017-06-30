@@ -9,7 +9,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>Intro to ML #3: Linear Regression Theory</title>
+    <title>Intro to ML #4: Gradient Descent for Linear Regression</title>
 
     <!-- Bootstrap Core CSS -->
     <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
@@ -74,9 +74,9 @@
             <div class="row">
                 <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
                     <div class="post-heading">
-                        <h1>Intro to Machine Learning: Linear Regression</h1>
-                        <h2 class="subheading">Theory and Mathematics behind Linear Regression.</h2>
-                        <span class="meta">Posted on June 24, 2017</span>
+                        <h1>Intro to Machine Learning: Gradient Descent for Linear Regression</h1>
+                        <h2 class="subheading">Theory and Mathematics behind Gradient Descent for Linear Regression.</h2>
+                        <span class="meta">Posted on June 30, 2017</span>
                     </div>
                 </div>
             </div>
@@ -88,68 +88,16 @@
         <div class="container">
             <div class="row">
                 <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                  <p><b><i>Coming Soon !!!</i></b></p>
 
-                  <p><b>Hello Everyone !!</b></p>
+                  <!-- <p><b>Hello Everyone !!</b></p>
                   <p>Thanks for continuing with this post.</p>
 
                   <p align='justify'>In the last post, we discussed about the basics of Machine Learning i.e. the types of Machine Learning Algorithms. We briefly went over the <b>Supervised</b> and <b>Unsupervised Learning</b>. We also went over <b>Classification</b> and <b>Regression</b> and the difference between them.</p>
                   <p align='justify'>In this post, we will study about the theory and mathematics behind <b>Linear Regression</b> and then further go ahead and write the code from scratch using an example dataset.</p>
 
 
-                  <h3>Linear Regression:</h3>
-                  <p align='justify'>So, what is Linear Regression!! Let's start from a definition. Wikipedia defines Linear Regression as follows:</p>
-                  <p align='justify'><blockquote cite="https://en.wikipedia.org/wiki/Linear_regression">In statistics, linear regression is an approach for modeling the relationship between a scalar dependent variable y and one or more explanatory variables (or independent variables) denoted X. The case of one explanatory variable is called simple linear regression. For more than one explanatory variable, the process is called multiple linear regression.</blockquote></p>
-                  <p align='justify'><b>Linear Regression</b> is the oldest, simplest and the most widely used predictive model in the field of machine learning.</p>
-                  <p align='justify'>So, what is the aim of <b>Linear Regression</b> ?? Well, its aim is to fit a straight line for the given data points by minimizing the sum of squared errors. This line is called as the <b>"Best Fit Line"</b>.</p>
-                  <p align='center'><img src="https://i.stack.imgur.com/u5HhK.png" alt=""></p>
-                  <p align='justify'>You would think what is the benefit of getting a Best Fit Line ?? Well, if we can fit a straight line through the data, then for new input value of say, <b>x</b>, we can predict the new value of <b>y</b> i.e. given the square footage of a new house, we can estimate the price of the house.</p>
-                  <p align='justify'>Have we seen any example of this algorithm in the previous posts ?? Well if you remember the example of Regression for predicting price of house using square footage as input, the image shows a straight line for a scatterplot of data points.</p>
-                  <p align='center'><img src="https://blog.knowledgent.com/wp-content/uploads/2015/11/Linear_Photo2.jpg" alt="" height=500 width=700></p>
-                  <p align='justify'>This line that best fits/represents the data is called a <b>Best Fit Line</b>.</p>
-                  <p align='justify'>In this post, we will firstly discuss <b>Linear Regression for Single/One Variable</b> and later on move on to <b>Linear Regression using Multiple Variables</b>.</p>
-
-                  <h3>Linear Regression with One Variable:</h3>
-                  <p align='justify'>If we see the Wikipedia definition for Linear Regression shown above, we can see that the aim of <b>Linear Regression</b> is to model a relationship between a dependent variable <b>y</b> and one or more explanatory variables <b>x</b>.</p>
-                  <p align='justify'>So, lets go back to school. We know that a straight line with one variable can be represented by the equation:</p>
-                  <p align='center'><b>y = mx + b</b></p>
-                  <p align='justify'><b>Linear Regression with One Variable</b> uses this same equation to get a best fit line for the given data points. We can get the values of <b>x</b> and <b>y</b> from input data as we are given the data points and hence, plot a straight line.</p>
-
-
-                  <h3>Linear Regression with Multiple Varibles:</h3>
-                  <p align='justify'>Before moving to calculation of error, mean and bias, let's also have a look at <b>Linear Regression with Multiple Variables</b> and see that how it is different from <b>Linear Regression with One Variable</b> as the calculations for both of them will not change much.</p>
-                  <p align='justify'>As the name tells, the equation for a stright line has multiple variables. The equation for one variable can be written for multiple variables as:</p>
-                  <p align='center'>y = m1x1 + m2x2 + m3x3 + b</p>
-                  <p align='justify'> where <b>m1</b>, <b>m2</b>, <b>m3</b> are the coefficients, <b>x1</b>, <b>x2</b>, <b>x3</b> are the variables and <b>b</b> is the bias. The aim in this remains the same i.e. to get a "Best Fit Line" using the data points.</p>
-
-
-                  <h3>Estimating Slope and Bias:</h3>
-                  <p align='justify'>We talked about the equations for one and multiple variables. But wait a minute !! We still don't know the values of <b>m</b> and <b>b</b> !! So how to find these values ?? Well this part is the heart of this algorithm. But before that, what is <b>m</b> and <b>b</b> ?? <b>m</b> is called the slope of the line and <b>b</b> represents the bias.</p>
-                  <p align='justify'>So, back to the main topic. How to find the values of <b>m</b> and <b>b</b>. Well, these values are estimated from the input data points during the process called Training. As we discussed above that <b>m</b> is the slope for the Best Fit Line and <b>b</b> is the bias. So, what is the equation for <b>m</b> and <b>b</b> for the Best Fit Line given the input data variables <b>x</b> and <b>y</b> ??</p>
-                  <p align='justify'>The equation for slope of a <b>Best Fit Line</b> is given as:</p>
-                  <p align='center'><img src="img/Machine-Learning/m.png" alt=""></p>
-                  <p align='justify'>i.e. Mean of <b>x</b> multiplied with mean of <b>y</b> minus mean of product of <b>x</b> and <b>y</b>. This is divided by <b>square of mean of x</b> minus the mean of <b>x squared</b>.</p>
-                  <p align='justify'>Now that we have got the value of <b>m</b>, we want the value of <b>b</b>. The bias, <b>b</b> is given by the equation:</p>
-                  <p align='center'><img src="img/Machine-Learning/b.png" alt=""></p>
-                  <p align='justify'>i.e. Mean of <b>y</b> minus <b>slope (m)</b> multiplied by the mean of <b>x</b>.</p>
-                  <p align='justify'>Now you would say that we have got the values of <b>m</b> and <b>b</b>, now we can easily plot the values using these values of m and b and get the <b>Best Fit Line</b>. Not that easy !! Is this line really a "Best Fit Line" ?? How do we know that this line perfectly fits the given data points ??</p>
-                  <p align='justify'>To find out that how good of a fit is this line that we just got, there should be some sort of a metric that gives us the cost or the error for the "Best Fit Line". In this tutorial, we'll be using <b>Squared Error</b> to find out that by how much does our line miss the Best Fit Line or the accuracy of the line.</p>
-
-
-                  <h3>Error Calculation: R-Squared Error</h3>
-                  <p align='justify'>In this, we calculate the error by finding the distance between the data points and the initial line that we plot using the values of m and b obtained.</p>
-                  <p align='justify'>Now you would ask, why square of error. Can it not be used as it is ?? As we said above, the error is the distance of points from the line and the points can be both above and below the line i.e the distance can be both +ve as well as -ve. Hence, using square of the error helps us to make the -ve values +ve and secondly, it helps to penalize the equation for outliers i.e. the values which are very far from the line.</p>
-                  <p align='center'><img src="img/Machine-Learning/out.png" alt=""></p>
-                  <p align='justify'>Now why would we do that ?? Well, we want to fit a straight line and hence, we would like to have linear data. Having an outlier does not helps in fitting a line and hence should be neglected.</p>
-                  <p align='justify'>So, now to the mathematics. The <b>R-Squared Error</b> is given by the equation:</p>
-                  <p align='center'><img src="img/Machine-Learning/r.png" alt=""></p>
-                  <p align='justify'>where Squared_Error is given as:</p>
-                  <p align='center'><img src="img/Machine-Learning/sq.png" alt=""></p>
-                  <p align='justify'>and <b>y_hat</b> are the predicted values using <b>m</b> and <b>b</b> that we just derived above.</p>
-                  <p align='justify'>On calculating the R-Squared Error, the more the value is near to "1", the more accurate the line is. But why ?? Because we are subtracting the error from 1 and hence the value obtained will be the accuracy of the line (y_hat) that we just plot.</p>
-                  <p align='justify'>Now we have found the accuracy of the line. But this method is still hard coded as there is no way we can make any changes to improve the accuracy of the line.</p>
-                  <p align='justify'>Hence, now I would like to introduce the concept of <b>Gradient Descent</b>.</p>
-
-                  <!-- <h3>Gradient Descent:</h3>
+                  <h3>Gradient Descent:</h3>
                   <p align='justify'>Till now, we have talked about the error, mean, bias etc. But, what is the aim while calculating the error ?? Well, ofcourse we don't want it to increase. Who would want that !! We want to minimize/decrease the error.</p>
                   <p align='justify'>But, the calculations that we have done till now are all hard coded and hence, there is no way to minimize the error or in other words optimize the model further. So, what can we do ??</p>
                   <p align='justify'>Gradient Descent to the rescue.</p>
@@ -158,9 +106,61 @@
                   <p align='center'><img src="https://res.cloudinary.com/ritchieng/image/upload/v1494072056/gradient_descent_6_5_2017_d7bd5z.jpg" alt="" width=600></p> -->
 
 
-                  <p align='justify'>Now that we have covered some of the basics of Linear Regression, I think its now time to optimize this algorithm using <b>Gradient Descent</b>.</p>
 
-                  <p align='justify'><b><i>Great work on completing this tutorial, let's move to the next tutorial in series, <a href="ML_GradientDescent.html"><b>Introduction to Machine Learning: Gradient Descent for Linear Regression</b></a></i></b></p>
+
+
+
+
+                  <!-- <p><b>Hello Everyone !!!</b></p> -->
+<!--
+                  <p align='justify'> Before we get started and dive deep into the Machine Learning Algorithms and their working, let's get to know what are the various types of Machine Learning Algorithms first.</p>
+
+                  <p align='justify'>Machine Learning Algorithms can broadly divided into two categories:</p>
+
+                  <ol>
+                    <li>Supervised Learning</li>
+                    <li>Unsupervised Learning</li>
+                  </ol>
+
+                  <h3>Supervised Learning:</h3>
+                  <p align='justify'>This is a type of Machine Learning in which all the data points in the dataset are labelled i.e. for every input <b>x</b> there is an output <b>y</b>. The aim in such type of Machine Learning Algorithms is to find/estimate the label of new data points using the hypothesis formed using the given labelled dataset.</p>
+                  <p align='justify'>One good example of this type of Machine Learning is <b>Handwritten Digit Recognition</b> using MNIST dataset.</p>
+                  <p align='center'><img src="http://multithreaded.stitchfix.com/assets/images/blog/chainer-post/MNIST.png" alt=""></p>
+                  <p align='justify'>In this, the aim is to predict the labels for the images of digits using the hypothesis formed by training on the training dataset. The training dataset is image of digits as 28x28 matrix each accompanied with the corresponding label i.e. the digit in the image.</p>
+                  <p align='justify'>Another very common example of this type of Machine Learning is <b>Breast Tumor Problem</b>. In this problem the aim is to classify that whether the Tumor is Malignant or Benign based upon its size and using the hypothesis learned from the training data.</p>
+                  <p align='justify'>One more thing to learn before we move ahead. We have been talking a lot about the <b>hypothesis</b> in the above discussion. But what is it afterall ??</p>
+                  <p align='justify'>A <b>Hypothesis</b> can be thought of a function, something like, for example,</p>
+                  <p align='center'><b>y = mx + b</b></p>
+                  <p>where,</p>
+                  <p><b>x:</b> is the input data or the <b>features</b> in a dataset</p>
+                  <p><b>y:</b> represents the <b>labels</b> in the dataset</p>
+                  <p><b>m</b> & <b>b</b>: represent the slope and the y-intercept or in terms of Machine Learning we call these as <b>Hyperparameters</b>.</p>
+                  <p align='center'><img src="anujdutt9.github.io/img/Machine-Learning/SL.png" alt=""></p>
+                  <p align='justify'>Hence, the Hypothesis is formed by learning these Hyperparameters on the training data. For new data points, we use this Hypothesis to predict the label or if we see in terms of the equation shown above, the aim is to get values of <b>y</b> corresponding to new values of <b>x</b> using the trained Hyperparameters.</p>
+
+
+                  <h3>Unsupervised Learning:</h3>
+                  <p align='justify'>So after <b>Supervised Learning</b>, we move to second type of Machine Learning Algorithms called the <b>Unsupervised Learning</b>. So waht is <b>Unsupervised Learning ??</b> Yes, you guessed it right. In this, we don't have any labelled data. Hence, given an unlabelled dataset, we try to find patterns in the data maybe by clustering the data with similar features or finding some pattern in the data.</p>
+                  <p align='justify'>Let us consider an example of Unsupervised Learning. Say, if we are given an unlabelled dataset of images of shoes, shirts and pants i.e. no labels for the images as in MNIST dataset.</p>
+                  <p align='justify'>Hence, how do we find out the label for a new input image ?? One way is that we group the thing looking like the same in images like group shoes , shirts and pants seperately and classify the new image to one of the groups.</p>
+                  <p align='center'><img src="img/Machine-Learning/UL.jpg" alt=""></p>
+                  <p align='justify'>So, this way without having the labels, we have classified the new data.</p>
+                  <p align='justify'>Did you noticed that in above discussions, we used a terminology "Classification" and "Classifier". I think it'll be good for us to know about these now than later on.</p>
+
+                  <h3>Classification:</h3>
+                  <p align='justify'><b>Classification</b>, as the name suggests, is used for classiying the data points into labels or classes. One example of classification is predicting the label for the images from MNIST dataset or telling if the Tumor is Malignant or Benign based on its size.</p>
+                  <p align='center'><img src="https://wingshore.files.wordpress.com/2014/11/tumor2.png" alt=""></p>
+                  <p align='justify'>In the above figure, we can see that the blue cross on the bottom defines that the tumor is Benign and on the top with red cross it represents that it is Malignant.</p>
+                  <p align='justify'>So, this clearly shows that the tumor has been divided into two classes i.e. either Malignant or Benign, Yes or No, 0 or 1 based on the tumor size.</p>
+
+                  <h3>Regression:</h3>
+                  <p align='justify'><b>Regression</b>, unlike Classification, is used when we need a continuous output value rther than discrete value. For example, given the price of a house corresponding to its square foot area, if we need to find the price of a new house, then we will use Regression as we don't want a classification like a Yes or No or a label, but we want a continuous valued output i.e the Price.</p>
+                  <p align='center'><img src="https://blog.knowledgent.com/wp-content/uploads/2015/11/Linear_Photo2.jpg" alt=""></p>
+                  <p align='justify'>In the above figure, we can see that each point on the graph represents a <b>(square footage, cost)</b> value. The line represents the hypothesis formed using the trainig data. Now, say for example, we want to estimate the price of a house with square footage of 1000. So, we can just plot a point on the hypothesis line and get the corresponding cost value.</p>
+
+                  <p align='justify'>Now that we have covered some of the basic concepts in Machine Learning, I think its now time to move to our first Machine Learning Algorithm, <b>Linear Regression</b>.</p>
+
+                  <p align='justify'><b><i>Great work on completing this tutorial, let's move to the next tutorial in series, <a href="#"><b>Introduction to Machine Learning: Linear Regression</b></a></i></b></p>
 					        <p align='justify'><b><i> For more projects and code, follow me on <a href="https://github.com/anujdutt9">Github</a></i></b></p>
                   <p align='justify'><b>Please feel free to leave any comments, suggestions, corrections if any, below.</b></p> -->
 
