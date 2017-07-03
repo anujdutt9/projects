@@ -115,7 +115,7 @@
                   <p align='center'><img src="http://study.com/cimages/multimages/16/convex5.jpg" alt="" width=500></p>
                   <p align='justify'>Hence, the aim of Gradient Descent here is to find the best values of <b>m</b> and <b>b</b> for which we reach the bottom of the Convex Function i.e. the point where the value of <b>Cost Function</b> is zero.</p>
                   <p align='justify'>But, wait a minute. We have been talking about the Cost Function and minimizing it a lot. But what is the Cost Function ?? Do you remember the Squared Error in the last post which was given as:</p>
-                  <p align='center'><b>Squared_Error = sum(y_hat-y)**2</b></p>
+                  <p align='center'><b>Squared_Error = sum(y_hat-y)^2</b></p>
                   <p align='justify'>where, <b>y_hat</b> is the predicted values using <b>m</b> and <b>b</b> and <b>y</b> is the actual value.</p>
                   <p align='justify'>This equation is our <b>Cost Function</b>.</p>
                   <p align='justify'>This equation can be represented as a Convex Function as shown above. Hence, the aim of Gradient Descent is to minimize this cost till it becomes almost equal to zero. But where to start for that ??</p>
@@ -127,12 +127,12 @@
                   <h3>Gradient Calculation:</h3>
                   <p align='justify'>Till now we have seen the parts of Gradient Descent. Now let's calculate the Gradients and form the final equations.</p>
                   <p align='justify'>The Cost Function is given as:</p>
-                  <p align='center'><b>Cost Function [J] = sum(y_hat-y)**2</b></p>
+                  <p align='center'><b>Cost Function [J] = sum(y_hat-y)^2</b></p>
                   <p align='justify'>where,</p>
                   <p align='center'><b>y_hat = mx + b</b></p>
                   <p align='justify'>where <b>m</b> and <b>b</b> are the calculated slope and the bias values.</p>
                   <p align='justify'>Putting these values into the Cost Function, we get:</p>
-                  <p align='center'><b>Cost Function = (1/2n) ((mx + b) - y)**2</b></p>
+                  <p align='center'><b>Cost Function = (1/2n) ((mx + b) - y)^2</b></p>
                   <p align='justify'>Here, we have addeed (1/2n) to simplify the derivaties as taking derivative of x^2 results in 2x and dividing by 2 gives the value of x. Here, <b>n</b> is the number of input data points.</p>
                   <p align='justify'>We need to take the derivative both w.r.t <b>m</b> and <b>b</b>. Hence, we get the following equations:</p>
                   <p align='justify'>The derivative of <b>J (Cost Function)</b> w.r.t <b>m</b> is given as:</p>
