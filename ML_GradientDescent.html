@@ -160,6 +160,9 @@
                   <p align='justify'>If the learning rate is too large, the value of parameters will chnage by larger values and hence, we can overshoot the minima. So, it may completely fail to converge or diverge.</p>
                   <p align='center'><img src="img/Machine-Learning/large.png" alt="" height=500 width=600></p>
                   <p align='justify'>So, we have to choose this value very carefully. But how ?? Well, we can take a list of values and calculate the <b>cross-validation error</b> for each of these values. The value for which we get the smallest error can be used as our learning rate. We will study cross-validation later in detail.</p>
+                  <p align='justify'>Nowadays, there are various other optmimzation algorithms like <b>Adam</b> that decrease the learning rate as we move toward the local minima.</p>
+                  <p align='justify'>Another option can be to keep the <b>Learning Rate</b> as constant. Can we keep it as constant ?? Well yes !! But why ?? Because, as we move toward the local minima, the slope i.e. the value of derivative will decrease, hence, the parameters change less with decrease in slope. Hence, it leads to faster convergence. Note that the value of learning rate must be reasonable else it can lead to one of the two cases defined above.</p>
+
 
                   <p align='justify'>Now that we have covered some of the basic concepts behind Linear Regression, I think its now time to write our first Machine Learning Algorithm in Code, i.e. <b>Linear Regression</b>.</p>
 
