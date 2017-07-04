@@ -89,83 +89,28 @@
             <div class="row">
                 <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
 
-                  <p><b><i>Coming Soon !!!</i></b></p>
-                  <!-- <p><b>Hello Everyone !!</b></p>
+                  <p><b>Hello Everyone !!</b></p>
                   <p>Thanks for continuing with this post.</p>
 
-                  <p align='justify'>In the last post, we discussed about the basics of <b>Linear Regression</b>, the theory and the mathematics behind it.</p>
-                  <p align='justify'>In this post, we will study oe of the most widely used optimization algorithms called <b>Gradient Descent</b>.</p>
+                  <p align='justify'>In the last post, we discussed about the use of <b>Gradient Descent</b> for <b>Linear Regression</b>, the theory and the mathematics behind it.</p>
+                  <p align='justify'>In this post, we will start writing the code for everything that we have learnt so far. So, let's get started.</p>
+                  <p align='justify'>You can find the Python code file and the IPython notebook for this tutorial <a href="https://github.com/anujdutt9/Machine-Learning/tree/master/Linear%20Regression">here</a>.</p>
 
 
-                  <h3>Gradient Descent:</h3>
-                  <p align='justify'>Till now, we have talked about the error, mean, bias etc. But, what is the aim while calculating the error ?? Well, ofcourse we don't want it to increase. Who would want that !! We want to minimize/decrease the error.</p>
-                  <p align='justify'>But, the calculations that we have done till now are all hard coded and hence, there is no way to minimize the error or in other words optimize the model further. So, what can we do ??</p>
-                  <p align='justify'>Gradient Descent to the rescue.</p>
-                  <p align='justify'>So, what is <b>Gradient Descent ??</b> Let's have a look at the definition. Wikipedia defines Gradient Descent as:</p>
-                  <p><blockquote cite="https://en.wikipedia.org/wiki/Gradient_descent">Gradient descent is a first-order iterative optimization algorithm for finding the minimum of a function. To find a local minimum of a function using gradient descent, one takes steps proportional to the negative of the gradient (or of the approximate gradient) of the function at the current point. If instead one takes steps proportional to the positive of the gradient, one approaches a local maximum of that function; the procedure is then known as gradient ascent.</blockquote></p>
-                  <p align='justify'>So, <b>Gradient Descent</b> is a "first order" optimization algorithm that minimizes function. Wait a minute !! This is exactly what we want in the Linear Regression. We want to minimize the error function. But how does Gradient Descent minimize the error ??</p>
-                  <p align='justify'>Well you guessed it right !! It tunes the values of <b>m</b> and <b>b</b> such that the total error is minimized. This approach is better than the earlier approach because the values of <b>m</b> and <b>b</b> that we were hard coding earlier are now being tuned further to reduce the overall error and give a better "Best Fit Line".</p>
+                  <h3>Linear Regression using R-Squared Error:</h3>
+                  <p><iframe src="Jupyter-Notebooks/LinearRegression.html" width="1000" height="900"></iframe></p>
 
 
-                  <h3>Gradient Descent Working:</h3>
-                  <p align='justify'>Let's get into the working of Gradient Descent Algorithm. Theoretically speaking, given a function defined by a set of parameters say, in this example <b>m</b> and <b>b</b>, Gradient Descent starts with an initial set of parameter values and iteratively tunes the values in order to minimize the given function. This iterative minimization is achieved by taking steps in the negative direction of the function gradient.</p>
-                  <p align='center'><img src="https://res.cloudinary.com/ritchieng/image/upload/v1494072056/gradient_descent_6_5_2017_d7bd5z.jpg" alt="" width=600></p>
-                  <p align='justify'>Let's understand it's working with an example. Assume that you are at the top of a hill. Your aim is to reach the bottom as fast as possible. So, how would you do that ?? Well, you would firstly, from a number of paths that you might see, choose the path with the largest steep and reach a new point. Then again you will have a number of choices and again you would choose the steepest choice to get down as fast as possible.</p>
-                  <p align='center'><img src="img/Machine-Learning/GD.jpg" alt="" width=600></p>
-                  <p align='justify'>We do this process iteratively till we reach the bottom. This is the same way in which Gradient Descent works. Here, instead of the mountain, we have the cost function/error function which is formed using various values of <b>m</b> and <b>b</b>. Since, the error function we are using is a squared error, the plot of the cost/error is a <b>Convex Function</b>.</p>
-                  <p align='center'><img src="http://study.com/cimages/multimages/16/convex5.jpg" alt="" width=500></p>
-                  <p align='justify'>Hence, the aim of Gradient Descent here is to find the best values of <b>m</b> and <b>b</b> for which we reach the bottom of the Convex Function i.e. the point where the value of <b>Cost Function</b> is zero.</p>
-                  <p align='justify'>But, wait a minute. We have been talking about the Cost Function and minimizing it a lot. But what is the Cost Function ?? Do you remember the Squared Error in the last post which was given as:</p>
-                  <p align='center'><b>Squared_Error = sum(y_hat-y)**2</b></p>
-                  <p align='justify'>where, <b>y_hat</b> is the predicted values using <b>m</b> and <b>b</b> and <b>y</b> is the actual value.</p>
-                  <p align='justify'>This equation is our <b>Cost Function</b>.</p>
-                  <p align='justify'>This equation can be represented as a Convex Function as shown above. Hence, the aim of Gradient Descent is to minimize this cost till it becomes almost equal to zero. But where to start for that ??</p>
-                  <p align='center'><img src="https://sebastianraschka.com/images/faq/closed-form-vs-gd/ball.png" alt="" width=500></p>
-                  <p align='justify'>Well we know that the derivative of the Cost Function can be represented as the slope of the curve of the Convex Function. And as we move downwards i.e. towards the lowest cost, the slope of the cost function decreases. This derivate which we calculate is called the <b>Gradient</b>.</p>
-                  <p align='justify'>So, if we keep updating the values of <b>m</b> and <b>b</b> as we move down the slope, then in the end we would be left with the values that show the  least error. In other words, this means that, the line plot using these values will represent the "Best Fit Line" for the data points.</p>
-
-
-                  <h3>Gradient Calculation:</h3>
-                  <p align='justify'>Till now we have seen the parts of Gradient Descent. Now let's calculate the Gradients and form the final equations.</p>
-                  <p align='justify'>The Cost Function is given as:</p>
-                  <p align='center'><b>Cost Function [J] = sum(y_hat-y)**2</b></p>
-                  <p align='justify'>where,</p>
-                  <p align='center'><b>y_hat = mx + b</b></p>
-                  <p align='justify'>where <b>m</b> and <b>b</b> are the calculated slope and the bias values.</p>
-                  <p align='justify'>Putting these values into the Cost Function, we get:</p>
-                  <p align='center'><b>Cost Function = (1/2n) ((mx + b) - y)**2</b></p>
-                  <p align='justify'>Here, we have addeed (1/2n) to simplify the derivaties as taking derivative of x^2 results in 2x and dividing by 2 gives the value of x. Here, <b>n</b> is the number of input data points.</p>
-                  <p align='justify'>We need to take the derivative both w.r.t <b>m</b> and <b>b</b>. Hence, we get the following equations:</p>
-                  <p align='justify'>The derivative of <b>J (Cost Function)</b> w.r.t <b>m</b> is given as:</p>
-                  <p align='center'><img src="img/Machine-Learning/djdm.png" alt=""></p>
-                  <p align='justify'>The derivative of <b>J (Cost Function)</b> w.r.t <b>b</b> is given as:</p>
-                  <p align='center'><img src="img/Machine-Learning/djdb.png" alt=""></p>
-                  <p align='justify'>Now that we have got the derivatives, its time to update the values of <b>m</b> and <b>b</b>.</p>
-                  <p align='justify'>To update the value of <b>m</b>, the equation is:</p>
-                  <p align='center'>m := m - alpha * (dJ/dm)</p>
-                  <p align='justify'>and the equation to update <b>b</b> is given as:</p>
-                  <p align='center'>b := b - alpha * (dJ/db)</p>
-                  <p align='justify'>where, <b>alpha</b> is called the <b>Learning Rate</b>.</p>
-                  <p align='justify'>You might think that why I have used "<b>:=</b>" instead of "<b>=</b>" in the update equations for <b>m</b> and <b>b</b>. Well, think of it this way. <b>:=</b> means update the value after executing both the derivatives. But why ?? Because, if we update <b>m</b> before updating <b>b</b>, then we will not get the same value as the equation has now changed.</p>
-                  <p align='justify'>Here, we also introduced a new term, <b>Learning Rate</b>. So let's have a look at it.</p>
+                  <p align='justify'>Now that we have covered Linear Regression using R-Squared Error, let's move on to the second part. i.e. Linear Regression using Gradient Descent.</p>
+                  <p><iframe src="" width="1000" height="900"></iframe></p>
 
 
 
-                  <h3>Learning Rate:</h3>
-                  <p align='justify'>We see that Learning Rate is used in the equations above where we update the values of <b>m</b> and <b>b</b>. But why use the learning rate ?? Why this extra parameter ??</p>
-                  <p align='justify'>You see that in the above equations, we subtract the derivative w.r.t each parameter and subtract it from that value. If we see these values in each iteration, they change far too much in each iteration, which can lead to an increase in the loss. So, multiplying the derivative with the learning rate helps avoid this increase in loss. Secondly, learning rate value also tells that how slowly or how fast you want to update the parameters. </p>
-                  <p align='justify'>So, can we take any value for <b>Learning Rate</b> ??</p>
-                  <p align='justify'>Well No !! If this value is too small, the parameters change less often or slowly. So, the <b>Gradient Descent</b> will take more time to converge.</p>
-                  <p align='center'><img src="img/Machine-Learning/small.png" alt="" height=500 width=600></p>
-                  <p align='justify'>If the learning rate is too large, the value of parameters will chnage by larger values and hence, we can overshoot the minima. So, it may completely fail to converge or diverge.</p>
-                  <p align='center'><img src="img/Machine-Learning/large.png" alt="" height=500 width=600></p>
-                  <p align='justify'>So, we have to choose this value very carefully. But how ?? Well, we can take a list of values and calculate the <b>cross-validation error</b> for each of these values. The value for which we get the smallest error can be used as our learning rate. We will study cross-validation later in detail.</p>
+                  <p align='justify'>Now that we have covered Linear Regression, let's move to our next Machine Learning Algorithm, i.e. <b>Logistic Regression</b>.</p>
 
-                  <p align='justify'>Now that we have covered some of the basic concepts behind Linear Regression, I think its now time to write our first Machine Learning Algorithm in Code, i.e. <b>Linear Regression</b>.</p>
-
-                  <p align='justify'><b><i>Great work on completing this tutorial, let's move to the next tutorial in series, <a href="ML_LinearRegressionCode.html"><b>Introduction to Machine Learning: Linear Regression Code from Scratch</b></a></i></b></p>
+                  <p align='justify'><b><i>Great work on completing this tutorial, let's move to the next tutorial in series, <a href="ML_LogisticRegression.html"><b>Introduction to Machine Learning: Logistic Regression</b></a></i></b></p>
 					        <p align='justify'><b><i> For more projects and code, follow me on <a href="https://github.com/anujdutt9">Github</a></i></b></p>
-                  <p align='justify'><b>Please feel free to leave any comments, suggestions, corrections if any, below.</b></p> -->
+                  <p align='justify'><b>Please feel free to leave any comments, suggestions, corrections if any, below.</b></p>
 
 
                   <div id="disqus_thread"></div>

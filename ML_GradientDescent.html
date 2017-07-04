@@ -142,9 +142,9 @@
                   <p align='justify'>Now that we have got the derivatives, its time to update the values of <b>m</b> and <b>b</b>.</p>
                   <p align='justify'>One quick <b>Note</b>. Do you remember the definition of Gradient Descent ?? It said that this technique is a <b>first order</b> optimization technique. Why first order ?? Because in this, we take only first derivative of the Cost function as we did above.</p>
                   <p align='justify'>Now, To update the value of <b>m</b>, the equation is:</p>
-                  <p align='center'>m := m - alpha * (dJ/dm)</p>
+                  <p align='center'><b> m := m - alpha * (dJ/dm)</b></p>
                   <p align='justify'>and the equation to update <b>b</b> is given as:</p>
-                  <p align='center'>b := b - alpha * (dJ/db)</p>
+                  <p align='center'><b>b := b - alpha * (dJ/db)</b></p>
                   <p align='justify'>where, <b>alpha</b> is called the <b>Learning Rate</b>.</p>
                   <p align='justify'>You might think that why I have used "<b>:=</b>" instead of "<b>=</b>" in the update equations for <b>m</b> and <b>b</b>. Well, think of it this way. <b>:=</b> means update the value after executing both the derivatives. But why ?? Because, if we update <b>m</b> before updating <b>b</b>, then we will not get the same value as the equation has now changed.</p>
                   <p align='justify'>Here, we also introduced a new term, <b>Learning Rate</b>. So let's have a look at it.</p>
