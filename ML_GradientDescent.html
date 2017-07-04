@@ -115,8 +115,8 @@
                   <p align='center'><img src="http://study.com/cimages/multimages/16/convex5.jpg" alt="" width=500></p>
                   <p align='justify'>Hence, the aim of Gradient Descent here is to find the best values of <b>m</b> and <b>b</b> for which we reach the bottom of the Convex Function i.e. the point where the value of <b>Cost Function</b> is zero.</p>
                   <p align='justify'>But, wait a minute. We have been talking about the Cost Function and minimizing it a lot. But what is the Cost Function ?? Do you remember the Squared Error in the last post which was given as:</p>
-                  <p align='center'><b>Squared_Error = sum(y_hat-y)^2</b></p>
-                  <p align='justify'>where, <b>y_hat</b> is the predicted values using <b>m</b> and <b>b</b> and <b>y</b> is the actual value.</p>
+                  <p align='center'><b>Squared_Error = (sum(y_hat-y)^2)/2n</b></p>
+                  <p align='justify'>where, <b>y_hat</b> is the predicted values using <b>m</b> and <b>b</b> and <b>y</b> is the actual value. This value is divided by 2n to make the derivative easier.</p>
                   <p align='justify'>This equation is our <b>Cost Function</b>.</p>
                   <p align='justify'>This equation can be represented as a Convex Function as shown above. Hence, the aim of Gradient Descent is to minimize this cost till it becomes almost equal to zero. But where to start for that ??</p>
                   <p align='center'><img src="https://sebastianraschka.com/images/faq/closed-form-vs-gd/ball.png" alt="" width=500></p>
