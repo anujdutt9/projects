@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Intro to ML #6: Logistic Regression</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Theme CSS -->
+    <link href="css/clean-blog.min.css" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+</head>
+
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    Menu <i class="fa fa-bars"></i>
+                </button>
+                <!--<a class="navbar-brand" href="index.html">Start Bootstrap</a> -->
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="index.html">Home</a>
+                    </li>
+                    <li>
+                        <a href="about.html">About</a>
+                    </li>
+                    <!-- <li>
+                        <a href="index.html">Blog</a>
+                    </li> -->
+                    <li>
+                        <a href="http://www.anujdutt.com.s3-website-us-east-1.amazonaws.com/">Profile</a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Page Header -->
+    <!-- Set your background image for this header on the line below. -->
+    <header class="intro-header" style="background-image: url(http://dungba.org/content/images/2016/03/autistic-neural-network-3-1.jpg)">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <div class="post-heading">
+                        <h1>Intro to Machine Learning: Logistic Regression</h1>
+                        <h2 class="subheading">Theory and Mathematics behind Logistic Regression.</h2>
+                        <span class="meta">Posted on July 5, 2017</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Post Content -->
+    <article>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+
+                  <p><b><i>Coming Soon !!!</i></b></p>
+
+                  <!-- <p><b>Hello Everyone !!</b></p>
+                  <p>Thanks for continuing with this post.</p>
+
+                  <p align='justify'>In the last post, we discussed about the basics of <b>Linear Regression</b>, the theory and the mathematics behind it.</p>
+                  <p align='justify'>In this post, we will study oe of the most widely used optimization algorithms called <b>Gradient Descent</b>.</p>
+
+
+                  <h3>Gradient Descent:</h3>
+                  <p align='justify'>Till now, we have talked about the error, mean, bias etc. But, what is the aim while calculating the error ?? Well, ofcourse we don't want it to increase. Who would want that !! We want to minimize/decrease the error.</p>
+                  <p align='justify'>But, the calculations that we have done till now are all hard coded and hence, there is no way to minimize the error or in other words optimize the model further. So, what can we do ??</p>
+                  <p align='justify'>Gradient Descent to the rescue.</p>
+                  <p align='justify'>So, what is <b>Gradient Descent ??</b> Let's have a look at the definition. Wikipedia defines Gradient Descent as:</p>
+                  <p><blockquote cite="https://en.wikipedia.org/wiki/Gradient_descent">Gradient descent is a first-order iterative optimization algorithm for finding the minimum of a function. To find a local minimum of a function using gradient descent, one takes steps proportional to the negative of the gradient (or of the approximate gradient) of the function at the current point. If instead one takes steps proportional to the positive of the gradient, one approaches a local maximum of that function; the procedure is then known as gradient ascent.</blockquote></p>
+                  <p align='justify'>So, <b>Gradient Descent</b> is a "first order" optimization algorithm that minimizes function. Wait a minute !! This is exactly what we want in the Linear Regression. We want to minimize the error function. But how does Gradient Descent minimize the error ??</p>
+                  <p align='justify'>Well you guessed it right !! It tunes the values of <b>m</b> and <b>b</b> such that the total error is minimized. This approach is better than the earlier approach because the values of <b>m</b> and <b>b</b> that we were hard coding earlier are now being tuned further to reduce the overall error and give a better "Best Fit Line".</p>
+
+
+                  <h3>Gradient Descent Working:</h3>
+                  <p align='justify'>Let's get into the working of Gradient Descent Algorithm. Theoretically speaking, given a function defined by a set of parameters say, in this example <b>m</b> and <b>b</b>, Gradient Descent starts with an initial set of parameter values and iteratively tunes the values in order to minimize the given function. This iterative minimization is achieved by taking steps in the negative direction of the function gradient.</p>
+                  <p align='center'><img src="https://res.cloudinary.com/ritchieng/image/upload/v1494072056/gradient_descent_6_5_2017_d7bd5z.jpg" alt="" width=600></p>
+                  <p align='justify'>Let's understand it's working with an example. Assume that you are at the top of a hill. Your aim is to reach the bottom as fast as possible. So, how would you do that ?? Well, you would firstly, from a number of paths that you might see, choose the path with the largest steep and reach a new point. Then again you will have a number of choices and again you would choose the steepest choice to get down as fast as possible.</p>
+                  <p align='center'><img src="img/Machine-Learning/GD.jpg" alt="" width=600></p>
+                  <p align='justify'>We do this process iteratively till we reach the bottom. This is the same way in which Gradient Descent works. Here, instead of the mountain, we have the cost function/error function which is formed using various values of <b>m</b> and <b>b</b>. Since, the error function we are using is a squared error, the plot of the cost/error is a <b>Convex Function</b>.</p>
+                  <p align='center'><img src="http://study.com/cimages/multimages/16/convex5.jpg" alt="" width=500></p>
+                  <p align='justify'>Hence, the aim of Gradient Descent here is to find the best values of <b>m</b> and <b>b</b> for which we reach the bottom of the Convex Function i.e. the point where the value of <b>Cost Function</b> is zero.</p>
+                  <p align='justify'>But, wait a minute. We have been talking about the Cost Function and minimizing it a lot. But what is the Cost Function ?? Do you remember the Squared Error in the last post which was given as:</p>
+                  <p align='center'><b>Squared_Error = sum(y_hat-y)^2</b></p>
+                  <p align='justify'>where, <b>y_hat</b> is the predicted values using <b>m</b> and <b>b</b> and <b>y</b> is the actual value. This value is divided by 2n to make the derivative easier.</p>
+                  <p align='justify'>This equation is our <b>Cost Function</b>.</p>
+                  <p align='justify'>This equation can be represented as a Convex Function as shown above. Hence, the aim of Gradient Descent is to minimize this cost till it becomes almost equal to zero. But where to start for that ??</p>
+                  <p align='center'><img src="https://sebastianraschka.com/images/faq/closed-form-vs-gd/ball.png" alt="" width=500></p>
+                  <p align='justify'>Well we know that the derivative of the Cost Function can be represented as the slope of the curve of the Convex Function. And as we move downwards i.e. towards the lowest cost, the slope of the cost function decreases. This derivate which we calculate is called the <b>Gradient</b>.</p>
+                  <p align='justify'>So, if we keep updating the values of <b>m</b> and <b>b</b> as we move down the slope, then in the end we would be left with the values that show the  least error. In other words, this means that, the line plot using these values will represent the "Best Fit Line" for the data points.</p>
+
+
+                  <h3>Gradient Calculation:</h3>
+                  <p align='justify'>Till now we have seen the parts of Gradient Descent. Now let's calculate the Gradients and form the final equations.</p>
+                  <p align='justify'>The Cost Function is given as:</p>
+                  <p align='center'><b>Cost Function [J] = sum(y_hat-y)^2</b></p>
+                  <p align='justify'>where,</p>
+                  <p align='center'><b>y_hat = mx + b</b></p>
+                  <p align='justify'>where <b>m</b> and <b>b</b> are the calculated slope and the bias values.</p>
+                  <p align='justify'>Putting these values into the Cost Function, we get:</p>
+                  <p align='center'><b>Cost Function = (1/2n) ((mx + b) - y)^2</b></p>
+                  <p align='justify'>Here, we have addeed (1/2n) to simplify the derivaties as taking derivative of x^2 results in 2x and dividing by 2 gives the value of x. Here, <b>n</b> is the number of input data points.</p>
+                  <p align='justify'>We need to take the derivative both w.r.t <b>m</b> and <b>b</b>. Hence, we get the following equations:</p>
+                  <p align='justify'>The derivative of <b>J (Cost Function)</b> w.r.t <b>m</b> is given as:</p>
+                  <p align='center'><img src="img/Machine-Learning/djdm.png" alt=""></p>
+                  <p align='justify'>The derivative of <b>J (Cost Function)</b> w.r.t <b>b</b> is given as:</p>
+                  <p align='center'><img src="img/Machine-Learning/djdb.png" alt=""></p>
+                  <p align='justify'>Now that we have got the derivatives, its time to update the values of <b>m</b> and <b>b</b>.</p>
+                  <p align='justify'>One quick <b>Note</b>. Do you remember the definition of Gradient Descent ?? It said that this technique is a <b>first order</b> optimization technique. Why first order ?? Because in this, we take only first derivative of the Cost function as we did above.</p>
+                  <p align='justify'>Now, To update the value of <b>m</b>, the equation is:</p>
+                  <p align='center'><b> m := m - alpha * (dJ/dm)</b></p>
+                  <p align='justify'>and the equation to update <b>b</b> is given as:</p>
+                  <p align='center'><b>b := b - alpha * (dJ/db)</b></p>
+                  <p align='justify'>where, <b>alpha</b> is called the <b>Learning Rate</b>.</p>
+                  <p align='justify'>You might think that why I have used "<b>:=</b>" instead of "<b>=</b>" in the update equations for <b>m</b> and <b>b</b>. Well, think of it this way. <b>:=</b> means update the value after executing both the derivatives. But why ?? Because, if we update <b>m</b> before updating <b>b</b>, then we will not get the same value as the equation has now changed.</p>
+                  <p align='justify'>Here, we also introduced a new term, <b>Learning Rate</b>. So let's have a look at it.</p>
+
+
+
+                  <h3>Learning Rate:</h3>
+                  <p align='justify'>We see that Learning Rate is used in the equations above where we update the values of <b>m</b> and <b>b</b>. But why use the learning rate ?? Why this extra parameter ??</p>
+                  <p align='justify'>You see that in the above equations, we subtract the derivative w.r.t each parameter and subtract it from that value. If we see these values in each iteration, they change far too much in each iteration, which can lead to an increase in the loss. So, multiplying the derivative with the learning rate helps avoid this increase in loss. Secondly, learning rate value also tells that how slowly or how fast you want to update the parameters. </p>
+                  <p align='justify'>So, can we take any value for <b>Learning Rate</b> ??</p>
+                  <p align='justify'>Well No !! If this value is too small, the parameters change less often or slowly. So, the <b>Gradient Descent</b> will take more time to converge.</p>
+                  <p align='center'><img src="img/Machine-Learning/small.png" alt="" height=500 width=600></p>
+                  <p align='justify'>If the learning rate is too large, the value of parameters will chnage by larger values and hence, we can overshoot the minima. So, it may completely fail to converge or diverge.</p>
+                  <p align='center'><img src="img/Machine-Learning/large.png" alt="" height=500 width=600></p>
+                  <p align='justify'>So, we have to choose this value very carefully. But how ?? Well, we can take a list of values and calculate the <b>cross-validation error</b> for each of these values. The value for which we get the smallest error can be used as our learning rate. We will study cross-validation later in detail.</p>
+                  <p align='justify'>Nowadays, there are various other optmimzation algorithms like <b>Adam</b> that decrease the learning rate as we move toward the local minima.</p>
+                  <p align='justify'>Another option can be to keep the <b>Learning Rate</b> as constant. Can we keep it as constant ?? Well yes !! But why ?? Because, as we move toward the local minima, the slope i.e. the value of derivative will decrease, hence, the parameters change less with decrease in slope. Hence, it leads to faster convergence. Note that the value of learning rate must be reasonable else it can lead to one of the two cases defined above.</p>
+
+
+                  <p align='justify'>Now that we have covered some of the basic concepts behind Linear Regression, I think its now time to write our first Machine Learning Algorithm in Code, i.e. <b>Linear Regression</b>.</p>
+
+                  <p align='justify'><b><i>Great work on completing this tutorial, let's move to the next tutorial in series, <a href="ML_LinearRegressionCode.html"><b>Introduction to Machine Learning: Linear Regression Code from Scratch</b></a></i></b></p>
+					        <p align='justify'><b><i> For more projects and code, follow me on <a href="https://github.com/anujdutt9">Github</a></i></b></p>
+                  <p align='justify'><b>Please feel free to leave any comments, suggestions, corrections if any, below.</b></p> -->
+
+
+                  <div id="disqus_thread"></div>
+                    <script type="text/javascript">
+                      /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+                      var disqus_shortname = 'anujdutt9-github-io'; // required: replace example with your forum shortname
+
+                      /* * * DON'T EDIT BELOW THIS LINE * * */
+                     (function() {
+                         var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                         dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+                         (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                     })();
+                    </script>
+                    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+                    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+                  </div>
+                </div>
+            </div>
+        </div>
+    </article>
+
+    <hr>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <ul class="list-inline text-center">
+                        <li>
+                            <a href="https://twitter.com/MaverickGoose9">
+                                <span class="fa-stack fa-lg">
+                                    <i class="fa fa-circle fa-stack-2x"></i>
+                                    <i class="fa fa-twitter fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.facebook.com/anuj.dutt">
+                                <span class="fa-stack fa-lg">
+                                    <i class="fa fa-circle fa-stack-2x"></i>
+                                    <i class="fa fa-facebook fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/anujdutt9">
+                                <span class="fa-stack fa-lg">
+                                    <i class="fa fa-circle fa-stack-2x"></i>
+                                    <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li>
+						<li>
+                            <a href="https://www.linkedin.com/in/anuj-dutt-a0230b54/">
+                                <span class="fa-stack fa-lg">
+                                    <i class="fa fa-circle fa-stack-2x"></i>
+                                    <i class="fa fa-linkedin fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li>
+
+                    </ul>
+                    <p class="copyright text-muted">Copyright &copy; Anuj Dutt</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="vendor/jquery/jquery.min.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="vendor/bootstrap/js/bootstrap.min.js"></script>
+
+    <!-- Contact Form JavaScript -->
+    <script src="js/jqBootstrapValidation.js"></script>
+    <script src="js/contact_me.js"></script>
+
+    <!-- Theme JavaScript -->
+    <script src="js/clean-blog.min.js"></script>
+
+</body>
+</html>
