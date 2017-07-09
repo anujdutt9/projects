@@ -92,118 +92,28 @@
             <div class="row">
                 <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
 
-                  <p><b><i>Coming Soon !!!</i></b></p>
-
-                  <!-- <p><b>Hello Everyone !!</b></p>
+                  <p><b>Hello Everyone !!</b></p>
                   <p>Thanks for continuing with this post.</p>
 
-                  <p align='justify'>In the last post, we discussed about our first Machine Learning algorithm i.e. <b>Linear Regression</b>, the theory and the mathematics behind it.</p>
-                  <p align='justify'>In this post, we will study our second Machine Learning algorithm i.e. <b>Logistic Regression</b>.</p>
-
-                  <p align='justify'>In our first algorithm, we got a taste of Regression algorithm. We saw that if we are given a continuous data then we can apply a regression algorithm like Linear Reression and form a Best Fit Line to predict the new values.</p>
-                  <p align='justify'>In this post we will study about the second type of algorithm i.e. Classification algorithm and the easiest one of them is the Logistic Regression.</p>
-                  <p align='justify'>As you might have guessed, the data in this case is not continuous but discrete and our aim is to predict the labels for the new data i.e. whether data belongs to class "0" or "1", "yes" or "no", tumor is "Malingnant" or "Benign" and so on.</p>
-                  <p align='justify'>So, let's get started.</p>
+                  <p align='justify'>In the last post, we discussed about the use of <b>Logistic Regression</b>, the theory and the mathematics behind it.</p>
+                  <p align='justify'>In this post, we will start writing the code for everything that we have learnt so far. So, let's get started.</p>
+                  <p align='justify'>You can find the Python code file and the IPython notebook for this tutorial <a href="https://github.com/anujdutt9/Machine-Learning/tree/master/Logistic%20Regression">here</a>.</p>
 
 
-
-                  <h3>Logistic Regression:</h3>
-                  <p align='justify'>The first question that comes to the mind is that what is <b>Logistic Regression</b>?? Let's start from a definition. Wikipedia defines <b>Logistic Regression</b> as follows:</p>
-                  <p align='justify'><blockquote cite="https://en.wikipedia.org/wiki/Logistic_regression">In statistics, logistic regression, or logit regression, or logit model[1] is a regression model where the dependent variable (DV) is categorical. This article covers the case of a binary dependent variable—that is, where it can take only two values, "0" and "1", which represent outcomes such as pass/fail, win/lose, alive/dead or healthy/sick. Cases where the dependent variable has more than two outcome categories may be analysed in multinomial logistic regression, or, if the multiple categories are ordered, in ordinal logistic regression.</blockquote></p>
-                  <p align='justify'><b>Logistic Regression</b> is the oldest, simplest and the most widely used classification model in the field of machine learning.</p>
-                  <p align='justify'>So, what is the aim of <b>Logistic Regression</b>?? Well it's aim is to learn the relation between the input labelled data and then find/predict the labels for the new input data. If we try to look this in a 3-D plane, it can be seen as below:</p>
-                  <p align='justify'><img src="https://plot.ly/~florianh/151.png" alt=""></p>
-                  <p align='justify'>In this image, we can see that we have two classes. One with the value/label <b>y = 1</b> in <b>blue</b> on the top and the other with the value/label <b>y = 0</b> in <b>red</b> on the bottom.</p>
-                  <p align='justify'>Each color here depicts a class to which they belong. Now say we bring in a new point which is of <b>blue</b> color. So, we train our classifier on the training data and let the classifier to assign the new blue point to any of the two classes.</p>
-                  <p align='justify'>Where do you think that the Classifier should put that point ?? Well, we can clearly see that ofcourse put the point where <b>y = 1</b> i.e. on the top. This is what we wan our classifier to do after being trained.</p>
-                  <p align='justify'>Why train a classifier ?? Well remember when you were young and you had two baskets of fruits. In one you have apples and in the other you have bananas. So, given a new apple where would you put that ?? In which basket ?? Ofcourse the first one. As simple as that. This is what we want to do here.</p>
+                  <h3>Logistic Regression using Gradient Descent:</h3>
+                  <p><b><i>Code Coming Soon !!!</i></b></p>
 
 
-                  <h3>Can I use Linear Regression for Classification ??</h3>
-                  <p align='justify'>Before going any further, let's do some brainstorming. Could we use <b>Linear Regression</b> for the same case ?? Well we could find a best fit line that could somehow form a hypothesis that might help us do this same thing. Let me explain this scenario with the help of an example.</p>
-                  <p align='justify'>Let us consider a fruit classification problem. We have some apples and some bananas. Given a training dataset, we need to find that a new fruit given is an apple or a banana. So, how would we solve this problem using <b>Linear Regression</b> ??</p>
-                  <p align='justify'>Let us plot a Best Fit Line using Linear Regression as shown in image below. Also, we can take a threshold value something like a limiter on the values or fruit type. Here, if we are below "0.5" then it is a banana else an apple.</p>
-                  <p align='justify'><img src="img/Machine-Learning/LRClf.png" alt="" height=500 width=800></p>
-                  <p align='justify'>Well that was easy. Let's now take an other apple and put it somewhere in there. Done !! Uh Oh !! We got a problem. The "Best Fit Line" needs to shift. Again the threshold points on the axis changes and we have new range to classify apples and bananas.</p>
-                  <p align='justify'><img src="img/Machine-Learning/LRClfNew.png" alt="" height=500 width=950></p>
-                  <p align='justify'>Again, we take another apple, and say we place it a bit far, again the same problem. The "Best Fit Line" moves with every new element. This anomaly is not good for Classification as it can cause errors as well in the Classification.</p>
-                  <p align='justify'>This is one of the reasons why we cannot use <b>Linear Regression</b> for this problem. So, what would be an ideal line that can seperate the two classes. Well, maybe it can be a straight line like the <b>red</b> one in the image below.</p>
-                  <p align='justify'><img src="img/Machine-Learning/IdealSepLine.png" alt="" height=500 width=950></p>
-                  <p align='justify'>One thing that we have noted in the previous tutorials and the discussion above is that in Classification the outcomes are usually within the range of "0" and "1" i.e.</p>
-                  <p align='center'><b>0 <= y_hat <= 1</b></p>
-                  <p align='justify'>which is not possible with Linear Regression as its values can be <b>> 1</b> and even <b>< 0</b>. So, it is not favourable to Use Linear Regression for this purpose.</p>
-                  <p align='justify'>So, all said and done, let's get back to our original topic i.e. <b>Logistic Regression</b>.</p>
-
-
-                  <h3>Logistic Regression Mathematics</h3>
-                  <p align='justify'>Let us consider our hypothesis to be of the form:</p>
-                  <p align='center'><b>y_hat = m*X</b></p>
-                  <p align='justify'>where, <b>m</b> is the coefficient and <b>X</b> is the input data.</p>
-                  <p align='justify'>We said above that for Classification problem, the value of hypothesis is within the range "0" and "1". So to bring the above hypothesis output within this range, we need to use a function that does this very well. One such function is the <b>Sigmoid Function</b>.</p>
-                  <p align='justify'>A <b>Sigmoid Function</b> is a function that takes in input data and fits the values in the range of "0" and "1" which is what we want. A sigmoid function is given by the equation:</p>
-                  <p align='center'><img src="img/Machine-Learning/sigmoid.png" alt=""></p>
-                  <p align='justify'>where, <b>x = y_hat</b></p>
-                  <p align='justify'>Hence, the equation becomes:</p>
-                  <p align='center'><img src="img/Machine-Learning/sigm.png" alt=""></p>
-                  <p align='justify'>So, the final hypothesis for Logistic Regression becomes:</p>
-                  <p align='center'><b>y_hat = sigmoid(m*X)</b></p>
-                  <p align='justify'>Let's now visualize the sigmoid function. A sigmoid function is of the form as shown below:</p>
-                  <p align='justify'><iframe src="Jupyter-Notebooks/SigmoidFunctionPlot.html" width="800" height="600"></iframe></p>
-                  <p align='justify'>Well that looks pretty good. So, what do we notice from the Sigmoid Plot ??</p>
-                  <p align='justify'>Firstly, the hypothesis that we have defined above is <b>y_hat = sigmoid(m*X)</b>. This can also be seen as a probability function such as <b>P(y_hat=1|X;m)</b> i.e. Probability of y_hat = 1 given the values of X and m.</p>
-                  <p align='justify'>Secondly, we see that to fit this hypothesis in the range, we require sigmoid function. Now when is the value of <b>y_hat</b> going to satisfy the above probability function ?? Well, let's see.</p>
-                  <p align='justify'>We can see from the above sigmoid plot that,</p>
-                  <p align='center'><b>sigmoid(Z) >= 0.5</b>, when, <b>Z >= 0</b></p>
-                  <p align='center'><b>sigmoid(Z) < 0.5</b>, when, <b>Z < 0</b></p>
-                  <p align='center'><img src="img/Machine-Learning/label.png" alt=""></p>
-                  <p align='justify'>Correspondingly,</p>
-                  <p align='center'><b>Label = 1</b>, when, <b>y_hat >= 0.5</b></p>
-                  <p align='center'><b>Label = 0</b>, when, <b>y_hat < 0.5</b></p>
-                  <p align='justify'>So, now that we know that for what values we can get a label "1" or a "0", let's see how to get the value for y_hat i.e. let's define our <b>Cost Function</b>.</p>
-
-
-                  <h3>Cost Function</h3>
-                  <p align='justify'>In Linear Regression we saw that the cost function was given by the following equation:</p>
-                  <p align='center'><b>J = (1/2n) * summation((y_hat - y)^2)</b></p>
-                  <p align='justify'>Since, we want to create a decision boundary. Can we use this same Cost Function where the only difference is that in Logistic Regression, the hypothesis <b>y_hat</b> is given as <b>sigmoid(m*X)</b> rather than <b>y_hat = m*X</b> which is how we get a value in the range "0" and "1".</p>
-                  <p align='justify'>So, the <b>Cost Function</b> for Logistic Regression becomes:</p>
-                  <p align='center'><b>J = (1/2n) * summation((y_hat-y)^2)</b></p>
-                  <p align='center'>where <b>y_hat = sigmoid(m*X)</b></p>
-                  <p align='justify'>Let us define the term inside summation as <b>"C(y_hat,y)"</b>. So,</p>
-                  <p align='center'><b>C(y_hat,y) = (1/2) * (y_hat-y)^2</b></p>
-                  <p align='justify'>Now the thing is that we earlier used Gradient Descent to find the values of "m" and "b" as the cost function was convex. But it is not the case here because the hypothesis has changed. Due to this the function has multiple local minimas and is no longer a Convex Function and Gradient Descent is not great at dealing with it.</p>
-                  <p align='justify'>So, what to do ?? What if we define the cost function in some other way. For Logistic Regression, we define the value of "C(y_hat,y)" as follows:</p>
-                  <p align='center'><b>C(y_hat,y) = -log(y_hat),</b>  if <b>y = 1 </b></p>
-                  <p align='center'><b>C(y_hat,y) = -log(1 - y_hat),</b>  if <b>y = 0 </b></p>
-                  <p align='justify'>Let's plot these values.</p>
-                  <p align='center'><img src="img/Machine-Learning/LoCost.png" alt="" height=500 width=800></p>
-                  <p align='justify'>But why these values. Well, we can see that the plot for the function <b>-log(Z)</b> goes from +infinity to +1. But we want only the values in the range "0" and "1". On the other hand, the second function <b>-log(1-Z)</b>, plot goes from "0" to +infinity between "0" and "1".</p>
-                  <p align='justify'>This cost function looks good but let's clean it up a bit. We can rewrite this Cost Function as follows:</p>
-                  <p align='center'><b>Cost Function [J] = -y * log(y_hat) - (1 - y) * log(1 - y_hat)</b></p>
-                  <p align='center'><b>J = -y * log(sigmoid(m*X)) - (1 - y) * log(1 - sigmoid(m*X))</b></p>
-                  <p align='justify'>So, what happens when we put the value of "y" ?? let's see.</p>
-                  <p align='center'><b>y = 1, J = -log(sigmoid(m*X))</b></p>
-                  <p align='center'><b>y = 0, J = -log(1 - sigmoid(m*X))</b></p>
-                  <p align='justify'>So, we have our cost function. What next ?? Yes, you guessed it right. Time for Gradient Descent to minimize the cost function.</p>
-
-
-                  <h3>Gradient Descent for Logistic Regression</h3>
-                  <p align='justify'>Well, just as we did for Linear Regression, we use the optmization technique called Gradient Descent to minimize the cost function.</p>
-                  <p align='justify'>So, let's get the gradient value first. To find the gradient, we take the derivative of the cost function w.r.t "m". So, let's do it.</p>
-                  <p align='justify'>Taking the derivative <b>dJ/dm</b> gives us the value:</p>
-                  <p align='center'><b>dJ/dm = (1/n) * X * ((m*X+b)-y)</b></p>
-                  <p align='justify'>This equation looks familiar. Ohh, it's the same equation as for Linear Regression. The oly difference here is the <b>hypothesis (y_hat)</b>.</p>
-                  <p align='justify'>Next, to update the value of "m", we simultaneously update the value as follows:</p>
-                  <p align='center'><b>m :=  m - alpha * (dJ/dm)</b></p>
-                  <p align='justify'>where, <b>alpha</b> is the <b>Learning Rate</b>.</p>
+                  <h3>Logistic Regression using Scikit-Learn</h3>
+                  <p align='justify'><iframe src="Jupyter-Notebooks/LogisticRegressionSklearn.html" width="1000" height="800"></iframe></p>
 
 
 
-                  <p align='justify'>Now that we have covered the basics of Logistic Regression, I think its now time to write our second Machine Learning Algorithm in Code, i.e. <b>Logistic Regression</b>.</p>
+                  <p align='justify'>Now that we have covered the basics of Logistic Regression, I think its now time to write our third Machine Learning Algorithm in Code, i.e. <b>K-Nearest Neighbors</b>.</p>
 
-                  <p align='justify'><b><i>Great work on completing this tutorial, let's move to the next tutorial in series, <a href="ML_LogisticRegressionCode.html"><b>Introduction to Machine Learning: Logistic Regression Code from Scratch</b></a></i></b></p>
+                  <p align='justify'><b><i>Great work on completing this tutorial, let's move to the next tutorial in series, <a href="ML_KNN.html"><b>Introduction to Machine Learning: K-Nearest Neighbors</b></a></i></b></p>
 					        <p align='justify'><b><i> For more projects and code, follow me on <a href="https://github.com/anujdutt9">Github</a></i></b></p>
-                  <p align='justify'><b>Please feel free to leave any comments, suggestions, corrections if any, below.</b></p> -->
+                  <p align='justify'><b>Please feel free to leave any comments, suggestions, corrections if any, below.</b></p>
 
 
                   <div id="disqus_thread"></div>
