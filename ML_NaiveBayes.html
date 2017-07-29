@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Anuj Dutt's Machine Learning Blog">
+    <meta name="author" content="Anuj Dutt">
+    <meta property="og:title" content="Anuj Dutt's Machine Learning Blog">
+    <meta property="og:description" content="Anuj Dutt's Machine Learning Blog">
+    <meta property="og:image" content="https://uploads.toptal.io/blog/image/443/toptal-blog-image-1407508081138.png">
+
+    <title>Intro to ML #13: Naive Bayes Classifier</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Theme CSS -->
+    <link href="css/clean-blog.min.css" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+</head>
+
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    Menu <i class="fa fa-bars"></i>
+                </button>
+                <!--<a class="navbar-brand" href="index.html">Start Bootstrap</a> -->
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="index.html">Home</a>
+                    </li>
+                    <li>
+                        <a href="about.html">About</a>
+                    </li>
+                    <!-- <li>
+                        <a href="index.html">Blog</a>
+                    </li> -->
+                    <li>
+                        <a href="http://www.anujdutt.com.s3-website-us-east-1.amazonaws.com/">Profile</a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Page Header -->
+    <!-- Set your background image for this header on the line below. -->
+    <header class="intro-header" style="background-image: url(http://dungba.org/content/images/2016/03/autistic-neural-network-3-1.jpg)">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <div class="post-heading">
+                        <h1>Intro to Machine Learning: Naive Bayes Classifier</h1>
+                        <h2 class="subheading">Theory and Mathematic behind Naive Bayes Classifier</h2>
+                        <span class="meta">Posted on July 23, 2017</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Post Content -->
+    <article>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+
+                  <p><b>Hello Everyone !!</b></p>
+                  <p>Thanks for continuing with this post.</p>
+
+                  <p align='justify'>In the last post, we discussed about the use of <b>Logistic Regression</b> both in theory as well as in code.</p>
+                  <p align='justify'>In this post, we will discuss another very basic Classification Algorithm in Machine Learning called as <b>Naive Bayes Classifier</b>. So, let's get started.</p>
+                  <p align='justify'>You can find the Python code file and the IPython notebook for this tutorial <a href="https://github.com/anujdutt9/Machine-Learning/tree/master/NaiveBayes">here</a>.</p>
+
+
+                  <p align='justify'>But before moving to Naive Bayes Classifier, we firstly need to understand the driving force behind this classifier, the <b>Baye's Rule</b>.</p>
+
+
+                  <h3>Bayes Rule:</h3>
+                  <p align='justify'><b>Baye's Rule</b> or <b>Baye's Theorem</b> is a very simple rule that describes the probability of an event based on the prior conditions for that event.</p>
+                  <p align='justify'>Let's take a look at the formal definition of this. Wikipedia Defines Bayes Rule as follows:</p>
+                  <p align='justify'><blockquote cite="http://https://en.wikipedia.org/wiki/Bayes%27_theorem">In probability theory and statistics, Bayes’ theorem (alternatively Bayes’ law or Bayes' rule) describes the probability of an event, based on prior knowledge of conditions that might be related to the event. For example, if cancer is related to age, then, using Bayes’ theorem, a person’s age can be used to more accurately assess the probability that they have cancer, compared to the assessment of the probability of cancer made without knowledge of the person's age.</blockquote></p>
+                  <p align='justify'>So, how can we define this as a mathematical expression ?? Well that's easy. Its the same equation we have been studying in high school mathematics class on probability. It is defined as:</p>
+                  <p align='center'><img src="https://i.stack.imgur.com/t5voX.png" alt="https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Bayes%27_Theorem_MMB_01.jpg/1200px-Bayes%27_Theorem_MMB_01.jpg"></p>
+                  <p align='justify'>Let's see this part by part and later on understand this using an example. So, the term we need to predict here is:</p>
+                  <p align='center'><b>P(H|E)</b> i.e. Probability of Hypothesis "H" given an event "E"</p>
+                  <p align='center'>or in other words, Posterior Probability of "H" given evidence "E"</p><br>
+                  <p align='center'><b>P(H)</b> i.e. Probability of Hypothesis "H" irrespective of any other event</p>
+                  <p align='center'>or in other words, the Prior Probability.</p><br>
+                  <p align='center'><b>P(E|H)</b> i.e. Probability that event "E" will happen given the Hypothesis "H".</p>
+                  <p align='center'>or the Likelihood that event "E" will happen given the Hypothesis "H" is True.</p><br>
+                  <p align='center'><b>P(E)</b> i.e. Probability that the event "E" will happen</p>
+                  <p align='center'>or in other words, Prior Probability that the event "E" is True.</p>
+                  <p align='justify'>Where the terms <b>P(H|E)</b> and <b>P(E|H)</b> are called the <b>Conditional  Probabilities</b> and the terms <b>P(H)</b> and <b>P(E)</b> are called as the <b>Class Probability</b>.</p>
+                  <p align='justify'>Now that we know the equation for the Baye's Rule, let's understand its working with the help of an example.</p>
+
+
+                  <h3>Baye's Rule Example:</h3>
+                  <p align='justify'>Like a lot of other people, I am also a football fan and I follow some teams occasionally. So, let's form a question around football and try to solve it using Baye's Rule. So, let's get started.</p>
+                  <p align='justify'>Well I like <b>Barcelona</b>, so I'll take that as an example. You can take whichever team you like. Now we have seen most of the times that the teams perform better on homegrounds as compared to somplace else as they have been practicing there for long. So, let's imagine that due to some issue, you were unable to see the match and now you want to find a probability that whether your favourate team won the match at home or away from home if they won the match using the previous matches won data. So, how can you do that?? Let's see.</p>
+                  <p align='justify'>So, I am making up some data for a football team. Feel free to play around with the data. So, let's see what it is:</p>
+                  <p align='center'><img src="C:/Users/ad1026858/Desktop/TeamSummary.png" alt="" width='600'></p>
+                  <p align='justify'>In the above data I am assuming that a team wins a match, while playing on the home ground, 70% of the time and loses a match 30% of the time. Also, for matches away from home, say, the team wins the match 65% of the time and loses the match 35% of the time. So, we can write this data as follows:</p>
+                  <p align='center'><b>P(W|H) = 0.70</b> i.e. Probability of winning a match when playing at Home.</p>
+                  <p align='center'><b>P(W'|H) = 1 - P(W|H) = 1 - 0.70 => 0.30</b> i.e. Probability of losing a match when playing at Home.</p>
+                  <p align='center'><b>P(W|H') = 0.45</b> i.e. Probability of winning a match when playing away from Home.</p>
+                  <p align='center'><b>P(W'|H') = 1 - P(W|H') = 1- 0.45 => 0.55</b> i.e. Probability of losing a match when playing away from Home.</p>
+                  <p align='justify'>Also, I would like to add two more values to this table of values.</p>
+                  <p align='center'><b>P(H) = 0.60</b> i.e. Probability of playing a match at Home Ground.</p>
+                  <p align='center'><b>P(H') = 1 - P(H) = 1- 0.60 => 0.40</b> i.e. Probability of playing a match away from Home.</p>
+                  <p align='justify'>Now, you would say that,"We have defined all these values but we don't know where to put these vales. We don't have any formula that takes all these values." Well, we have defined the formula but not expanded it to such extent where we can see all these variables. So, let's expand our Baye's Rule formula.</p>
+                  <p align='justify'><b>Baye's Rule</b> can be written as:</p>
+                  <p align='center'><img src="C:/Users/ad1026858/Desktop/BayesRule.png" alt="" width='400' height='200'></p>
+                  <p align='justify'>So, now that we have the formula, let's plug in the values and find out the probability that your favourate team won the mactch at home ground.</p>
+                  <p align='center'><img src="C:/Users/ad1026858/Desktop/atHome.png" alt="" width='400' height='320'></p>
+                  <p align='justify'>From the above calculations we can clearly see that if the team won the match, then it has a probability of <b>0.7</b> or <b>70%</b> chances that they played at their Home Ground. And what is the probability for the other case ?? Well, its given as:</p>
+                  <p align='center'><b>1 - P(H|W) = 1 - 0.70 => 0.30</b></p>
+                  <p align='center'>or <b>30 %</b> chances that they didn't play at the Home Ground.</p>
+                  <p align='justify'>Well, this was all about the Baye's Rule and how it works. Now lets move to our main topic of this post i.e. Naive Baye's Classifier and see how Baye's Rule helps us in this Algorithm.</p>
+
+
+                  <h3>Naive Baye's Classifier:</h3>
+                  <p align='justify'>The <b>Naive Baye's Algorithm</b> is a very simple and a intutive algorithm that uses the probabilities of each attribute belonging to each class in the dataset to make a prediction. "But why is it called Naive??", you may ask.</p>
+                  <p align='justify'>Well, it's called Naive because it makes a strong assumption that all the features in the dataset are independent of each other whereas we know from our earlier algorithms that the data features are correlated with each other most of the time. So, this assumption is very Naive and hence, the name <b>Naive Baye's</b>.</p>
+                  <p align='justify'>In the above discussion, we have discussed the concepts of Conditional and Class Probability. So, what has it to do with Naive Baye's?? Well, by multiplying the conditional probabilities together for each attribute for a given class value in dataset, we have a probability of a data instance belonging to that class.</p>
+                  <p align='justify'>To make a prediction for the test data, we can calculate probabilities of the instance belonging to each class from the dataset and select the class value with the highest probability as our final resulting class.</p>
+                  <p align='justify'>So, thats all about the theoretical part. But how does it actually work ?? Let's see that with the help of an example.</p>
+                  <p align='justify'>Here, we will take an example of <b>Plane Takeoff</b>. The aim is to find the probability that the Plane will take off or not given the <b>Wind Speed</b>. We know that during severe weather conditions or very high winds, the planes usually are not allowed to take off. So, let's define our toy dataset.</p>
+                  <p align='center'><img src="C:/Users/ad1026858/Desktop/planeTable.png" alt="" width='500' height='400'></p>
+                  <p align='justify'>As you can see that we have three wind speeds i.e. High, Medium and Low and corresponding to that the label that whether the plane will take off or not. Since, the labels are only Yes or a No, it's a binary classification problem. So, let's now find out the Likelihood for each case by calculating the events frequency.</p>
+                  <p align='center'><img src="C:/Users/ad1026858/Desktop/Likelihood.png" alt="" width='500' height='300'></p>
+                  <p align='justify'>As the above table shows, we now have the frequency for each case and the likelihood that whether the label is a "Yes" or a "No" based on the input "Wind Speed". So, what's next?? Let's make some predictions and calculate the probabilities for our test cases.</p>
+                  <p align='justify'>Let's find: <b>P(Yes|High)</b> i.e. Probability of Plane to takeoff given the Wind Speed is High.</p>
+                  <p align='center'><b>P(Yes|High) = (P(Yes) P(High|Yes)) / (P(High))</b></p>
+                  <p align='justify'>Taking the values from the Likelihood Table and putting them in the equation above, we get:</p>
+                  <p align='center'>              = ((8/12) * (1/8)) / (3/12) </p>
+                  <p align='jsutify'>which gives us:</p>
+                  <p align='center'><b>P(Yes|High) = 1/3 => 0.33</b></p>
+                  <p align='justify'>The above probability shows that there are 33% chances that the plane will take off when the Wind Speed is very High which is True. Taking off a plane during high winds can be risky. Hence, our classification is true.</p>
+                  <p align='justify'>On thing you may have noticed here is that a plane's takeoff can be stopped due to many other reasons apart from High Wind Speed. But the Naive Baye's classifier does not count those things in the calculations which is the reason why we call it "Naive" in the first place.</p>
+                  <p align='justify'>So, now you might ask that we know all this now but is it good to use this classifier?? Is it worth our time to learn this algorithm and in what cases is it better or worst than other more optimized algorithms.</p>
+                  <p align='justify'>Well, here's the answer to your question. Say you have a vey large dataset and you need to see that whether that dataset is worth spending your time or not, there you can use Naive Baye's algorithm as it is fast and efficient and can provide an initial raw estimate of the class to which the test data belongs.</p>
+                  <p align='justify'>Moreover, as we know the property of Naive Baye's that it assumes that all features are independent of each other. So, in cases where you have a dataset with such a property, then Naive Baye's can perform better as compared to other algorithms.</p>
+                  <p align='justify'>So, where or when should we not use this algorithm ??  Well, Naive Baye's is looked upon as a bad estimator of probability. Hence, you might want to use some other classifier to verify the prediction made by Naive Baye's classifier.</p>
+                  <p align='justify'>Also, if the test data has a label or category which was not shown to the classifier during training, then it will not recognize it and instead assign a "0" to it due to its Naive assumption.</p>
+
+
+                  <p align='justify'>Now that we have covered the basics of Naive Bayes Algorithm, I think its now time to put this knowledge in code and see how this algorithm works. For doing this, we wll be writing the code for <b>Email Spam Classification</b> and see how this calssifier performs.</p>
+
+                  <p align='justify'><b><i>Great work on completing this tutorial, let's move to the next tutorial in series, <a href="ML_NaiveBayesCode.html"><b>Introduction to Machine Learning: Programming a Naive Bayes Classifier</b></a></i></b></p>
+					        <p align='justify'><b><i> For more projects and code, follow me on <a href="https://github.com/anujdutt9">Github</a></i></b></p>
+                  <p align='justify'><b>Please feel free to leave any comments, suggestions, corrections if any, below.</b></p>
+
+
+                  <div id="disqus_thread"></div>
+                    <script type="text/javascript">
+                      /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+                      var disqus_shortname = 'anujdutt9-github-io'; // required: replace example with your forum shortname
+                      /* * * DON'T EDIT BELOW THIS LINE * * */
+                     (function() {
+                         var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                         dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+                         (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                     })();
+                    </script>
+                    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+                    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+                  </div>
+                </div>
+            </div>
+        </div>
+    </article>
+
+    <hr>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <ul class="list-inline text-center">
+                        <li>
+                            <a href="https://twitter.com/MaverickGoose9">
+                                <span class="fa-stack fa-lg">
+                                    <i class="fa fa-circle fa-stack-2x"></i>
+                                    <i class="fa fa-twitter fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.facebook.com/anuj.dutt">
+                                <span class="fa-stack fa-lg">
+                                    <i class="fa fa-circle fa-stack-2x"></i>
+                                    <i class="fa fa-facebook fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/anujdutt9">
+                                <span class="fa-stack fa-lg">
+                                    <i class="fa fa-circle fa-stack-2x"></i>
+                                    <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li>
+						<li>
+                            <a href="https://www.linkedin.com/in/anuj-dutt-a0230b54/">
+                                <span class="fa-stack fa-lg">
+                                    <i class="fa fa-circle fa-stack-2x"></i>
+                                    <i class="fa fa-linkedin fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li>
+
+                    </ul>
+                    <p class="copyright text-muted">Copyright &copy; Anuj Dutt</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="vendor/jquery/jquery.min.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="vendor/bootstrap/js/bootstrap.min.js"></script>
+
+    <!-- Contact Form JavaScript -->
+    <script src="js/jqBootstrapValidation.js"></script>
+    <script src="js/contact_me.js"></script>
+
+    <!-- Theme JavaScript -->
+    <script src="js/clean-blog.min.js"></script>
+
+</body>
+</html>
