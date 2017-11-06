@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Tensorflow on Android Tutorial</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Theme CSS -->
+    <link href="css/clean-blog.min.css" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+</head>
+
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    Menu <i class="fa fa-bars"></i>
+                </button>
+                <!--<a class="navbar-brand" href="index.html">Start Bootstrap</a> -->
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="index.html">Home</a>
+                    </li>
+                    <li>
+                        <a href="about.html">About</a>
+                    </li>
+                    <!-- <li>
+                        <a href="index.html">Blog</a>
+                    </li> -->
+                    <li>
+                        <a href="http://www.anujdutt9.com.s3-website.us-east-2.amazonaws.com">Profile</a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Page Header -->
+    <!-- Set your background image for this header on the line below. -->
+    <header class="intro-header" style="background-image: url('img/AndroidTensorflow/TFAndroid.png')">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-10">
+                    <div class="post-heading">
+                        <h1>Tensorflow on Android Tutorial</h1>
+                        <h2 class="subheading">Steps to use Retrained Tensorflow Models on Android for Image Classification.</h2>
+                        <span class="meta">Posted on Nov. 4, 2017</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Post Content -->
+    <article>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+
+                  <p align='justify'>In this tutorial, we will cover:</p>
+                  <ol>
+                    <li>How to Retrain the state-of-the-art Inception Model's Final Layer for Image Classification.</li>
+                    <li>How to Retrain a more efficient model "MobileNet's" Final Layer for mobile Phones.</li>
+                    <li>How to use these models in an Android App and Build it ro use on your phones.</li>
+                  </ol>
+
+                  <h3>Requirements</h3>
+                  <ol>
+                    <li><b>OS: </b>Ubuntu/AWS Cloud/Google Cloud/Windows</li>
+                    <li>Python 3+</li>
+                    <li>OpenCV [optional]</li>
+                    <li>Tensorflow</li>
+                  </ol>
+
+                  <p align='justify'>So, let's get started.</p>
+
+                  <h2>Prerequisites</h2>
+                  <h3>Data Collection and Preprocessing</h3>
+                  <p align='justify'>The first step in this tutorial before even retraining the model is the collection of the dataset. In this tutorial, I'll be creating my own dataset of "roses" and "tulips". Feel free to collect/use your own dataset.</p>
+                  <p align='justify'><b>NOTE:</b> If you want to download a dataset from anywhere else, you can skip this step and move to the <a name="Retraining the Inception Model [Final Layer]">first step</a> in this tutorial</p>
+                  <p align='justify'>To get the images for the dataset, I'll be using <a href="http://www.image-net.org/">Imagenet website</a> to get the links to the images and fetch them using their URL's and a simple python script. So, let's get started.</p>
+                  <p align='justify'>Let's go the Imagenet website and search for images of roses.</p>
+                  <p align='justify'><img src="img/AndroidTensorflow/rose.png" alt="" width='900'></p>
+                  <p align='justify'>As we can see that for a search of word "rose", Imagenet gives us a lot of results. But here we are focusing only on the flower rose and nothing else. So, the results in the yellow box are the only ones of our interest.</p>
+                  <p align='justify'>Let's click on the first link and see what we get.</p>
+                  <p align='justify'><img src="img/AndroidTensorflow/roseimage.png" alt="" width='900'></p>
+                  <p align='justify'>As you can see, we are presented with a lot of images of roses. Now, we want all these images to be in a folder from where we can fetch them and train our network. So, how do we fetch all these images? Well, we write a python script that can fetch all the URL's for each of these images and saves all the images into the folder. Let's see how this works.</p>
+                  <p align='justify'>On this same page, click on downloads. You will be presented with a link for URL's as shown in image below.</p>
+                  <p align='justify'><img src="img/AndroidTensorflow/roseurl.png" alt="" width='900'></p>
+                  <p align='justify'>On this page, click on URL's and you will be taken to another page where you will be presented with a lot of URL's. These all URL's are the URL's for each one of the images that we saw earlier and a lot more.</p>
+                  <p align='justify'><img src="img/AndroidTensorflow/roseurls.png" alt="" width='900'></p>
+                  <p align='justify'>Now, the next step is to fetch all these URL's and download the images from them into a folder using a Python script. So, let's write this python code.</p>
+                  <p align='justify'><iframe src="Jupyter-Notebooks/FetchImages.html" width="1000" height="6000"></iframe></p>
+                  <p align='justify'>Now that we have fetched all the images of roses and tulips into the 'rose/' and 'tulip/' directories, now it's time to train the upper layers of Inception and MobileNet models.</p>
+                  <p align='justify'><b>NOTE:</b> If you think that the amount of data you have downloaded is less, use Imagenet website to get the extra webpage links of other images and use the same script to dowload the images into the same folders.</p>
+
+                  <h3>Retraining the Inception Model [Final Layer]</h3>
+                  <p align='justify'>Inception is a state-of-the-art Image Recognition and Classification model created by Google. Inception model has the following structure:</p>
+                  <p align='justify'><img src="img/AndroidTensorflow/inception.png" alt="" width='1000' ></p>
+                  <p align='justify'>The inception model learns different features at every step from the input image and at the output gives the probability of the labels for the contents in the image using a Softmax function on the Logits.</p>
+                  <p align='justify'>For our use case, we just need to retrain the final layer of the inception model</p>
+                  <p align='justify'></p>
+                  <p align='justify'></p>
+                  <p align='justify'></p>
+                  <p align='justify'></p>
+
+                      <p align='justify'><i>So, now we have reached the end of Part 1 of this tutorial. I hope I was able to clearly represent the working of GAN's.</i></p>
+
+					            <p align='justify'><b>For a deeper insight into GAN's watch <a href="https://www.youtube.com/watch?v=YpdP_0-IEOw">this video</a> and read these two papers: <a href="https://arxiv.org/pdf/1406.2661.pdf">Paper 1</a> and <a href="https://arxiv.org/pdf/1701.00160.pdf">Paper 2</a>.
+                      <p align='justify'><b>For Part 2 of this tutorial, click <a href="https://anujdutt9.github.io/GAN-PII.html">here</a></b></p>
+					            <p align='justify'><b><i> For more projects and code, follow me on <a href="https://github.com/anujdutt9">Github</a></i></b></p>
+                      <p><b>Please feel free to leave any comments, suggestions, corrections if any :)</b></p>
+
+                      <div id="disqus_thread"></div>
+                        <script type="text/javascript">
+                          /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+                          var disqus_shortname = 'anujdutt9-github-io'; // required: replace example with your forum shortname
+
+                          /* * * DON'T EDIT BELOW THIS LINE * * */
+                         (function() {
+                             var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                             dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+                             (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                         })();
+                        </script>
+                        <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+                        <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+                      </div>
+                </div>
+            </div>
+        </div>
+    </article>
+
+    <hr>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <ul class="list-inline text-center">
+                        <li>
+                            <a href="https://twitter.com/MaverickGoose9">
+                                <span class="fa-stack fa-lg">
+                                    <i class="fa fa-circle fa-stack-2x"></i>
+                                    <i class="fa fa-twitter fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.facebook.com/anuj.dutt">
+                                <span class="fa-stack fa-lg">
+                                    <i class="fa fa-circle fa-stack-2x"></i>
+                                    <i class="fa fa-facebook fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/anujdutt9">
+                                <span class="fa-stack fa-lg">
+                                    <i class="fa fa-circle fa-stack-2x"></i>
+                                    <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li>
+						<li>
+                            <a href="https://www.linkedin.com/in/anuj-dutt-a0230b54/">
+                                <span class="fa-stack fa-lg">
+                                    <i class="fa fa-circle fa-stack-2x"></i>
+                                    <i class="fa fa-linkedin fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li>
+
+                    </ul>
+                    <p class="copyright text-muted">Copyright &copy; Anuj Dutt</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="vendor/jquery/jquery.min.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="vendor/bootstrap/js/bootstrap.min.js"></script>
+
+    <!-- Contact Form JavaScript -->
+    <script src="js/jqBootstrapValidation.js"></script>
+    <script src="js/contact_me.js"></script>
+
+    <!-- Theme JavaScript -->
+    <script src="js/clean-blog.min.js"></script>
+
+</body>
+</html>
