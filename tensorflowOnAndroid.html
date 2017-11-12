@@ -74,9 +74,9 @@
             <div class="row">
                 <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-10">
                     <div class="post-heading">
-                        <h1>Tensorflow on Android Tutorial</h1>
-                        <h2 class="subheading">Steps to use Retrained Tensorflow Models on Android for Image Classification.</h2>
-                        <span class="meta">Posted on Nov. 4, 2017</span>
+                        <!-- <h1> </h1>
+                        <h2 class="subheading"> </h2>
+                        <span class="meta">Posted on Nov. 4, 2017</span> -->
                     </div>
                 </div>
             </div>
@@ -129,12 +129,31 @@
                   <h3>Retraining the Inception Model [Final Layer]</h3>
                   <p align='justify'>Inception is a state-of-the-art Image Recognition and Classification model created by Google. Inception model has the following structure:</p>
                   <p align='justify'><img src="img/AndroidTensorflow/inception.png" alt="" width='1000' ></p>
-                  <p align='justify'>The inception model learns different features at every step from the input image and at the output gives the probability of the labels for the contents in the image using a Softmax function on the Logits.</p>
-                  <p align='justify'>For our use case, we just need to retrain the final layer of the inception model</p>
-                  <p align='justify'></p>
-                  <p align='justify'></p>
-                  <p align='justify'></p>
-                  <p align='justify'></p>
+                  <p align='justify'>The Inception model learns different features at every step from the input image and at the output gives the probability of the labels for the contents in the image using a Softmax function on the Logits.</p>
+                  <p align='justify'>The Inception model consists of a number of deep onvolutional layers. Each convolutional layer learns a different parameter from the image for example the first layer learns the horzontal lines, the second layer learns the vertical lines and so on. Then it uses backtracking to update the weights and the filter parameters and eventually it is able to learn the parameters wrt each class image.</p>
+                  <p align='justify'>For our use case, we just need to retrain the final layer of the inception model and can use the rest of the model as it is. The retraining will be done on the new images that we have just downloaded i.e. the roses and the tulips.</p>
+                  <p align='justify'>So, let's get started. To retrain the final layer of the inception model, Google provides us with a "retrain.py" script that we will use as is out of the box. For this, download/clone the tensorflow repository from <a href="https://github.com/tensorflow/tensorflow">here</a>.</p>
+                  <p align='justify'>The python script can be found at the path "tensorflow/tensorflow/examples/image_retraining/retrain.py".</p>
+                  <p align='justify'><b>NOTE:</b> The retraining using this script is a bit resource intensive. So, to reduce time, either use a good laptop with a GPU and GPU version of Tensorflow installed or use Google Cloud/AWS. I'll be using Google Cloud for this tutorial.</p>
+                  <p align='justify'>Now, once you have downloaded this repository, go inside the path mentioned above to access the "retrain.py" and "label.py". We will be using the retrain.py script to retrain the top layer of the inception model and the label.py to test out our trained saved model.</p>
+                  <p align='justify'>Now, to the main part. The retraining for our dataset. Let's get started !!!</p>
+                  <ol>
+                    <li>Using command prompt, go inside the "tensorflow" folder.</li>
+                    <li>Make a folder and place the "rose" and "tulip" folders containing the images into that folder. After this, the directory should look something like this: </li>
+                    <p align='justify'><img src="img/AndroidTensorflow/folder.png" alt=""></p>
+                    <li>Now, from inside the tensorflow directory, type the following command:</li>
+                    <p align='justify'><b>python3 tensorflow/examples/image_retraining/retrain.py / <br>
+                                                  --image_dir ~/dataset/  --learning_rate=0.0001 / <br>
+                                                  --testing_percentage=20  --validation_percentage=20 / <br>
+                                                  --train_batch_size=32  --validation_batch_size=-1 / <br>
+                                                  --flip_left_right True  --random_scale=30 / <br>
+                                                  --random_brightness=30  --eval_step_interval=100 / <br>
+                                                  --how_many_training_steps=600  --architecture inception_v3</b></p>
+                    <p align='justify'>So, what are all these variables and values in this command ? Let's see.</p>
+                    <p align='justify'>The first thing in this is the retraining script. This script defines all the inputs it can take. These are the values that follow in the command. Next, provide the path to the directory which contains the folders containing the images. Learning Rate defines the rate at which the Cost is reduced in the Gradient Curve. If this value is too large, we might overshoot the minima thereby getting less accuracy and more error. If the value is too small, it might take the model too long to reach the minima and hence might take too long.</p>
+                    <p align='justify'>Then we have the "testing_percentage". This defines that what percentage of the input images will be used as the test data from the original database. "Validation Percentage" defines the percentage of data to be kept aside for validation. The difference between Validation and test data is that we use the validation dataset to improve and fine tune the parameters like the learning rate, weights and bias values to improve the accuracy of the model. Once we are satisfied with the accuracy, then we use the test images to test the model on images that it has not seen before and see how well it performs.</p>
+                    <p align='Justify'>"Train Batch Size" defines the number of images that the model takes as input at once. It is better to input the images in batches as compared to all the images at once as it is good for running on systems with less memory. "Validation Batch Size" </p>
+                  </ol>
 
                       <p align='justify'><i>So, now we have reached the end of Part 1 of this tutorial. I hope I was able to clearly represent the working of GAN's.</i></p>
 
