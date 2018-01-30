@@ -111,16 +111,44 @@
                   <p align='justify'>So, let's get started.</p>
 
                   <h2>Exploring Boston Housing Price Dataset</h2>
-                  <h3>Load Data and do some Preprocessing (if required)</h3
+                  <h3>Load Data and Feature Intuition</h3>
                   <p align='justify'>The first step is to load the dataset and do any preprocessing if necessary. To load the dataset, I'll be using scikit-learn as it contains this dataset which contains the description <b>[DESCR]</b> of each feature, <b>data</b> i.e. the feature values and finally the <b>target</b> i.e. the labels.</p>
                   <p align='justify'><b>NOTE:</b> If you want to download a dataset from any website, then you might required to do some preprocessing, but I am not covering that step here.</p>
-                  <p align='justify'></p>
+                  <p align='justify'>Once we have downloaded the dataset, let's use pandas library and get some insight about the dataset like how well the features correlate with the output i.e. the prices, how much the features correlate with each other and whether a change in the features has a positive or a negative impact on the output. Also, an important thing to notice would be that if the dataset is balanced or not.</p>
+                  <p align='justify'><iframe src="Jupyter-Notebooks/Load-Data-and-Intuition.html" width="1000" height="6300"></iframe></p>
+                  <p align='justify'>The above code gives us a lot of useful information about the dataset. It tells us the important features that we must look at while implementing the algorithms for training on this dataset.</p>
+
+                  <h3>Data Preprocessing and Train-Test Split</h3>
+                  <p align='justify'>Since, now we know that all the features that are important and how they correlate with each other, we can just go on and implement the algorithm to train it, can't we !! Well......not just yet.</p>
+                  <p align='justify'>Before sending the data to the model, an important step is data preprocessing and then cross-validation. Since, we have the dataset that has values for each feature which lie in different ranges i.e. some of those are in hundreds and some of them are in decimal points etc. So, we need to normalize them so that they all lie on the same scale. This way we make sure that the small values are not entirely neglected and the larger values get more importance.</p>
+                  <p align='justify'>Also, we cannot send the whole data as it is to train the model as this can lead to Overfitting i.e. since the dataset is small, the model can try to learn the dataset and fit to that. This leads to a very good performance on the training data but when we try it on an external data, the model performs pretty bad.</p>
+                  <p align='justify'>One more thing to consider is that the preprocessing will be applied to the training and test features only and not the labels as we need the output in the range of the labels.</p>
+                  <p align='justify'>So, let's get started.</p>
+                  <p align='jsutify'><iframe src="Jupyter-Notebooks/Preprocessing-and-TrainTestSplit.html" width="1000" height="6300"></iframe></p>
+                  <p align='justify'>Now that we are done with the hard part, it's time to define our Regressor models and see that how well they perform for predicting the house prices.</p>
+
+                  <h2>Linear Regression using Tensorflow</h2>
+                  <p align='justify'>In this part, we will implement the Linear Regression model using pure tensorflow and no other wrappers around it. We will define our placeholders, variables and train the model to reduce the cost function using a Optimizer function.</p>
+                  <p align='justify'>So, let's get started.</p>
+                  <p align='justify'><iframe src="Jupyter-Notebooks/LinearRegressionTF.html" width="1000" height="5000"></iframe></p>
+                  <p align='justify'>So, we just trained a basic tensorflow model to predict the housing prices.</p>
+
+                  <h2>Tensorflow Linear Regressor using Estimator API</h2>
+                  <p align='justify'>In this part, we'll leverage the same preprocessed dataset but with a different approach. In this, we'll be using a Linear Regressor model from Tensorflow's Estimator API.</p>
+                  <p align='justify'><iframe src="Jupyter-Notebooks/TF-LinearRegressor-Estimator.html" width="1000" height="5000"></iframe></p>
+                  <p align='justify'>So, we just trained a Linear Regressor model using tensorflow's Estimator API to predict the housing prices.</p>
+                  <p align='justify'><b>NOTE</b> that the aim of this tutorial is to get you acquainted with the Estimator API and show that how it works. The current loss using this API for this example is a bit high and this model can be tuned further to reduce that error and get better predictions.</p>
+
+                  <h2>Tensorflow DNN Regressor using Estimator API</h2>
+                  <p align='justify'>In this part, we'll leverage the same preprocessed dataset but with a different approach. In this, we'll be using a DNN Regressor model from Tensorflow's Estimator API.</p>
+                  <p align='justify'><iframe src="Jupyter-Notebooks/TF-DNNRegressor-Estimator.html" width="1000" height="5000"></iframe></p>
+                  <p align='justify'>So, we just trained a DNN Regressor model using tensorflow's Estimator API to predict the housing prices.</p>
+                  <p align='justify'><b>NOTE</b> that the aim of this tutorial is to get you acquainted with the Estimator API and show that how it works. The current loss using this API for this example is a bit high and this model can be tuned further to reduce that error and get better predictions.</p>
                   </p>
 
-                  <p align='justify'><i>So, now we have reached the end of Part 1 of this tutorial. I hope I was able to clearly represent the working of GAN's.</i></p>
+                  <p align='justify'><i>So, we have reached the end of this tutorial. I hope I was able to make you understand that how we can use Tensorflow and the Estimator API for a Regression task.</i></p>
 
-					        <p align='justify'><b>For a deeper insight into GAN's watch <a href="https://www.youtube.com/watch?v=YpdP_0-IEOw">this video</a> and read these two papers: <a href="https://arxiv.org/pdf/1406.2661.pdf">Paper 1</a> and <a href="https://arxiv.org/pdf/1701.00160.pdf">Paper 2</a>.
-                  <p align='justify'><b>For Part 2 of this tutorial, click <a href="https://anujdutt9.github.io/GAN-PII.html">here</a></b></p>
+                  <p align='justify'><b>In the next tutorial, we'll go over on how to use Tensorflow and the Estimator API for Classification Task.</b></p>
 					        <p align='justify'><b><i> For more projects and code, follow me on <a href="https://github.com/anujdutt9">Github</a></i></b></p>
                   <p><b>Please feel free to leave any comments, suggestions, corrections if any :)</b></p>
 
