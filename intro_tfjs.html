@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Anuj Dutt's Machine Learning Blog">
+    <meta name="author" content="Anuj Dutt">
+    <meta property="og:title" content="Anuj Dutt's Machine Learning Blog">
+    <meta property="og:description" content="Anuj Dutt's Machine Learning Blog">
+    <meta property="og:image" content="https://uploads.toptal.io/blog/image/443/toptal-blog-image-1407508081138.png">
+
+    <title>Intro to ML using Tensorflow.js</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Theme CSS -->
+    <link href="css/clean-blog.min.css" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+    <!-- Load TensorFlow.js from a load balanced CDN server provided by Google -->
+   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.13.3/dist/tf.min.js"></script>
+   <!-- Script to know the status of TensorFlow.js i.e. if it has been loaded or not. -->
+   <script>
+     <!-- Test code to check if we have loaded TensorFlow.js library successfully or not. -->
+     var tfjsLoaded = 'Yes';
+     try{
+       tf;
+     }
+     catch{
+       tfjsLoaded = 'No';
+     }
+   </script>
+</head>
+
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    Menu <i class="fa fa-bars"></i>
+                </button>
+                <!--<a class="navbar-brand" href="index.html">Start Bootstrap</a> -->
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="index.html">Home</a>
+                    </li>
+                    <li>
+                        <a href="about.html">About</a>
+                    </li>
+                    <!-- <li>
+                        <a href="index.html">Blog</a>
+                    </li> -->
+                    <li>
+                        <a href="http://www.anujdutt9.com.s3-website.us-east-2.amazonaws.com">Profile</a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Page Header -->
+    <!-- Set your background image for this header on the line below. -->
+    <header class="intro-header" style="background-image: url(img/tfjs.png)">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <div class="post-heading">
+                        <h1 style="color:#000000";>Intro to Machine Learning using TensorFlow.js</h1>
+                        <h2 style="color:#000000"; class="subheading">Loading TensorFlow.js Library.</h2>
+                        <span style="color:#000000"; class="meta">Posted on Feb. 28, 2019</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Post Content -->
+    <article>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+
+                  <p><b>Hello Everyone !!</b></p>
+                  <p>Thanks for continuing with this post.</p>
+
+                  <p align='justify'>In this short tutorial, we will take a look at what is TensorFlow.js, the basic layout of this framework and a quick demo with the code to load this library using Javascript.</p>
+                  <p align='justify'> So, let's get started.</p>
+
+                  <!-- Create a header with an id associated with it. -->
+                   <p align="center" id="tfjs">The TensorFlow.js status will be displayed here. Click button below to check library status.</p>
+
+                   <!-- Button to check status of TensorFlow.js library that gets executed on clicking the button. -->
+                   <p align="center">
+                     <button onclick="displayStatus()">Check Status</button>
+                   </p>
+
+                   <!-- Script to change the HTML content of a h3 element with id="tfjs". -->
+                   <script>
+                   function displayStatus() {
+                     document.getElementById("tfjs").innerHTML = 'Tensorflow.js library loaded successfully ? ' + tfjsLoaded;
+                   }
+                   </script>
+
+
+                  <!-- <p align='justify'>You can find the Python code file and the IPython notebook for this tutorial <a href="https://github.com/anujdutt9/Machine-Learning/tree/master/Logistic%20Regression">here</a>.</p>
+
+
+                  <p align='justify'>Now that we have covered the basics of Logistic Regression, I think its now time to write our third Machine Learning Algorithm in Code, i.e. <b>K-Nearest Neighbors</b>.</p>
+
+                  <p align='justify'><b><i>Great work on completing this tutorial, let's move to the next tutorial in series, <a href="ML_KNN.html"><b>Introduction to Machine Learning: K-Nearest Neighbors</b></a></i></b></p>
+					        <p align='justify'><b><i> For more projects and code, follow me on <a href="https://github.com/anujdutt9">Github</a></i></b></p>
+                  <p align='justify'><b>Please feel free to leave any comments, suggestions, corrections if any, below.</b></p> -->
+
+
+                  <div id="disqus_thread"></div>
+                    <script type="text/javascript">
+                      /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+                      var disqus_shortname = 'anujdutt9-github-io'; // required: replace example with your forum shortname
+
+                      /* * * DON'T EDIT BELOW THIS LINE * * */
+                     (function() {
+                         var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                         dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+                         (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                     })();
+                    </script>
+                    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+                    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+                  </div>
+                </div>
+            </div>
+        </div>
+    </article>
+
+    <hr>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <ul class="list-inline text-center">
+                        <li>
+                            <a href="https://twitter.com/MaverickGoose9">
+                                <span class="fa-stack fa-lg">
+                                    <i class="fa fa-circle fa-stack-2x"></i>
+                                    <i class="fa fa-twitter fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.facebook.com/anuj.dutt">
+                                <span class="fa-stack fa-lg">
+                                    <i class="fa fa-circle fa-stack-2x"></i>
+                                    <i class="fa fa-facebook fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/anujdutt9">
+                                <span class="fa-stack fa-lg">
+                                    <i class="fa fa-circle fa-stack-2x"></i>
+                                    <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li>
+						<li>
+                            <a href="https://www.linkedin.com/in/anuj-dutt-a0230b54/">
+                                <span class="fa-stack fa-lg">
+                                    <i class="fa fa-circle fa-stack-2x"></i>
+                                    <i class="fa fa-linkedin fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li>
+
+                    </ul>
+                    <p class="copyright text-muted">Copyright &copy; Anuj Dutt</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="vendor/jquery/jquery.min.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="vendor/bootstrap/js/bootstrap.min.js"></script>
+
+    <!-- Contact Form JavaScript -->
+    <script src="js/jqBootstrapValidation.js"></script>
+    <script src="js/contact_me.js"></script>
+
+    <!-- Theme JavaScript -->
+    <script src="js/clean-blog.min.js"></script>
+
+</body>
+</html>
