@@ -192,7 +192,9 @@
                <p align="justify">As you open the console and click on an image above, you should see some output like in the image below. This is the output that I get when I select the Panda image:</p>
                <img src="img/tfjs_ImageClassifier/mobilenet_in_browser.png" alt="" width= "800">
 
-               <p align="justify">Let's see how this all is done in code. The first step is to define a function to get the ID of the image that the user selects. For this, we provide all images with a unique ID. Then to get this ID on selecting an image and process it, we add a OnClick event to each image that calls a function in JavaScript.</p>
+               <p align="justify">Let's see how this all is done in code. The first step is to load TensorFlow.js library and the MobileNet model. We can doo this in two ways: load the library hosted using a CDN or load the library locally using a tfjs.json and model.json files. In this tutorial we'll be using the CND. Let's see this in code.</p>
+               <img src="" alt="">
+               <p align="justify">Next, we define a function to get the ID of the image that the user selects. For this, we provide all images with a unique ID. Then to get this ID on selecting an image and process it, we add a OnClick event to each image that calls a function in JavaScript.</p>
                <img src="img/tfjs_ImageClassifier/image_id.png" alt="" width="1000" height="60">
                <p align="justify"> The OnClick event calls the imageSelected(image_id) function in JavaScript and passes in the selected image's ID as an argument. The JavaScript function for doing this looks like follows:</p>
                <img src="img/tfjs_ImageClassifier/func1.png" alt="" width="800">
@@ -203,6 +205,7 @@
                <p align="justify">Since, we have done all the pre-processing required, we are now ready to make predictions on the selected image. For doing this, we just load our MobileNet model using CDN or you can save and load the model locally as a model.json file and call the model.classify(image) function. The model.classify(image) function returns two things, the className i.e. the class labels for the image and probability i.e. the probability the model thinks this image belongs to that class. This can be done in the code as follows:</p>
                <img src="img/tfjs_ImageClassifier/model_prediction.png" alt="" width="800">
 
+               <p align="justify">So, in this tutorial, we saw that how to use TensorFlow.js for performing image classification in the browser using a machine learning model.</p>
 
                 <div class="custom-row">
                     <div class="custom-column">
