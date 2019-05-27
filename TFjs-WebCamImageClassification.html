@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Anuj Dutt's Machine Learning Blog">
+    <meta name="author" content="Anuj Dutt">
+    <meta property="og:title" content="Anuj Dutt's Machine Learning Blog">
+    <meta property="og:description" content="Anuj Dutt's Machine Learning Blog">
+    <meta property="og:image" content="https://uploads.toptal.io/blog/image/443/toptal-blog-image-1407508081138.png">
+
+    <title>Webcam Image Classification using TensorFlow.js</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Theme CSS -->
+    <link href="css/clean-blog.min.css" rel="stylesheet">
+
+    <!-- Load TensorFlow.js Library -->
+   <script src="https://unpkg.com/@tensorflow/tfjs"></script>
+   <!-- Load mobilenet model from TF.js -->
+   <script src="https://unpkg.com/@tensorflow-models/mobilenet"></script>
+
+    <!-- Custom Fonts -->
+    <link href="vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+
+</head>
+
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    Menu <i class="fa fa-bars"></i>
+                </button>
+                <!--<a class="navbar-brand" href="index.html">Start Bootstrap</a> -->
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="index.html">Home</a>
+                    </li>
+                    <li>
+                        <a href="about.html">About</a>
+                    </li>
+                    <!-- <li>
+                        <a href="index.html">Blog</a>
+                    </li> -->
+                    <li>
+                        <a href="http://www.anujdutt9.com.s3-website.us-east-2.amazonaws.com">Profile</a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- ******************************************************************************** -->
+    <!-- Uncomment this to show Page Header Image-->
+    <!-- Set your background image for this header on the line below. -->
+    <header class="intro-header" style="background-image: url(img/tfjs.jpg)">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <div class="post-heading">
+                        <h1>Webcam Image Classification using TensorFlow.js</h1>
+                        <h2 class="subheading">On-Device Image Classification in the Browser.</h2>
+                        <span class="meta">Posted on March 19, 2019</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- ******************************************************************************** -->
+
+    <!-- Post Content -->
+    <article>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+
+                  <p><b>Hello Everyone !!</b></p>
+                  <p>Thanks for continuing with this post.</p>
+
+                  <p align="justify">In the last tutorial, we saw how to make use of existing pre-trained machine learning models like mobilenet and use them for doing image classification. In this tutorial, we'll go ahead and see how to do the same on live video in the browser using your webcam or phone's camera. So, let's get started.</p>
+                  <p align='justify'>First, let me begin by showing you a simple demo of what we'll be building in this tutorial. Go ahead and click on the button that says "Click Me". Also provide the camera access when the browser prompts you to do so for this demo.</p>
+
+                  <video autoplay playsinline muted id="webcam" poster="https://i.ytimg.com/vi/UH1ThWZ9hXU/hqdefault.jpg" width="900" height="600"></video>
+                  <br>
+                  <p id="predLabelProbb" align="center"><b>Model Predictions with Probability appear here.</b></p>
+
+                  <div class="col-md-15 text-center">
+                    <button type="button" onclick="app()" class="btn btn-primary">Try Me</button>
+                  </div>
+
+
+                <script type="text/javascript">
+                  const webcamElement = document.getElementById('webcam');
+                  var predText = " ";
+
+                  // Setup the Webcam to access video from the Browser
+                  async function setupWebcam() {
+                    return new Promise((resolve, reject) => {
+                      const navigatorAny = navigator;
+                      navigator.getUserMedia = navigator.getUserMedia ||
+                          navigatorAny.webkitGetUserMedia || navigatorAny.mozGetUserMedia ||
+                          navigatorAny.msGetUserMedia;
+                      if (navigator.getUserMedia) {
+                        navigator.getUserMedia({video: true},
+                          stream => {
+                            webcamElement.srcObject = stream;
+                            webcamElement.addEventListener('loadeddata',  () => resolve(), false);
+                          },
+                          error => reject());
+                      } else {
+                        reject();
+                      }
+                    });
+                  }
+
+                  // Main function to perform image classification on image frames from Webcam Video
+                  async function app() {
+                    console.log('Loading mobilenet..');
+
+                    // Load the model.
+                    net = await mobilenet.load();
+                    console.log('Sucessfully loaded model');
+
+                    await setupWebcam();
+                    while (true) {
+                      const result = await net.classify(webcamElement);
+                      document.getElementById('predLabelProbb').innerHTML =  "The model is " + Math.round(result[0].probability*100).toString().bold() + " % sure that the image contains a " + result[0].className.bold() + ".";
+                      // Give some breathing room by waiting for the next animation frame to
+                      // fire.
+                      await tf.nextFrame();
+                    }
+                  }
+                </script>
+
+                  <p align='justify'>Now that we know how to use pre-trained model to make prediction on images in the browser, now it's time to see how we can use the same model to make predictions on live video using our webcam in the browser.</p>
+
+                  <p align='justify'><b><i>Great work on completing this tutorial. Next, we'll see how to use a pre-trained model using TensorFlow.js in the browser and make predictions on live stream video. <a href="TFjs-WebCamImageClassification.html"><b>Image Classification on Live Video using TensorFlow.js</b></a></i></b></p>
+					        <p align='justify'><b><i> For more projects and code, follow me on <a href="https://github.com/anujdutt9">Github</a></i></b></p>
+                  <p align='justify'><b>Please feel free to leave any comments, suggestions, corrections if any, below.</b></p>
+
+
+                  <div id="disqus_thread"></div>
+                    <script type="text/javascript">
+                      /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+                      var disqus_shortname = 'anujdutt9-github-io'; // required: replace example with your forum shortname
+
+                      /* * * DON'T EDIT BELOW THIS LINE * * */
+                     (function() {
+                         var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                         dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+                         (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                     })();
+                    </script>
+                    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+                    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+                  </div>
+                </div>
+            </div>
+        </div>
+    </article>
+
+    <hr>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <ul class="list-inline text-center">
+                        <li>
+                            <a href="https://twitter.com/MaverickGoose9">
+                                <span class="fa-stack fa-lg">
+                                    <i class="fa fa-circle fa-stack-2x"></i>
+                                    <i class="fa fa-twitter fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.facebook.com/anuj.dutt">
+                                <span class="fa-stack fa-lg">
+                                    <i class="fa fa-circle fa-stack-2x"></i>
+                                    <i class="fa fa-facebook fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/anujdutt9">
+                                <span class="fa-stack fa-lg">
+                                    <i class="fa fa-circle fa-stack-2x"></i>
+                                    <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li>
+						<li>
+                            <a href="https://www.linkedin.com/in/anuj-dutt-a0230b54/">
+                                <span class="fa-stack fa-lg">
+                                    <i class="fa fa-circle fa-stack-2x"></i>
+                                    <i class="fa fa-linkedin fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li>
+
+                    </ul>
+                    <p class="copyright text-muted">Copyright &copy; Anuj Dutt</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="vendor/jquery/jquery.min.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="vendor/bootstrap/js/bootstrap.min.js"></script>
+
+    <!-- Contact Form JavaScript -->
+    <script src="js/jqBootstrapValidation.js"></script>
+    <script src="js/contact_me.js"></script>
+
+    <!-- Theme JavaScript -->
+    <script src="js/clean-blog.min.js"></script>
+
+</body>
+</html>

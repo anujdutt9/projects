@@ -18,7 +18,7 @@
     <!-- Load TensorFlow.js from a load balanced CDN server provided by Google. -->
     <!-- Loading P5.js and P5.dom.js libraries for interactive Visualizations. -->
     <!-- ********************************************************************* -->
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.15.3/dist/tf.min.js"></script>
+    <script src="https://unpkg.com/@tensorflow/tfjs"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.3/p5.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.3/addons/p5.dom.min.js"></script>
 
@@ -33,6 +33,7 @@
         tfjsLoaded = 'No';
       }
     </script>
+
 
     <!-- Bootstrap Core CSS -->
     <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
@@ -119,13 +120,12 @@
                   <p><b>Hello Everyone !!</b></p>
                   <p>Thanks for continuing with this post.</p>
                   <p align="justify">In this tutorial, we'll see how to implement the simplest machine learning algorithm i.e. Linear Regression using TensorFlow.js.</p>
-                  <p align="justify">Before moving forward, let's see what we are going to make today. If you see the canvas below, you see a random line plotted in yellow. Now go ahead and click around on the canvas.</p>
+                  <p align="justify">Before moving forward, let's see what we are going to make today. If you see the canvas below, you see a random line plotted in yellow on a black canvas. Now go ahead and click around on the canvas.</p>
 
                   <div id="sketch-holder" class="">
                   </div>
 
-                  <p align="center" id="X">X: </p>
-                  <p align="center" id="Y">Y: </p>
+                  <p align="center" id="xy" style="padding-left: 20%">X: &nbsp;,&nbsp; Y:</p>
 
                   <script type="text/javascript">
                     // **********************************************************************
@@ -161,7 +161,6 @@
                     function setup(){
                       cnv = createCanvas(900,600);
                       cnv.parent('sketch-holder');
-                      //centerCanvas();
                       // Initialize the slope of the line with a random number between 0 and 1.
                       // Since, these values will change over time, they should be a variable.
                       m = tf.variable(tf.scalar(random(1)));
@@ -178,10 +177,12 @@
                       // Map the value of Mouse X that goes from 0 to 400 => between 0 and 1.
                       let x = map(mouseX, 0, width, 0, 1);
                       let y = map(mouseY, 0, height, 1, 0);
+                      // Show values of X and Y for each mouse press on the canvas
+                      document.getElementById("xy").innerHTML = "X: " + Math.round(x*1000)/1000 + "&nbsp;,&nbsp;"
+                                                              + "Y: " + Math.round(y*1000)/1000;
+                      // Push the x and y values to an array for training.
                       X_train.push(x);
                       Y_train.push(y);
-                      document.getElementsByID("X").innerHTML = "X: " + x;
-                      document.getElementsByID("Y").innerHTML = "Y: " + y;
                     }
 
 
@@ -201,9 +202,13 @@
                         }
                       });
 
+                      // Set Canvas Background Color
                       background(0);
+                      // Set Mouse press points color
                       stroke(255);
+                      // Set mouse press points drawing weight i.e. thickness
                       strokeWeight(9);
+                      // Draw for all values corresponding to mouse presses on Canvas
                       for (let i=0; i < X_train.length; i++){
                         let px = map(X_train[i], 0, 1, 0, width);
                         let py = map(Y_train[i], 0, 1, height, 0);
@@ -240,6 +245,7 @@
                       // *************************************
                       // Real Time Plotting for Best Fit Line
                       // *************************************
+                      // Range to show the best-fit line going from 0 to 1.
                       const xs = [0,1];
 
                       // Using "tf.tidy()" to reduce memory footprint
@@ -267,11 +273,31 @@
                   </script>
 
 
-                  <p align="justify">You see that as you click on the canvas, two things happen: 1. Some white dots appear on the canvas wherever you click. 2. The line moves around and tries to fit the points as you click around. This is exactly what Linear Regression aims to do i.e. get a Best Fit line to the datapoints</p>
-                  <p align="justify"></p>
+                  <p align="justify">You see that as you click on the canvas, two things happen: 1. Some white dots appear on the canvas wherever you click and their corresponding X and y coordinates appear below that. 2. The yellow line moves around and tries to fit the points as you click around. This is exactly what Linear Regression aims to do i.e. get a Best Fit line to the data points.</p>
+                  <p align="justify">The interesting part here is that this all is being done right here in your browser. Yes you hear it correct. Right here in your browser. As you click around on the screen the (x,y) values correspoinding to the coordinate position on the canvas are collected and used as inputs to train a simple linear regression model using TensorFlow.js right here in your browser. As the error starts reducing, the best-fit line moves from a random position to fit the data points.</p>
+                  <p align="justify">Let's see how this is done in code.</p>
+                  <p align="justify">The first step is to load the TensorFlow.js library for performing machine learning in the browser (thanks to Google) and we'll be using P5.js library for makig it easy to show the canvas and get our data points for training the model. This is done in code as follows:</p>
+                  <img src="img/tfjs_LinearRegression/load_tfjs.png" alt="" width= "800">
 
-                  <!-- <p align='justify'>In this post, I want to show you that how easy it is to use an existing Machine Learning model and using it using TensorFlow.js to make predictions on images in the browser. So, let's get started.</p>
-                  <p align='justify'>First, let me begin by showing you a simple demo of what we'll be building in this tutorial. Below, you can see some images. If you click on any image, you see that some text appears below that tells that what the machine learning model thinks is in the image i.e. predicted labels and their probabilities. Go ahead and try it out.</p> -->
+                  <p align="justify">Cool. Now that we have the libraries required, let's start by making our canvas which we'll then use to collect our training data. For this, we'll make use of inbuilt function in P5.js called "createCanvas(width, height, [renderer])". This function takes in the width and height of the canvas to be displayed as inputs. Once we do this, we have a canvas of given size. This is also a good time to initialize our variables that'll be trained over time. The equaltion for a line can be written as <b>y = m * X + b</b>. Here, m and b are the variables that we'll be training for. This all is done in code as follows:</p>
+                  <img src="img/tfjs_LinearRegression/create_canvas.png" alt="" width= "800">
+
+                  <p align="justify">Now that we have the canvas, let's define a function to get the (x,y) coordinate points for each mouse press on the canvas. These points will be used as our input data for training the Linear Regression model. For this again we'll make use of a buil-in function in P5.js called "mousePressed()". This function gets executed every time we press the mouse anywhere on the canvas. In this we map the mouseX and mouseY values to get the (x,y) values. Originally the values for the canvas axis are in range from (0, width) and (0, height). We map these values into the range of 0 to 1 in this code as well. All this is done in code as follows:</p>
+                  <img src="img/tfjs_LinearRegression/mouse_press.png" alt="" width= "800">
+
+                  <p align="justify">Before going further, let's define some helper functions. The first function is the Loss Function. For this problem of Linear Regression, we'll make use of Mean Squared Error. This function takes as input two values: predicted labels and the actual labels. This can be defined in code as follows:</p>
+                  <img src="img/tfjs_LinearRegression/loss_function.png" alt="" width= "800">
+
+                  <p align="justify">Next, let's define our predict function. This is the function that executes the equation y = m * X + b and returns a predicted value for the label i.e. y_hat. This function is defined in code as follows:</p>
+                  <img src="img/tfjs_LinearRegression/predict_function.png" alt="" width= "800">
+
+                  <p align="justify">We now have the canvas, the code to collect all coordinates correspoinding to mouse presses and the loss and predict functions. But we don't see the mouse presses on the canvas yet. Also, we don't see the best fit line yet. Let's do that now. Again making use of P5.js built-in function "draw()", which helps us to draw content on the canvas. We check for the length of the feature values array X_train and try to optimize for the loss on the go in the browser. This is the reason why the best-fit line in the demo above moves a little before setteling down as the model is still training in the browser and trying to minimize the loss and find the best values for m and b. This is done in code as follows:</p>
+                  <img src="img/tfjs_LinearRegression/draw_function.png" alt="" width= "800">
+
+                  <p align="justify">Awesome. We now see our datapoints on the canvas for each mouse press. Something's still missing. Oh I know. The best-fit line. To draw that line we just get the predicted label values and plot the values on the canvas with x value going from 0 to 1 so as to fill the screen. This is done in code as follows:</p>
+                  <img src="img/tfjs_LinearRegression/best_fit_line.png" alt="" width= "800">
+
+                  <p align="justify">And that's it. You now have linear regression using TensorFlow.js running in the browser.</p>
 
                   <p align='justify'>Now that we have covered some of the basics of TensorFlow.js and how to use it to perform Linear Regression in the browser, now it's time to look at an even more interesting application, <b>Image Classification</b>.</p>
 
