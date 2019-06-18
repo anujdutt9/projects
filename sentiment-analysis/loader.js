@@ -21,6 +21,6 @@ async function get_review_data(what, where) {
     console.log(reviews)
     return reviews;
   } catch (err) {
-    console.error(err);
+    console.log(err)
   }
 }
