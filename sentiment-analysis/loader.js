@@ -18,6 +18,7 @@ async function get_review_data(what, where) {
     var url=encodeURI(url+params);
     var reviews_json = await fetch(url);
     var reviews = await reviews_json.json();
+    console.log(reviews)
     return reviews;
   } catch (err) {
     console.error(err);
