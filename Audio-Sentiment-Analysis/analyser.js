@@ -15,6 +15,7 @@ class AudioAnalyser {
     // Load a pre-trained model from a specific URL.
     try {
       var model = await tf.loadLayersModel(url);
+      console.log(model.summary());
       return model;
     } catch (err) {
       console.error(err);
