@@ -14,7 +14,7 @@ class AudioAnalyser {
   async load_model(url) {
     // Load a pre-trained model from a specific URL.
     try {
-      var model = await tf.loadModel(url);
+      var model = await tf.loadLayersModel(url);
       return model;
     } catch (err) {
       console.error(err);
@@ -59,6 +59,6 @@ async function setup_analyser(urls) {
 }
 
 var CNN_URLS = {
-  model: 'models/speech_emotions_detection_model.json',
-  //model: 'https://github.com/anujdutt9/Javascript-Machine-Learning/blob/master/Audio-Sentiment-Analysis/models/speech_emotions_detection_model.json',
+  //model: 'models/speech_emotions_detection_model.json',
+  model: 'https://github.com/anujdutt9/Javascript-Machine-Learning/blob/master/Audio-Sentiment-Analysis/models/speech_emotions_detection_model.json',
 };
