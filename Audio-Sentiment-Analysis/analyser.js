@@ -60,6 +60,6 @@ async function setup_analyser(urls) {
 }
 
 var CNN_URLS = {
-  model: './models/speech_emotions_detection_model.json',
-  //model: 'https://github.com/anujdutt9/Javascript-Machine-Learning/blob/master/Audio-Sentiment-Analysis/models/speech_emotions_detection_model.json',
+  //model: './models/speech_emotions_detection_model.json',
+  model: 'https://anujdutt9.github.io/Audio-Sentiment-Analysis/models/speech_emotions_detection_model.json',
 };
