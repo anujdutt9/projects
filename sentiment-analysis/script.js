@@ -1,19 +1,7 @@
-/*
- Sentiemtn analysis using Tensorflow.js and pre-trained CNN and LSTM models.
+// Text Sentiment Analysis using Tensorflow.js and pre-trained CNN and LSTM models.
+// Food reviews from a freely available CityGrid v2 API: https://docs.citygridmedia.com/display/citygridv2/Reviews+API
+// TFJS models from: https://github.com/tensorflow/tfjs-examples/tree/master/sentiment
 
- To get more informationz about how exactly those models were trained go to:
- https://github.com/tensorflow/tfjs-examples/tree/master/sentiment
-
- Imporant notes:
- - We getting food reviews from a freely available CityGrid v2 API:
- https://docs.citygridmedia.com/display/citygridv2/Reviews+API
-
- - To make it work locally you need to disable same-origin policy
-   The easiest way to do that on Mac is to run Chrome as follows:
-   Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --disable-web-security --user-data-dir="some_new_user"
-
- - Google hosted models and metadata that we're using don't have this problem.
-*/
 var CNN_URLS = {
   model:
       'https://storage.googleapis.com/tfjs-models/tfjs/sentiment_cnn_v1/model.json',
