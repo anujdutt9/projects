@@ -1,6 +1,6 @@
 async function url_live(url) {
   // Test if an url can be accessed.
-  status('Testing url ' + url, '20');
+  //status('Testing url ' + url, '20');
   try {
     var response = await fetch(url, {method: 'HEAD'});
     return response.ok;
