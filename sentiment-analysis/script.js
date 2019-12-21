@@ -49,7 +49,7 @@ class SentimentAnalyser {
     // Get the metadata for our model
     // and turn it into an object that
     // we can access.
-    status('Loading metadata from ' + url);
+    //status('Loading metadata from ' + url);
     try {
       var metadataJson = await fetch(url);
       var metadata = await metadataJson.json();
