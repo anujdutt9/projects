@@ -26,16 +26,16 @@ class SentimentAnalyser {
     // urls - an object/dictonary with model/metadata
     //        keys that points out to URLS for hosted resources.
     this.urls = urls;
-    status('Loading model from:' + urls.model);
+    //status('Loading model from:' + urls.model);
     this.model = await this.load_model(urls.model);
-    status('Loading metadata from:' + urls.metadata);
+    //status('Loading metadata from:' + urls.metadata);
     await this.load_meta();
     return this;
   }
 
   async load_model(url) {
     // Load a pre-trained model from a specific URL.
-    status('Loading pretrained model from ' + url);
+    //status('Loading pretrained model from ' + url);
     try {
       var model = await tf.loadModel(url);
       status('Done loading pretrained model.', '80');
