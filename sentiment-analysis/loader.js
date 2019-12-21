@@ -17,11 +17,11 @@ async function get_review_data(what, where) {
     var url="https://cors-anywhere.herokuapp.com/https://api.citygridmedia.com/content/reviews/v2/search/";
     var params="where?where="+where+"&what="+what+"&publisher=test&format=json&tag=1722";
     var url=encodeURI(url+params);
-    console.log(url)
+    //console.log(url)
     var reviews_json = await fetch(url);
-    console.log(reviews_json)
+    //console.log(reviews_json)
     var reviews = await reviews_json.json();
-    console.log(reviews)
+    //console.log(reviews)
     return reviews;
   } catch (err) {
     console.log(err)
