@@ -51,9 +51,26 @@ class VideoAnalysisApp {
     async testGeminiWithSampleImage() {
         console.log('=== Testing Gemini with Sample Image ===');
         
+        // Check if Gemini is available
         if (!this.analysisSession) {
             console.error('Gemini session not available');
-            this.showError('Gemini session not available. Please refresh the page.');
+            this.showError('Gemini session not available. Please ensure you are using Chrome 138+ with Gemini Nano enabled.');
+            return;
+        }
+        
+        // Check if the model is ready
+        try {
+            console.log('Checking model availability...');
+            const modelStatus = await LanguageModel.availability();
+            console.log('Model status:', modelStatus);
+            
+            if (modelStatus !== "available") {
+                this.showError(`Gemini model is not available (status: ${modelStatus}). Please ensure Gemini Nano is enabled in Chrome.`);
+                return;
+            }
+        } catch (error) {
+            console.error('Model not available:', error);
+            this.showError('Gemini model is not available. Please ensure Gemini Nano is enabled in Chrome.');
             return;
         }
         
@@ -147,27 +164,82 @@ class VideoAnalysisApp {
             console.log('Initializing Gemini session...');
             console.log('LanguageModel available:', typeof LanguageModel !== 'undefined');
             
-            // Check if LanguageModel is available (Chrome 138+)
-            if (typeof LanguageModel !== 'undefined') {
-                console.log('Creating LanguageModel session...');
+            // Check if LanguageModel API is available
+            if (typeof LanguageModel === 'undefined') {
+                console.error('LanguageModel API not available');
+                throw new Error('LanguageModel API not available. Please use Chrome with Gemini Nano support.');
+            }
+            console.log('LanguageModel API is available');
+
+            // Check model availability first
+            console.log('Checking model availability...');
+            let modelStatus;
+            try {
+                modelStatus = await LanguageModel.availability();
+                console.log('Model status:', modelStatus);
+            } catch (availabilityError) {
+                console.error('Error checking model availability:', availabilityError);
+                // Fallback: try to create the model directly
+                console.log('Falling back to direct model creation...');
                 this.analysisSession = await LanguageModel.create({
                     expectedInputs: [
                         { type: 'audio' }, 
-                        { type: 'image' },
-                        // { type: 'text' }
+                        { type: 'image' }
                     ],
                 });
-                console.log('Gemini session initialized successfully:', {
-                    sessionExists: !!this.analysisSession,
-                    hasPrompt: typeof this.analysisSession.prompt === 'function'
-                });
-            } else {
-                console.warn('LanguageModel not available. Please ensure you are using Chrome 138+ with Gemini Nano enabled.');
-                this.analysisSession = null;
+                console.log('Model created successfully via fallback');
+                return;
             }
+            
+            if (modelStatus === "downloadable") {
+                console.log('Model needs to be downloaded');
+                this.updateProgress(10, 'Downloading Gemini Model...');
+                
+                this.analysisSession = await LanguageModel.create({
+                    expectedInputs: [
+                        { type: 'audio' }, 
+                        { type: 'image' }
+                    ],
+                    monitor: (m) => {
+                        console.log('Setting up download monitor...');
+                        m.addEventListener("downloadprogress", (e) => {
+                            const progress = (e.loaded / e.total * 100).toFixed(1);
+                            console.log(`Download progress: ${progress}%`);
+                            this.updateProgress(10 + (progress * 0.8), `Downloading model: ${progress}%`);
+                        });
+                        
+                        m.addEventListener("downloadcomplete", () => {
+                            console.log('Download completed, initializing model...');
+                            this.updateProgress(90, 'Initializing model...');
+                        });
+                    }
+                });
+                console.log('Model download and creation completed');
+            } else if (modelStatus === "available") {
+                console.log('Model is already available, loading...');
+                this.updateProgress(50, 'Loading Gemini Model...');
+                
+                this.analysisSession = await LanguageModel.create({
+                    expectedInputs: [
+                        { type: 'audio' }, 
+                        { type: 'image' }
+                    ],
+                });
+                console.log('Model session created successfully');
+            } else {
+                console.error('Unknown model status:', modelStatus);
+                throw new Error(`Model status unknown: ${modelStatus}`);
+            }
+            
+            console.log('Gemini session initialized successfully:', {
+                sessionExists: !!this.analysisSession,
+                hasPrompt: typeof this.analysisSession.prompt === 'function'
+            });
+            
         } catch (error) {
             console.error('Failed to initialize Gemini session:', error);
             this.analysisSession = null;
+            this.showError('Failed to initialize Gemini. Please ensure you are using Chrome with Gemini Nano support.');
         }
     }
 
@@ -476,6 +548,28 @@ class VideoAnalysisApp {
                 error: true
             };
         }
+        
+        // Check if the model is ready
+        try {
+            console.log('Checking model availability for analysis...');
+            const modelStatus = await LanguageModel.availability();
+            console.log('Model status for analysis:', modelStatus);
+            
+            if (modelStatus !== "available") {
+                return {
+                    summary: `Gemini model is not available (status: ${modelStatus}). Please ensure Gemini Nano is enabled in Chrome.`,
+                    timestamp: new Date().toISOString(),
+                    error: true
+                };
+            }
+        } catch (error) {
+            console.error('Model not available for analysis:', error);
+            return {
+                summary: 'Gemini model is not available. Please ensure Gemini Nano is enabled in Chrome.',
+                timestamp: new Date().toISOString(),
+                error: true
+            };
+        }
 
         try {
             if (mediaData.type === 'video') {
@@ -690,6 +784,20 @@ Please be detailed and specific about what you hear.`;
     async getAnswer(question) {
         if (!this.analysisSession) {
             return 'Gemini AI is not available. Please ensure you are using Chrome 138+ with Gemini Nano enabled.';
+        }
+        
+        // Check if the model is ready
+        try {
+            console.log('Checking model availability for Q&A...');
+            const modelStatus = await LanguageModel.availability();
+            console.log('Model status for Q&A:', modelStatus);
+            
+            if (modelStatus !== "available") {
+                return `Gemini model is not available (status: ${modelStatus}). Please ensure Gemini Nano is enabled in Chrome.`;
+            }
+        } catch (error) {
+            console.error('Model not available for Q&A:', error);
+            return 'Gemini model is not available. Please ensure Gemini Nano is enabled in Chrome.';
         }
 
         try {
