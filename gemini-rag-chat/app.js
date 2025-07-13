@@ -60,16 +60,32 @@ class GeminiRAGChat {
                 throw new Error('LanguageModel API not available. Please use Chrome with Gemini Nano support.');
             }
 
-            // Create the language model session
-            this.session = await LanguageModel.create({
-                monitor: (m) => {
-                    m.addEventListener("downloadprogress", (e) => {
-                        const progress = (e.loaded / e.total * 100).toFixed(1);
-                        this.updateLoadingProgress(progress);
-                        this.loadingMessage.textContent = `Downloading model: ${progress}%`;
-                    });
-                }
-            });
+            // Check model availability first
+            const modelStatus = await LanguageModel.getModelStatus();
+            
+            if (modelStatus === "downloadable") {
+                // Model needs to be downloaded
+                this.showLoadingModal('Downloading Gemini Model', 'Please wait while we download the AI model...');
+                this.loadingProgress.style.display = 'block';
+                
+                this.session = await LanguageModel.create({
+                    monitor: (m) => {
+                        m.addEventListener("downloadprogress", (e) => {
+                            const progress = (e.loaded / e.total * 100).toFixed(1);
+                            this.updateLoadingProgress(progress);
+                            this.loadingMessage.textContent = `Downloading model: ${progress}%`;
+                        });
+                    }
+                });
+            } else if (modelStatus === "available") {
+                // Model is already available, just load it
+                this.showLoadingModal('Loading Gemini Model', 'Please wait while we initialize the AI model...');
+                this.loadingProgress.style.display = 'none';
+                
+                this.session = await LanguageModel.create();
+            } else {
+                throw new Error(`Model status unknown: ${modelStatus}`);
+            }
 
             this.isModelReady = true;
             this.updateModelStatus('online', 'Model Ready');
