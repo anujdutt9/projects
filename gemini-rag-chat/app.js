@@ -105,12 +105,19 @@ class GeminiRAGChat {
 
     // Stop generation and abort session
     stopGeneration() {
-        if (this.isGenerating && this.sessionController) {
+        if (this.isGenerating) {
             console.log('🛑 Stopping generation...');
-            this.sessionController.abort();
+            
+            // Abort the session controller if it exists
+            if (this.sessionController) {
+                this.sessionController.abort();
+            }
+            
             this.isGenerating = false;
             this.updateUIForGeneration(false);
-            this.addMessage('assistant', 'Generation stopped by user.');
+            
+            // Note: The streaming message will be updated by the streamResponse method
+            // when it detects that isGenerating is false
         }
     }
 
@@ -823,39 +830,22 @@ Please provide a clear, helpful response.`;
                 console.log('📝 General prompt length:', prompt.length, 'characters');
             }
             
-            console.log('🤖 Sending prompt to Gemini...');
-            // Get response from Gemini
-            let result;
-            try {
-                console.log('🔍 Prompt:', prompt);
-                result = await this.session.prompt(prompt);
-                console.log('Received response from Gemini');
-                console.log('Response object:', result);
-                console.log('Response type:', typeof result);
-                console.log('Response text:', result);
-            } catch (promptError) {
-                console.error('❌ Error calling session.prompt:', promptError);
-                this.removeTypingIndicator(typingId);
-                this.addMessage('assistant', 'Sorry, I encountered an error while processing your request. Please try again.');
-                return;
-            }
+            console.log('🤖 Sending prompt to Gemini with streaming...');
             
-            // Remove typing indicator and add response
-            this.removeTypingIndicator(typingId);
+            // Use streaming for better user experience
+            const result = await this.streamResponse(prompt, typingId);
             
-            if (result && typeof result === 'string' && result.trim().length > 0) {
-                console.log('✅ Valid response received, adding message');
-                this.addMessage('assistant', result);
+            if (result && result.trim().length > 0) {
+                console.log('✅ Streaming response completed');
+                // Save to chat history
+                this.saveChatHistory(message, result);
+                
+                // Add to conversation context for future messages
+                this.addToConversationContext(message, result);
             } else {
-                console.error('❌ Invalid response from Gemini:', result);
-                this.addMessage('assistant', 'Sorry, I received an invalid response. Please try again.');
+                console.error('❌ Empty response from streaming');
+                this.addMessage('assistant', 'Sorry, I received an empty response. Please try again.');
             }
-            
-            // Save to chat history
-            this.saveChatHistory(message, result);
-            
-            // Add to conversation context for future messages
-            this.addToConversationContext(message, result);
 
         } catch (error) {
             console.error('❌ Error getting response:', error);
@@ -1372,6 +1362,10 @@ Please provide a comprehensive answer based on the document content above. If th
                     this.modelParams.topK = this.defaultParams.defaultTopK;
                 }
                 
+                // Ensure values are within valid ranges
+                this.modelParams.temperature = Math.max(0, Math.min(this.defaultParams.maxTemperature, this.modelParams.temperature));
+                this.modelParams.topK = Math.max(1, Math.min(this.defaultParams.maxTopK, this.modelParams.topK));
+                
                 // Initialize UI with current values
                 this.initializeModelParamsUI();
                 
@@ -1386,13 +1380,39 @@ Please provide a comprehensive answer based on the document content above. If th
     // Model Parameter UI Methods
     initializeModelParamsUI() {
         if (this.temperatureSlider && this.temperatureValue) {
-            this.temperatureSlider.value = this.modelParams.temperature || 0.7;
-            this.temperatureValue.textContent = this.modelParams.temperature || 0.7;
+            this.temperatureSlider.value = this.modelParams.temperature || 1.0;
+            this.temperatureValue.textContent = (this.modelParams.temperature || 1.0).toFixed(1);
         }
         
         if (this.topKSlider && this.topKValue) {
-            this.topKSlider.value = this.modelParams.topK || 40;
-            this.topKValue.textContent = this.modelParams.topK || 40;
+            this.topKSlider.value = this.modelParams.topK || 3;
+            this.topKValue.textContent = this.modelParams.topK || 3;
+        }
+        
+        // Update slider ranges based on model capabilities
+        this.updateSliderRanges();
+    }
+
+    updateSliderRanges() {
+        if (this.defaultParams) {
+            // Update temperature slider range
+            if (this.temperatureSlider) {
+                this.temperatureSlider.min = 0;
+                this.temperatureSlider.max = this.defaultParams.maxTemperature || 2.0;
+                this.temperatureSlider.step = 0.1;
+            }
+            
+            // Update topK slider range
+            if (this.topKSlider) {
+                this.topKSlider.min = 1;
+                this.topKSlider.max = this.defaultParams.maxTopK || 8;
+                this.topKSlider.step = 1;
+            }
+            
+            console.log('📊 Updated slider ranges:', {
+                temperature: { min: 0, max: this.defaultParams.maxTemperature },
+                topK: { min: 1, max: this.defaultParams.maxTopK }
+            });
         }
     }
 
@@ -1431,6 +1451,12 @@ Please provide a comprehensive answer based on the document content above. If th
                 this.modelParams.topK = parseInt(this.topKSlider.value);
             }
             
+            // Validate ranges against model capabilities
+            if (this.defaultParams) {
+                this.modelParams.temperature = Math.max(0, Math.min(this.defaultParams.maxTemperature, this.modelParams.temperature));
+                this.modelParams.topK = Math.max(1, Math.min(this.defaultParams.maxTopK, this.modelParams.topK));
+            }
+            
             // Save to localStorage
             this.saveModelParams();
             
@@ -1452,6 +1478,106 @@ Please provide a comprehensive answer based on the document content above. If th
         } catch (error) {
             console.error('❌ Error applying model parameters:', error);
             this.showError('Failed to apply model parameters. Please try again.');
+        }
+    }
+
+    // Streaming Response Method
+    async streamResponse(prompt, typingId) {
+        try {
+            console.log('🌊 Starting streaming response...');
+            
+            // Remove typing indicator and create streaming message
+            this.removeTypingIndicator(typingId);
+            const messageId = this.addStreamingMessage();
+            
+            // Get streaming response
+            const stream = this.session.promptStreaming(prompt);
+            let fullResponse = '';
+            let chunkCount = 0;
+            
+            console.log('📡 Processing stream chunks...');
+            
+            for await (const chunk of stream) {
+                // Check if generation was stopped
+                if (!this.isGenerating) {
+                    console.log('🛑 Streaming stopped by user');
+                    this.updateStreamingMessage(messageId, fullResponse + '\n\n[Generation stopped by user]');
+                    return fullResponse;
+                }
+                
+                chunkCount++;
+                fullResponse += chunk;
+                
+                // Update the streaming message with current content
+                this.updateStreamingMessage(messageId, fullResponse);
+                
+                // Log progress every 10 chunks
+                if (chunkCount % 10 === 0) {
+                    console.log(`📡 Processed ${chunkCount} chunks, response length: ${fullResponse.length}`);
+                }
+            }
+            
+            console.log(`✅ Streaming completed: ${chunkCount} chunks, ${fullResponse.length} characters`);
+            
+            // Finalize the streaming message
+            this.finalizeStreamingMessage(messageId, fullResponse);
+            
+            return fullResponse;
+            
+        } catch (error) {
+            console.error('❌ Error in streaming response:', error);
+            throw error;
+        }
+    }
+
+    // Streaming Message Management
+    addStreamingMessage() {
+        const messageId = this.generateId();
+        const timestamp = new Date().toLocaleTimeString();
+        
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message assistant streaming';
+        messageDiv.id = `message-${messageId}`;
+        
+        messageDiv.innerHTML = `
+            <div class="message-avatar assistant">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div class="message-content">
+                <div class="message-text">
+                    <div class="streaming-content">
+                        <span class="streaming-cursor">▋</span>
+                    </div>
+                </div>
+                <div class="message-time">${timestamp}</div>
+            </div>
+        `;
+        
+        this.messages.appendChild(messageDiv);
+        this.scrollToBottom();
+        
+        return messageId;
+    }
+
+    updateStreamingMessage(messageId, content) {
+        const messageDiv = document.getElementById(`message-${messageId}`);
+        if (messageDiv) {
+            const contentDiv = messageDiv.querySelector('.streaming-content');
+            if (contentDiv) {
+                contentDiv.innerHTML = this.formatMessageText(content) + '<span class="streaming-cursor">▋</span>';
+            }
+        }
+        this.scrollToBottom();
+    }
+
+    finalizeStreamingMessage(messageId, content) {
+        const messageDiv = document.getElementById(`message-${messageId}`);
+        if (messageDiv) {
+            messageDiv.classList.remove('streaming');
+            const contentDiv = messageDiv.querySelector('.streaming-content');
+            if (contentDiv) {
+                contentDiv.innerHTML = this.formatMessageText(content);
+            }
         }
     }
 

@@ -194,6 +194,44 @@ body {
     padding: 0.375rem 0.75rem;
 }
 
+/* Streaming Message Styles */
+.message.streaming .message-text {
+    position: relative;
+}
+
+.streaming-content {
+    display: inline;
+}
+
+.streaming-cursor {
+    display: inline-block;
+    width: 2px;
+    height: 1.2em;
+    background-color: var(--primary-color);
+    margin-left: 2px;
+    animation: blink 1s infinite;
+    vertical-align: text-bottom;
+}
+
+@keyframes blink {
+    0%, 50% {
+        opacity: 1;
+    }
+    51%, 100% {
+        opacity: 0;
+    }
+}
+
+/* Smooth streaming updates */
+.message.streaming .message-text {
+    transition: none;
+}
+
+.message.streaming .message-content {
+    border-left: 3px solid var(--primary-color);
+    padding-left: 0.75rem;
+}
+
 /* Upload Section */
 .upload-section {
     flex: 1;
