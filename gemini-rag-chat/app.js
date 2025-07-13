@@ -614,16 +614,7 @@ class GeminiRAGChat {
             } else {
                 console.log('No documents provided, using general conversation mode');
                 // Create a general conversation prompt
-                prompt = `You are a helpful AI assistant. Please respond to the following question or request in a helpful and informative way:
-
-User: ${message}
-
-Please provide a clear, helpful response.`;
-                }
-            } else {
-                console.log('No documents provided or embedding model not ready, using general conversation mode');
-                // Create a general conversation prompt
-                prompt = `You are a helpful AI assistant. Please respond to the following question or request in a helpful and informative way:
+                prompt = `${this.systemPrompt}
 
 User: ${message}
 
