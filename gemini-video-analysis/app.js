@@ -822,11 +822,6 @@ Please provide a detailed answer that references specific frames and timestamps 
     }
 
 
-
-
-
-
-
     // UI Helper Methods
     showAnalysisStatus() {
         this.analysisStatus.style.display = 'block';
