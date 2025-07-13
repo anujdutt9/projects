@@ -113,7 +113,7 @@ class GeminiRAGChat {
         this.isGenerating = isGenerating;
         
         if (this.sendBtn) {
-            this.sendBtn.disabled = isGenerating;
+            this.sendBtn.disabled = false; // Always enabled - can send or stop
             this.sendBtn.innerHTML = isGenerating ? 
                 '<i class="fas fa-stop"></i>' : 
                 '<i class="fas fa-paper-plane"></i>';
