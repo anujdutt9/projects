@@ -51,69 +51,97 @@ class GeminiRAGChat {
     }
 
     async initializeModel() {
+        console.log('🚀 Starting model initialization...');
         try {
             this.updateModelStatus('loading', 'Initializing Gemini Model...');
             this.showLoadingModal('Initializing Gemini Model', 'Please wait while we set up the AI model...');
 
             // Check if LanguageModel API is available
+            console.log('🔍 Checking LanguageModel API availability...');
             if (typeof LanguageModel === 'undefined') {
+                console.error('❌ LanguageModel API not available');
                 throw new Error('LanguageModel API not available. Please use Chrome with Gemini Nano support.');
             }
+            console.log('✅ LanguageModel API is available');
 
             // Add timeout to prevent infinite loading
+            console.log('⏰ Setting up 60-second timeout...');
             const timeoutPromise = new Promise((_, reject) => {
-                setTimeout(() => reject(new Error('Model initialization timed out. Please refresh and try again.')), 60000); // 60 second timeout
+                setTimeout(() => {
+                    console.error('⏰ Model initialization timed out after 60 seconds');
+                    reject(new Error('Model initialization timed out. Please refresh and try again.'));
+                }, 60000); // 60 second timeout
             });
 
             // Check model availability first
+            console.log('🔍 Checking model status...');
             const modelStatus = await LanguageModel.getModelStatus();
-            console.log('Model status:', modelStatus);
+            console.log('📊 Model status:', modelStatus);
             
             if (modelStatus === "downloadable") {
+                console.log('📥 Model needs to be downloaded');
                 // Model needs to be downloaded
                 this.showLoadingModal('Downloading Gemini Model', 'Please wait while we download the AI model...');
                 this.loadingProgress.style.display = 'block';
                 
+                console.log('🔄 Starting model download...');
                 this.session = await LanguageModel.create({
                     monitor: (m) => {
+                        console.log('📡 Setting up download monitor...');
                         m.addEventListener("downloadprogress", (e) => {
                             const progress = (e.loaded / e.total * 100).toFixed(1);
+                            console.log(`📊 Download progress: ${progress}%`);
                             this.updateLoadingProgress(progress);
                             this.loadingMessage.textContent = `Downloading model: ${progress}%`;
                         });
                         
                         // Handle download completion
                         m.addEventListener("downloadcomplete", () => {
+                            console.log('✅ Download completed, initializing model...');
                             this.loadingMessage.textContent = 'Initializing model...';
                             this.loadingProgress.style.display = 'none';
                         });
                     }
                 });
+                console.log('✅ Model download and creation completed');
             } else if (modelStatus === "available") {
+                console.log('✅ Model is already available, loading...');
                 // Model is already available, just load it
                 this.showLoadingModal('Loading Gemini Model', 'Please wait while we initialize the AI model...');
                 this.loadingProgress.style.display = 'none';
                 
+                console.log('🔄 Creating model session...');
                 this.session = await LanguageModel.create();
+                console.log('✅ Model session created successfully');
             } else {
+                console.error('❌ Unknown model status:', modelStatus);
                 throw new Error(`Model status unknown: ${modelStatus}`);
             }
 
             // Race between model creation and timeout
+            console.log('🏁 Waiting for model initialization to complete...');
             await Promise.race([
                 Promise.resolve(), // Model creation is already awaited above
                 timeoutPromise
             ]);
 
+            console.log('🎉 Model initialization successful!');
             this.isModelReady = true;
             this.updateModelStatus('online', 'Model Ready');
             this.hideLoadingModal();
             
             // Enable send button if documents are uploaded
             this.updateSendButtonState();
+            console.log('✅ Application ready for use');
 
         } catch (error) {
-            console.error('Error initializing model:', error);
+            console.error('❌ Error initializing model:', error);
+            console.error('❌ Error details:', {
+                message: error.message,
+                stack: error.stack,
+                name: error.name
+            });
+            
             this.updateModelStatus('offline', 'Model Error');
             this.hideLoadingModal();
             
@@ -192,17 +220,23 @@ class GeminiRAGChat {
     }
 
     async processFiles(files) {
+        console.log('📁 Processing files:', files.length, 'files selected');
+        
         const validFiles = files.filter(file => {
             const validTypes = ['.pdf', '.txt', '.doc', '.docx'];
             const extension = '.' + file.name.split('.').pop().toLowerCase();
-            return validTypes.includes(extension);
+            const isValid = validTypes.includes(extension);
+            console.log(`📄 File: ${file.name}, Type: ${extension}, Valid: ${isValid}`);
+            return isValid;
         });
 
         if (validFiles.length === 0) {
+            console.warn('⚠️ No valid files found');
             this.showError('Please select valid files (PDF, TXT, DOC, DOCX)');
             return;
         }
 
+        console.log(`✅ Processing ${validFiles.length} valid files`);
         for (const file of validFiles) {
             await this.processFile(file);
         }
@@ -359,13 +393,21 @@ class GeminiRAGChat {
 
     async sendMessage() {
         const message = this.messageInput.value.trim();
+        console.log('💬 Sending message:', message.substring(0, 50) + (message.length > 50 ? '...' : ''));
+        
         if (!message || !this.isModelReady || this.documents.length === 0) {
+            console.warn('⚠️ Cannot send message:', {
+                hasMessage: !!message,
+                isModelReady: this.isModelReady,
+                documentsCount: this.documents.length
+            });
             return;
         }
 
         // Create new chat if none exists
         if (!this.currentChatId) {
             this.currentChatId = this.generateId();
+            console.log('🆕 Creating new chat session:', this.currentChatId);
             this.createNewChat();
         }
 
@@ -379,14 +421,19 @@ class GeminiRAGChat {
         const typingId = this.addTypingIndicator();
 
         try {
+            console.log('🔍 Preparing document context...');
             // Prepare context from documents
             const context = this.prepareDocumentContext();
+            console.log('📚 Context length:', context.length, 'characters');
             
             // Create prompt with context
             const prompt = this.createPromptWithContext(message, context);
+            console.log('📝 Prompt length:', prompt.length, 'characters');
             
+            console.log('🤖 Sending prompt to Gemini...');
             // Get response from Gemini
             const response = await this.session.prompt(prompt);
+            console.log('✅ Received response from Gemini');
             
             // Remove typing indicator and add response
             this.removeTypingIndicator(typingId);
@@ -396,7 +443,7 @@ class GeminiRAGChat {
             this.saveChatHistory(message, response.text);
 
         } catch (error) {
-            console.error('Error getting response:', error);
+            console.error('❌ Error getting response:', error);
             this.removeTypingIndicator(typingId);
             this.addMessage('assistant', 'Sorry, I encountered an error while processing your request. Please try again.');
         }
