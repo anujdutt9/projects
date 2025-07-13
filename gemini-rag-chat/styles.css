@@ -67,6 +67,16 @@ body {
     margin-right: 0.5rem;
 }
 
+#embedding-status {
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-size: 0.875rem;
+}
+
+#embedding-status i {
+    font-size: 0.75rem;
+    margin-right: 0.5rem;
+}
+
 /* Main Container */
 .main-container {
     padding-top: 80px;

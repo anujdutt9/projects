@@ -7,9 +7,20 @@ class GeminiRAGChat {
         this.currentChatId = null;
         this.isModelReady = false;
         
+        // Context-aware RAG system
+        this.embeddingModel = null;
+        this.documentChunks = [];
+        this.chunkEmbeddings = [];
+        this.isEmbeddingModelReady = false;
+        this.conversationContext = [];
+        this.maxContextLength = 4000; // Maximum context length per message
+        this.maxChunkSize = 500; // Maximum characters per chunk
+        this.overlapSize = 50; // Overlap between chunks
+        
         this.initializeElements();
         this.bindEvents();
         this.initializeModel();
+        this.initializeEmbeddingModel();
         this.loadChatHistory();
     }
 
@@ -27,6 +38,7 @@ class GeminiRAGChat {
         this.newChatBtn = document.getElementById('newChatBtn');
         this.clearHistoryBtn = document.getElementById('clearHistory');
         this.modelStatus = document.getElementById('model-status');
+        this.embeddingStatus = document.getElementById('embedding-status');
         this.loadingModal = new bootstrap.Modal(document.getElementById('loadingModal'));
         this.loadingTitle = document.getElementById('loadingTitle');
         this.loadingMessage = document.getElementById('loadingMessage');
@@ -53,7 +65,7 @@ class GeminiRAGChat {
     }
 
     async initializeModel() {
-        console.log('🚀 Starting model initialization...');
+        console.log('Starting model initialization...');
         try {
             this.updateModelStatus('loading', 'Initializing Gemini Model...');
             this.showLoadingModal('Initializing Gemini Model', 'Please wait while we set up the AI model...');
@@ -61,7 +73,7 @@ class GeminiRAGChat {
             // Check if LanguageModel API is available
             console.log('🔍 Checking LanguageModel API availability...');
             if (typeof LanguageModel === 'undefined') {
-                console.error('❌ LanguageModel API not available');
+                console.error('LanguageModel API not available');
                 throw new Error('LanguageModel API not available. Please use Chrome with Gemini Nano support.');
             }
             console.log('✅ LanguageModel API is available');
@@ -72,100 +84,100 @@ class GeminiRAGChat {
             console.log('🔍 Checking model availability...');
             try {
                 const modelStatus = await LanguageModel.availability();
-                console.log('📊 Model status:', modelStatus);
+                console.log('Model status:', modelStatus);
             } catch (availabilityError) {
-                console.error('❌ Error checking model availability:', availabilityError);
+                console.error('Error checking model availability:', availabilityError);
                 // Fallback: try to create the model directly
-                console.log('🔄 Falling back to direct model creation...');
+                console.log('Falling back to direct model creation...');
                 this.showLoadingModal('Initializing Gemini Model', 'Please wait while we set up the AI model...');
                 this.loadingProgress.style.display = 'block';
                 
                 this.session = await LanguageModel.create({
                     monitor: (m) => {
-                        console.log('📡 Setting up download monitor...');
+                        console.log('Setting up download monitor...');
                         m.addEventListener("downloadprogress", (e) => {
                             const progress = (e.loaded / e.total * 100).toFixed(1);
-                            console.log(`📊 Download progress: ${progress}%`);
+                            console.log(`Download progress: ${progress}%`);
                             this.updateLoadingProgress(progress);
                             this.loadingMessage.textContent = `Downloading model: ${progress}%`;
                         });
                         
                         m.addEventListener("downloadcomplete", () => {
-                            console.log('✅ Download completed, initializing model...');
+                            console.log('Download completed, initializing model...');
                             this.loadingMessage.textContent = 'Initializing model...';
                             this.loadingProgress.style.display = 'none';
                         });
                     }
                 });
-                console.log('✅ Model created successfully via fallback');
+                console.log('Model created successfully via fallback');
                 return; // Skip the rest of the initialization
             }
             
             const modelStatus = await LanguageModel.availability();
             
             if (modelStatus === "downloadable") {
-                console.log('📥 Model needs to be downloaded');
+                console.log('Model needs to be downloaded');
                 // Model needs to be downloaded
                 this.showLoadingModal('Downloading Gemini Model', 'Please wait while we download the AI model...');
                 this.loadingProgress.style.display = 'block';
                 
-                console.log('🔄 Starting model download...');
+                console.log('Starting model download...');
                 this.session = await LanguageModel.create({
                     monitor: (m) => {
-                        console.log('📡 Setting up download monitor...');
+                        console.log('Setting up download monitor...');
                         m.addEventListener("downloadprogress", (e) => {
                             const progress = (e.loaded / e.total * 100).toFixed(1);
-                            console.log(`📊 Download progress: ${progress}%`);
+                            console.log(`Download progress: ${progress}%`);
                             this.updateLoadingProgress(progress);
                             this.loadingMessage.textContent = `Downloading model: ${progress}%`;
                         });
                         
                         // Handle download completion
                         m.addEventListener("downloadcomplete", () => {
-                            console.log('✅ Download completed, initializing model...');
+                            console.log('Download completed, initializing model...');
                             this.loadingMessage.textContent = 'Initializing model...';
                             this.loadingProgress.style.display = 'none';
                         });
                     }
                 });
-                console.log('✅ Model download and creation completed');
+                console.log('Model download and creation completed');
             } else if (modelStatus === "available") {
-                console.log('✅ Model is already available, loading...');
+                console.log('Model is already available, loading...');
                 // Model is already available, just load it
                 this.showLoadingModal('Loading Gemini Model', 'Please wait while we initialize the AI model...');
                 this.loadingProgress.style.display = 'none';
                 
-                console.log('🔄 Creating model session...');
+                console.log('Creating model session...');
                 this.session = await LanguageModel.create();
-                console.log('✅ Model session created successfully');
+                console.log('Model session created successfully');
             } else {
-                console.error('❌ Unknown model status:', modelStatus);
+                console.error('Unknown model status:', modelStatus);
                 throw new Error(`Model status unknown: ${modelStatus}`);
             }
 
 
 
-            console.log('🎉 Model initialization successful!');
+            console.log('Model initialization successful!');
             this.isModelReady = true;
             this.updateModelStatus('online', 'Model Ready');
             
             // Immediately hide the loading modal
-            console.log('🔒 Hiding loading modal...');
+            console.log('Hiding loading modal...');
             this.hideLoadingModal();
             
             // Force hide modal again after a short delay
             setTimeout(() => {
-                console.log('🔒 Force hiding modal again...');
+                console.log('Force hiding modal again...');
                 this.hideLoadingModal();
             }, 500);
             
             // Enable send button if documents are uploaded
             this.updateSendButtonState();
-            console.log('✅ Application ready for use');
+            console.log('Application ready for use');
 
         } catch (error) {
-            console.error('❌ Error initializing model:', error);
-            console.error('❌ Error details:', {
+            console.error('Error initializing model:', error);
+            console.error('Error details:', {
                 message: error.message,
                 stack: error.stack,
                 name: error.name
@@ -182,6 +194,46 @@ class GeminiRAGChat {
             }
             
             this.showError(errorMessage);
+        }
+    }
+
+    async initializeEmbeddingModel() {
+        try {
+            console.log('🔍 Initializing Universal Sentence Encoder...');
+            this.updateEmbeddingStatus('loading', 'Loading Embeddings...');
+            this.embeddingModel = await use.load();
+            this.isEmbeddingModelReady = true;
+            this.updateEmbeddingStatus('online', 'Embeddings Ready');
+            console.log('✅ Embedding model ready');
+            
+            // Process existing documents if any
+            if (this.documents.length > 0) {
+                await this.processDocumentChunks();
+            }
+        } catch (error) {
+            console.error('❌ Error initializing embedding model:', error);
+            this.isEmbeddingModelReady = false;
+            this.updateEmbeddingStatus('offline', 'Embeddings Error');
+        }
+    }
+
+    updateEmbeddingStatus(status, message) {
+        const icon = this.embeddingStatus.querySelector('i');
+        const text = this.embeddingStatus.querySelector('span');
+        
+        icon.className = 'fas fa-brain';
+        text.textContent = `Embeddings: ${message}`;
+        
+        switch (status) {
+            case 'online':
+                icon.classList.add('text-success');
+                break;
+            case 'offline':
+                icon.classList.add('text-danger');
+                break;
+            case 'loading':
+                icon.classList.add('text-warning');
+                break;
         }
     }
 
@@ -213,20 +265,20 @@ class GeminiRAGChat {
     }
 
     hideLoadingModal() {
-        console.log('🔒 Hiding loading modal...');
+        console.log('Hiding loading modal...');
         
         // Method 1: Try Bootstrap modal hide
         try {
             this.loadingModal.hide();
-            console.log('✅ Bootstrap modal hide successful');
+            console.log('Bootstrap modal hide successful');
         } catch (error) {
-            console.warn('⚠️ Bootstrap modal hide failed, using fallback');
+            console.warn('Bootstrap modal hide failed, using fallback');
         }
         
         // Method 2: Direct DOM manipulation (always works)
         const modalElement = document.getElementById('loadingModal');
         if (modalElement) {
-            console.log('🔧 Applying direct DOM changes...');
+            console.log('Applying direct DOM changes...');
             modalElement.classList.remove('show');
             modalElement.style.display = 'none';
             modalElement.setAttribute('aria-hidden', 'true');
@@ -234,7 +286,7 @@ class GeminiRAGChat {
             modalElement.removeAttribute('role');
             modalElement.style.paddingRight = '';
         } else {
-            console.warn('⚠️ Modal element not found');
+            console.warn('Modal element not found');
         }
         
         // Remove modal backdrop and body classes
@@ -245,14 +297,14 @@ class GeminiRAGChat {
         const backdrop = document.querySelector('.modal-backdrop');
         if (backdrop) {
             backdrop.remove();
-            console.log('✅ Modal backdrop removed');
+            console.log('Modal backdrop removed');
         }
         
         // Force remove any remaining modal-related elements
         const remainingBackdrops = document.querySelectorAll('.modal-backdrop');
         remainingBackdrops.forEach(backdrop => backdrop.remove());
         
-        console.log('✅ Loading modal hidden successfully');
+        console.log('Loading modal hidden successfully');
     }
 
     updateLoadingProgress(progress) {
@@ -286,23 +338,23 @@ class GeminiRAGChat {
     }
 
     async processFiles(files) {
-        console.log('📁 Processing files:', files.length, 'files selected');
+        console.log('Processing files:', files.length, 'files selected');
         
         const validFiles = files.filter(file => {
             const validTypes = ['.pdf', '.txt', '.doc', '.docx'];
             const extension = '.' + file.name.split('.').pop().toLowerCase();
             const isValid = validTypes.includes(extension);
-            console.log(`📄 File: ${file.name}, Type: ${extension}, Valid: ${isValid}`);
+            console.log(`File: ${file.name}, Type: ${extension}, Valid: ${isValid}`);
             return isValid;
         });
 
         if (validFiles.length === 0) {
-            console.warn('⚠️ No valid files found');
+            console.warn('No valid files found');
             this.showError('Please select valid files (PDF, TXT, DOC, DOCX)');
             return;
         }
 
-        console.log(`✅ Processing ${validFiles.length} valid files`);
+        console.log(`Processing ${validFiles.length} valid files`);
         for (const file of validFiles) {
             await this.processFile(file);
         }
@@ -311,31 +363,35 @@ class GeminiRAGChat {
     }
 
     async processFile(file) {
+        const fileId = this.generateId();
+        const fileData = {
+            id: fileId,
+            name: file.name,
+            size: file.size,
+            type: file.type,
+            content: '',
+            processed: false
+        };
+
+        // Add file to list immediately
+        this.addFileToList(fileData);
+
         try {
-            const fileId = this.generateId();
-            const fileData = {
-                id: fileId,
-                name: file.name,
-                size: this.formatFileSize(file.size),
-                type: file.type,
-                content: '',
-                processed: false
-            };
-
-            // Add to documents array
-            this.documents.push(fileData);
-            this.addFileToList(fileData);
-
-            // Process file content
             const content = await this.extractFileContent(file);
             fileData.content = content;
             fileData.processed = true;
-
+            this.documents.push(fileData);
             this.updateFileStatus(fileId, 'processed');
-
+            this.updateSendButtonState();
+            
+            // Process chunks for the new document
+            if (this.isEmbeddingModelReady) {
+                await this.processDocumentChunks();
+            }
         } catch (error) {
-            console.error('Error processing file:', error);
-            this.showError(`Failed to process ${file.name}`);
+            console.error('Error processing file:', file.name, error);
+            this.updateFileStatus(fileId, 'error');
+            this.showError(`Failed to process ${file.name}: ${error.message}`);
         }
     }
 
@@ -354,9 +410,9 @@ class GeminiRAGChat {
                         // For PDF files, try to extract text using PDF.js
                         try {
                             content = await this.extractPDFText(e.target.result);
-                            console.log('✅ PDF text extraction successful');
+                            console.log('PDF text extraction successful');
                         } catch (pdfError) {
-                            console.warn('⚠️ PDF text extraction failed:', pdfError);
+                            console.warn('PDF text extraction failed:', pdfError);
                             content = `PDF Content: ${file.name} - Unable to extract text. Please ensure the PDF contains selectable text.`;
                         }
                     } else {
@@ -504,7 +560,7 @@ class GeminiRAGChat {
         console.log('💬 Sending message:', message.substring(0, 50) + (message.length > 50 ? '...' : ''));
         
         if (!message || !this.isModelReady) {
-            console.warn('⚠️ Cannot send message:', {
+            console.warn('Cannot send message:', {
                 hasMessage: !!message,
                 isModelReady: this.isModelReady
             });
@@ -513,7 +569,7 @@ class GeminiRAGChat {
 
         // Create new chat if none exists
         if (!this.currentChatId) {
-            console.log('🆕 No current chat, starting new session...');
+            console.log('No current chat, starting new session...');
             this.startNewChat();
         }
 
@@ -530,16 +586,16 @@ class GeminiRAGChat {
             let prompt;
             
             if (this.documents.length > 0) {
-                console.log('🔍 Preparing document context...');
+                console.log('Preparing document context...');
                 // Prepare context from documents
-                const context = this.prepareDocumentContext();
-                console.log('📚 Context length:', context.length, 'characters');
+                const context = await this.prepareIntelligentContext(message);
+                console.log('Context length:', context.length, 'characters');
                 
                 // Create prompt with context
                 prompt = this.createPromptWithContext(message, context);
-                console.log('📝 Prompt length:', prompt.length, 'characters');
+                console.log('Prompt length:', prompt.length, 'characters');
             } else {
-                console.log('💬 No documents provided, using general conversation mode');
+                console.log('No documents provided, using general conversation mode');
                 // Create a general conversation prompt
                 prompt = `You are a helpful AI assistant. Please respond to the following question or request in a helpful and informative way:
 
@@ -555,10 +611,10 @@ Please provide a clear, helpful response.`;
             try {
                 console.log('🔍 Prompt:', prompt);
                 result = await this.session.prompt(prompt);
-                console.log('✅ Received response from Gemini');
-                console.log('📄 Response object:', result);
-                console.log('📝 Response type:', typeof result);
-                console.log('📝 Response text:', result);
+                console.log('Received response from Gemini');
+                console.log('Response object:', result);
+                console.log('Response type:', typeof result);
+                console.log('Response text:', result);
             } catch (promptError) {
                 console.error('❌ Error calling session.prompt:', promptError);
                 this.removeTypingIndicator(typingId);
@@ -579,11 +635,48 @@ Please provide a clear, helpful response.`;
             
             // Save to chat history
             this.saveChatHistory(message, result);
+            
+            // Add to conversation context for future messages
+            this.addToConversationContext(message, result);
 
         } catch (error) {
             console.error('❌ Error getting response:', error);
             this.removeTypingIndicator(typingId);
             this.addMessage('assistant', 'Sorry, I encountered an error while processing your request. Please try again.');
+        }
+    }
+
+    async prepareIntelligentContext(userMessage) {
+        if (this.documentChunks.length === 0) {
+            return '';
+        }
+        
+        try {
+            // Find relevant chunks based on user query
+            const relevantChunks = await this.findRelevantChunks(userMessage, 3);
+            
+            if (relevantChunks.length === 0) {
+                return '';
+            }
+            
+            // Build context from relevant chunks
+            let context = '';
+            for (const result of relevantChunks) {
+                const chunk = result.chunk;
+                context += `Document: ${chunk.documentName} (Chunk ${chunk.chunkIndex + 1})\nContent: ${chunk.content}\n\n`;
+            }
+            
+            // Add conversation context if available
+            const conversationContext = this.getConversationContext();
+            if (conversationContext) {
+                context += `Previous Conversation:\n${conversationContext}\n\n`;
+            }
+            
+            return context.trim();
+        } catch (error) {
+            console.error('❌ Error preparing intelligent context:', error);
+            // Fallback to old method
+            return this.prepareDocumentContext();
         }
     }
 
@@ -724,8 +817,9 @@ Please provide a comprehensive answer based on the document content above. If th
         this.addChatHistoryItem(newChat);
         this.loadChat(this.currentChatId);
         
-        // Clear current messages and show welcome
+        // Clear current messages and conversation context
         this.messages.innerHTML = '';
+        this.conversationContext = [];
         this.createNewChat();
         
         console.log('✅ New chat session created:', this.currentChatId);
@@ -839,6 +933,18 @@ Please provide a comprehensive answer based on the document content above. If th
         // Clear current messages
         this.messages.innerHTML = '';
         
+        // Restore conversation context from chat history
+        this.conversationContext = [];
+        for (let i = 0; i < chat.messages.length; i += 2) {
+            if (i + 1 < chat.messages.length) {
+                this.conversationContext.push({
+                    user: chat.messages[i].text,
+                    assistant: chat.messages[i + 1].text,
+                    timestamp: chat.messages[i].timestamp
+                });
+            }
+        }
+        
         // Load chat messages
         chat.messages.forEach(msg => {
             this.addMessage(msg.sender, msg.text);
@@ -912,6 +1018,156 @@ Please provide a comprehensive answer based on the document content above. If th
                 errorDiv.remove();
             }
         }, 5000);
+    }
+
+    // Intelligent Document Chunking
+    createDocumentChunks(text, documentName) {
+        const chunks = [];
+        const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+        
+        let currentChunk = '';
+        let chunkId = 0;
+        
+        for (let i = 0; i < sentences.length; i++) {
+            const sentence = sentences[i].trim();
+            
+            // If adding this sentence would exceed chunk size, save current chunk
+            if (currentChunk.length + sentence.length > this.maxChunkSize && currentChunk.length > 0) {
+                chunks.push({
+                    id: `${documentName}_chunk_${chunkId}`,
+                    content: currentChunk.trim(),
+                    documentName: documentName,
+                    chunkIndex: chunkId
+                });
+                
+                // Start new chunk with overlap
+                const overlapText = currentChunk.slice(-this.overlapSize);
+                currentChunk = overlapText + ' ' + sentence;
+                chunkId++;
+            } else {
+                currentChunk += (currentChunk ? '. ' : '') + sentence;
+            }
+        }
+        
+        // Add the last chunk if it has content
+        if (currentChunk.trim().length > 0) {
+            chunks.push({
+                id: `${documentName}_chunk_${chunkId}`,
+                content: currentChunk.trim(),
+                documentName: documentName,
+                chunkIndex: chunkId
+            });
+        }
+        
+        return chunks;
+    }
+
+    async processDocumentChunks() {
+        if (!this.isEmbeddingModelReady) {
+            console.warn('⚠️ Embedding model not ready, skipping chunk processing');
+            return;
+        }
+        
+        console.log('🔍 Processing document chunks...');
+        this.documentChunks = [];
+        this.chunkEmbeddings = [];
+        
+        for (const doc of this.documents) {
+            if (doc.processed && doc.content) {
+                const chunks = this.createDocumentChunks(doc.content, doc.name);
+                this.documentChunks.push(...chunks);
+                console.log(`📄 Created ${chunks.length} chunks for ${doc.name}`);
+            }
+        }
+        
+        // Generate embeddings for all chunks
+        if (this.documentChunks.length > 0) {
+            await this.generateChunkEmbeddings();
+        }
+    }
+
+    async generateChunkEmbeddings() {
+        try {
+            console.log('🔍 Generating embeddings for chunks...');
+            const chunkTexts = this.documentChunks.map(chunk => chunk.content);
+            const embeddings = await this.embeddingModel.embed(chunkTexts);
+            
+            // Convert to regular arrays for easier manipulation
+            this.chunkEmbeddings = await embeddings.array();
+            console.log(`✅ Generated embeddings for ${this.chunkEmbeddings.length} chunks`);
+        } catch (error) {
+            console.error('❌ Error generating embeddings:', error);
+        }
+    }
+
+    // Semantic Search for Relevant Chunks
+    async findRelevantChunks(query, topK = 5) {
+        if (!this.isEmbeddingModelReady || this.chunkEmbeddings.length === 0) {
+            console.warn('⚠️ Embeddings not available, returning empty results');
+            return [];
+        }
+        
+        try {
+            // Generate embedding for the query
+            const queryEmbedding = await this.embeddingModel.embed([query]);
+            const queryVector = await queryEmbedding.array();
+            
+            // Calculate cosine similarity with all chunks
+            const similarities = this.chunkEmbeddings.map((chunkEmbedding, index) => {
+                const similarity = this.cosineSimilarity(queryVector[0], chunkEmbedding);
+                return {
+                    index,
+                    similarity,
+                    chunk: this.documentChunks[index]
+                };
+            });
+            
+            // Sort by similarity and return top K results
+            similarities.sort((a, b) => b.similarity - a.similarity);
+            const topChunks = similarities.slice(0, topK);
+            
+            console.log(`🔍 Found ${topChunks.length} relevant chunks for query: "${query}"`);
+            return topChunks;
+        } catch (error) {
+            console.error('❌ Error in semantic search:', error);
+            return [];
+        }
+    }
+
+    cosineSimilarity(vecA, vecB) {
+        let dotProduct = 0;
+        let normA = 0;
+        let normB = 0;
+        
+        for (let i = 0; i < vecA.length; i++) {
+            dotProduct += vecA[i] * vecB[i];
+            normA += vecA[i] * vecA[i];
+            normB += vecB[i] * vecB[i];
+        }
+        
+        return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+    }
+
+    // Conversation Context Management
+    addToConversationContext(userMessage, assistantResponse) {
+        this.conversationContext.push({
+            user: userMessage,
+            assistant: assistantResponse,
+            timestamp: new Date().toISOString()
+        });
+        
+        // Keep only last 5 exchanges to manage context length
+        if (this.conversationContext.length > 5) {
+            this.conversationContext = this.conversationContext.slice(-5);
+        }
+    }
+
+    getConversationContext() {
+        if (this.conversationContext.length === 0) return '';
+        
+        return this.conversationContext.map(exchange => 
+            `User: ${exchange.user}\nAssistant: ${exchange.assistant}`
+        ).join('\n\n');
     }
 }
 
