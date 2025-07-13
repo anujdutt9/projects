@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Video Analysis Demo - Interactive AI Media Analysis</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-video me-2"></i>
+                Gemini Video Analysis
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#demo">Demo</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 text-center">
+                    <h1 class="hero-title">
+                        <i class="fas fa-play-circle me-3"></i>
+                        Interactive Demo
+                    </h1>
+                    <p class="hero-subtitle">
+                        Experience the power of AI-powered video and audio analysis. 
+                        Upload your media files and ask intelligent questions about their content.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Demo Section -->
+    <section id="demo" class="demo-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-10 mx-auto">
+                    <div class="demo-card">
+                        <h2 class="text-center mb-4">
+                            <i class="fas fa-rocket me-2"></i>
+                            Try the Video Analysis Demo
+                        </h2>
+                        
+                        <!-- Demo Instructions -->
+                        <div class="demo-instructions mb-4">
+                            <div class="alert alert-info">
+                                <h5><i class="fas fa-info-circle me-2"></i>How to Use This Demo</h5>
+                                <ol class="mb-0">
+                                    <li><strong>Upload Media:</strong> Drag and drop a video or audio file, or click to browse</li>
+                                    <li><strong>Wait for Analysis:</strong> The AI will analyze your content (10-30 seconds)</li>
+                                    <li><strong>Ask Questions:</strong> Use the chat interface to ask about your media</li>
+                                    <li><strong>Explore Features:</strong> Try suggested questions or ask your own</li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <!-- File Upload Area -->
+                        <div class="upload-area mb-4" id="uploadArea">
+                            <div class="upload-content">
+                                <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                                <h4>Upload Video or Audio File</h4>
+                                <p>Drag and drop your file here or click to browse</p>
+                                <p class="text-muted small">
+                                    <strong>Supported formats:</strong> MP4, WebM, MOV, MP3, WAV, M4A<br>
+                                    <strong>Max size:</strong> 100MB
+                                </p>
+                                <input type="file" id="fileInput" accept="video/*,audio/*" class="file-input">
+                                <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                                    <i class="fas fa-folder-open me-2"></i>
+                                    Choose File
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Sample Files Section -->
+                        <div class="sample-files mb-4">
+                            <h5><i class="fas fa-lightbulb me-2"></i>Don't have a file? Try these sample questions:</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h6 class="card-title">
+                                                <i class="fas fa-video me-2"></i>
+                                                Video Analysis
+                                            </h6>
+                                            <p class="card-text small">Upload any video file and ask:</p>
+                                            <ul class="small">
+                                                <li>"What is happening in this video?"</li>
+                                                <li>"Who are the people shown?"</li>
+                                                <li>"What objects do you see?"</li>
+                                                <li>"What is the mood or tone?"</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h6 class="card-title">
+                                                <i class="fas fa-volume-up me-2"></i>
+                                                Audio Analysis
+                                            </h6>
+                                            <p class="card-text small">Upload any audio file and ask:</p>
+                                            <ul class="small">
+                                                <li>"What type of audio is this?"</li>
+                                                <li>"Who is speaking or performing?"</li>
+                                                <li>"What topics are discussed?"</li>
+                                                <li>"What is the emotional tone?"</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- YouTube URL Input -->
+                        <div class="youtube-input mb-4">
+                            <h5><i class="fab fa-youtube me-2"></i>Or Enter YouTube URL (Coming Soon)</h5>
+                            <div class="input-group">
+                                <input type="url" class="form-control" id="youtubeUrl" 
+                                       placeholder="https://www.youtube.com/watch?v=..." disabled>
+                                <button class="btn btn-outline-secondary" id="analyzeYoutube" disabled>
+                                    <i class="fas fa-clock me-2"></i>
+                                    Coming Soon
+                                </button>
+                            </div>
+                            <small class="text-muted">YouTube integration will be available in a future update.</small>
+                        </div>
+
+                        <!-- Media Player -->
+                        <div class="media-player mb-4" id="mediaPlayer" style="display: none;">
+                            <video id="videoPlayer" controls class="w-100">
+                                Your browser does not support the video tag.
+                            </video>
+                            <audio id="audioPlayer" controls class="w-100" style="display: none;">
+                                Your browser does not support the audio tag.
+                            </audio>
+                        </div>
+
+                        <!-- Analysis Status -->
+                        <div class="analysis-status mb-4" id="analysisStatus" style="display: none;">
+                            <div class="progress">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                     role="progressbar" style="width: 0%"></div>
+                            </div>
+                            <p class="text-center mt-2" id="statusText">Analyzing media content...</p>
+                        </div>
+
+                        <!-- Question Input -->
+                        <div class="question-section mb-4" id="questionSection" style="display: none;">
+                            <h5><i class="fas fa-question-circle me-2"></i>Ask Questions About Your Media</h5>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="questionInput" 
+                                       placeholder="What's happening in this video? Who is speaking? What objects do you see?">
+                                <button class="btn btn-primary" id="askQuestion">
+                                    <i class="fas fa-paper-plane me-2"></i>
+                                    Ask
+                                </button>
+                            </div>
+                            
+                            <!-- Suggested Questions -->
+                            <div class="suggested-questions mt-3">
+                                <h6>Suggested Questions:</h6>
+                                <div class="question-chips">
+                                    <button class="btn btn-outline-secondary btn-sm me-2 mb-2" onclick="askSuggestedQuestion('What is the main topic of this video?')">
+                                        What is the main topic?
+                                    </button>
+                                    <button class="btn btn-outline-secondary btn-sm me-2 mb-2" onclick="askSuggestedQuestion('Who are the people in this video?')">
+                                        Who are the people?
+                                    </button>
+                                    <button class="btn btn-outline-secondary btn-sm me-2 mb-2" onclick="askSuggestedQuestion('What objects or items do you see?')">
+                                        What objects do you see?
+                                    </button>
+                                    <button class="btn btn-outline-secondary btn-sm me-2 mb-2" onclick="askSuggestedQuestion('What is the mood or tone of this content?')">
+                                        What is the mood?
+                                    </button>
+                                    <button class="btn btn-outline-secondary btn-sm me-2 mb-2" onclick="askSuggestedQuestion('What activities or actions are happening?')">
+                                        What activities?
+                                    </button>
+                                    <button class="btn btn-outline-secondary btn-sm me-2 mb-2" onclick="askSuggestedQuestion('Describe the visual style and quality of this content.')">
+                                        Visual style?
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Chat History -->
+                        <div class="chat-history" id="chatHistory">
+                            <!-- Welcome message -->
+                            <div class="chat-message message-system">
+                                <div class="message-avatar avatar-system">
+                                    <i class="fas fa-info-circle"></i>
+                                </div>
+                                <div class="message-bubble system">
+                                    Welcome to Gemini Video Analysis! Upload a video or audio file to get started. The AI will analyze your content and you can ask questions about what it finds.
+                                </div>
+                                <div class="message-timestamp">
+                                    Just now
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Showcase -->
+    <section class="features-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <h3 class="feature-title">AI-Powered Analysis</h3>
+                        <p class="feature-description">
+                            Advanced multimodal AI analyzes both visual and audio content, 
+                            providing comprehensive insights about your media files.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-lg-4 mb-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <h3 class="feature-title">Natural Language Q&A</h3>
+                        <p class="feature-description">
+                            Ask questions in plain English and get detailed, contextual answers 
+                            about specific elements in your videos and audio files.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-lg-4 mb-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <h3 class="feature-title">Responsive Design</h3>
+                        <p class="feature-description">
+                            Works seamlessly on desktop, tablet, and mobile devices with 
+                            an intuitive interface that adapts to any screen size.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Technical Details -->
+    <section class="demo-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 mx-auto">
+                    <div class="demo-card">
+                        <h3 class="text-center mb-4">
+                            <i class="fas fa-cogs me-2"></i>
+                            Technical Details
+                        </h3>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Supported Formats</h5>
+                                <ul>
+                                    <li><strong>Video:</strong> MP4, WebM, MOV, AVI</li>
+                                    <li><strong>Audio:</strong> MP3, WAV, M4A, AAC</li>
+                                    <li><strong>Max Size:</strong> 100MB per file</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Browser Requirements</h5>
+                                <ul>
+                                    <li><strong>Chrome 138+:</strong> Full Gemini AI functionality</li>
+                                    <li><strong>Other Browsers:</strong> Demo mode with mock responses</li>
+                                    <li><strong>Mobile:</strong> Responsive design support</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="alert alert-warning mt-3">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Note:</strong> This demo uses mock responses when Gemini AI is not available. 
+                            For full functionality, use Chrome 138+ with Gemini Nano enabled.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Gemini Video Analysis</h5>
+                    <p>Powered by Google's Gemini Nano multimodal AI for intelligent video understanding.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p>&copy; 2024 Gemini Video Analysis. Built with modern web technologies.</p>
+                    <a href="index.html" class="text-light">← Back to Home</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- App JS -->
+    <script src="app.js"></script>
+</body>
+</html> 
