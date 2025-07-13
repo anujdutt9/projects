@@ -225,12 +225,6 @@ class VideoAnalysisApp {
         // Clear chat history
         this.chatHistory.innerHTML = '';
         
-        // Hide summary
-        this.hideAnalysisSummary();
-        
-        // Hide question interface
-        this.questionSection.style.display = 'none';
-        
         // Reset analysis data
         this.mediaAnalysis = null;
         this.mediaData = null;
@@ -263,6 +257,11 @@ class VideoAnalysisApp {
         this.uploadSection.style.display = 'none';
         this.analysisInterface.style.display = 'flex';
         this.mediaPlayer.style.display = 'block';
+        
+        // Show summary and question sections immediately
+        this.showAnalysisSummary('Analysis in progress... Please wait while we process your media.');
+        this.showQuestionInterface();
+        this.addSystemMessage('Media uploaded! Analysis is in progress. You can ask questions while we process the content.');
     }
 
     // Handle media loaded
@@ -309,15 +308,14 @@ class VideoAnalysisApp {
                 
                 if (analysis.error) {
                     this.addSystemMessage('Analysis failed. Please try uploading your media file again.');
+                    this.showAnalysisSummary('Analysis failed. Please try uploading your media file again.');
                 } else {
-                    // Show the analysis summary
+                    // Update the analysis summary with real content
                     if (analysis.summary) {
                         this.showAnalysisSummary(analysis.summary);
                     }
                     this.addSystemMessage('Media analysis complete! You can now ask questions about the content.');
                 }
-                
-                this.showQuestionInterface();
             }, 1000);
             
         } catch (error) {

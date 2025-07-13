@@ -420,17 +420,24 @@ body {
     border: 1px solid var(--border-color);
     overflow: hidden;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 .analysis-summary .card {
     border: none;
     border-radius: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 .analysis-summary .card-header {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
     border: none;
     padding: 1rem;
+    flex-shrink: 0;
 }
 
 .analysis-summary .card-header h6 {
@@ -440,7 +447,7 @@ body {
 
 .analysis-summary .card-body {
     padding: 1.5rem;
-    max-height: 300px;
+    flex: 1;
     overflow-y: auto;
     line-height: 1.6;
 }
@@ -513,6 +520,7 @@ body {
 .qa-section {
     display: flex;
     flex-direction: column;
+    height: 100%;
 }
 
 .chat-history {
@@ -522,6 +530,25 @@ body {
     background: var(--light-color);
     border-radius: 8px;
     border: 1px solid var(--border-color);
+    min-height: 0;
+}
+
+.chat-history::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-history::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 3px;
+}
+
+.chat-history::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 3px;
+}
+
+.chat-history::-webkit-scrollbar-thumb:hover {
+    background: var(--secondary-color);
 }
 
 /* Enhanced Message Styling */
