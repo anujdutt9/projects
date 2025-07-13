@@ -258,9 +258,8 @@ class VideoAnalysisApp {
         this.analysisInterface.style.display = 'flex';
         this.mediaPlayer.style.display = 'block';
         
-        // Show summary and question sections immediately
+        // Set initial summary content
         this.showAnalysisSummary('Analysis in progress... Please wait while we process your media.');
-        this.showQuestionInterface();
         this.addSystemMessage('Media uploaded! Analysis is in progress. You can ask questions while we process the content.');
     }
 
@@ -822,11 +821,10 @@ Please provide a detailed answer that references specific frames and timestamps 
 
     showAnalysisSummary(summary) {
         this.summaryContent.innerHTML = summary.replace(/\n/g, '<br>');
-        this.analysisSummary.style.display = 'block';
     }
 
     hideAnalysisSummary() {
-        this.analysisSummary.style.display = 'none';
+        this.summaryContent.innerHTML = '';
     }
 
     updateProgress(percentage, text) {
@@ -834,9 +832,7 @@ Please provide a detailed answer that references specific frames and timestamps 
         this.statusText.textContent = text;
     }
 
-    showQuestionInterface() {
-        this.questionSection.style.display = 'block';
-    }
+
 
     addUserMessage(message) {
         const messageElement = this.createMessageElement(message, 'user');
