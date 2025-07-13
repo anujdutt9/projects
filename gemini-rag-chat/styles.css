@@ -241,66 +241,6 @@ body {
     background: rgba(239, 68, 68, 0.1);
 }
 
-/* System Prompt Section */
-.system-prompt-section {
-    margin-top: 2rem;
-}
-
-.prompt-config {
-    background: var(--bg-secondary);
-    border-radius: var(--border-radius);
-    padding: 1rem;
-    border: 1px solid var(--border-color);
-}
-
-.prompt-config .form-label {
-    font-weight: 600;
-    color: var(--text-primary);
-    font-size: 0.875rem;
-    margin-bottom: 0.5rem;
-}
-
-.prompt-config textarea {
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius-sm);
-    font-size: 0.875rem;
-    resize: vertical;
-    min-height: 100px;
-}
-
-.prompt-config textarea:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
-}
-
-.prompt-actions {
-    display: flex;
-    gap: 0.5rem;
-}
-
-.prompt-presets {
-    border-top: 1px solid var(--border-color);
-    padding-top: 0.75rem;
-}
-
-.preset-buttons {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem;
-    margin-top: 0.5rem;
-}
-
-.preset-btn {
-    font-size: 0.75rem;
-    padding: 0.25rem 0.5rem;
-    border-radius: var(--border-radius-sm);
-}
-
-.preset-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-sm);
-}
-
 /* Chat History */
 .chat-history {
     flex: 1;
@@ -564,42 +504,24 @@ body {
 .send-btn {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
     border: none;
-    color: white;
-    padding: 0.75rem 1rem;
     border-radius: var(--border-radius-sm);
-    cursor: pointer;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: all 0.2s ease;
-    font-size: 1rem;
-    min-width: 50px;
+    flex-shrink: 0;
 }
 
 .send-btn:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
 }
 
 .send-btn:disabled {
-    opacity: 0.6;
+    opacity: 0.5;
     cursor: not-allowed;
-    transform: none;
-}
-
-.stop-btn {
-    background: linear-gradient(135deg, var(--danger-color) 0%, #dc2626 100%);
-    border: none;
-    color: white;
-    padding: 0.75rem 1rem;
-    border-radius: var(--border-radius-sm);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-size: 1rem;
-    min-width: 50px;
-}
-
-.stop-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
-    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
 }
 
 .input-footer {

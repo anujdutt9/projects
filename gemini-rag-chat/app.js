@@ -17,25 +17,11 @@ class GeminiRAGChat {
         this.maxChunkSize = 500; // Maximum characters per chunk
         this.overlapSize = 50; // Overlap between chunks
         
-        // System prompt configuration
-        this.systemPrompt = 'You are a helpful AI assistant that analyzes documents and answers questions based on their content. Be thorough, accurate, and provide detailed explanations. If information is not available in the documents, clearly state that.';
-        this.promptPresets = {
-            default: 'You are a helpful AI assistant that analyzes documents and answers questions based on their content. Be thorough, accurate, and provide detailed explanations. If information is not available in the documents, clearly state that.',
-            friendly: 'You are a friendly and approachable AI assistant that helps users understand documents. Use a warm, conversational tone while being informative and accurate. If information is not available in the documents, kindly let them know.',
-            professional: 'You are a professional AI assistant specializing in document analysis. Provide precise, well-structured responses with clear citations when possible. Maintain a formal tone while being helpful and thorough.',
-            concise: 'You are a concise AI assistant that provides clear, direct answers based on document content. Be brief but accurate. If information is not available in the documents, simply state that.'
-        };
-        
-        // Session management
-        this.sessionController = null;
-        this.isGenerating = false;
-        
         this.initializeElements();
         this.bindEvents();
         this.initializeModel();
         this.initializeEmbeddingModel();
         this.loadChatHistory();
-        this.loadSystemPrompt();
     }
 
     initializeElements() {
@@ -45,7 +31,6 @@ class GeminiRAGChat {
         this.uploadedFiles = document.getElementById('uploadedFiles');
         this.messageInput = document.getElementById('messageInput');
         this.sendBtn = document.getElementById('sendBtn');
-        this.stopBtn = document.getElementById('stopBtn');
         this.messages = document.getElementById('messages');
         this.messagesContainer = document.getElementById('messagesContainer');
         this.welcomeMessage = document.getElementById('welcomeMessage');
@@ -54,9 +39,6 @@ class GeminiRAGChat {
         this.clearHistoryBtn = document.getElementById('clearHistory');
         this.modelStatus = document.getElementById('model-status');
         this.embeddingStatus = document.getElementById('embedding-status');
-        this.systemPromptTextarea = document.getElementById('systemPrompt');
-        this.savePromptBtn = document.getElementById('savePromptBtn');
-        this.resetPromptBtn = document.getElementById('resetPromptBtn');
         this.loadingModal = new bootstrap.Modal(document.getElementById('loadingModal'));
         this.loadingTitle = document.getElementById('loadingTitle');
         this.loadingMessage = document.getElementById('loadingMessage');
@@ -75,123 +57,124 @@ class GeminiRAGChat {
         this.messageInput.addEventListener('input', this.handleInputChange.bind(this));
         this.messageInput.addEventListener('keydown', this.handleKeyDown.bind(this));
         this.sendBtn.addEventListener('click', this.sendMessage.bind(this));
-        this.stopBtn.addEventListener('click', this.stopGeneration.bind(this));
         this.newChatBtn.addEventListener('click', this.startNewChat.bind(this));
         this.clearHistoryBtn.addEventListener('click', this.clearChatHistory.bind(this));
-        this.savePromptBtn.addEventListener('click', this.saveSystemPrompt.bind(this));
-        this.resetPromptBtn.addEventListener('click', this.resetSystemPrompt.bind(this));
-
-        // Preset buttons
-        document.querySelectorAll('.preset-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const preset = e.target.dataset.preset;
-                this.loadPreset(preset);
-            });
-        });
+        this.debugBtn.addEventListener('click', this.debugContext.bind(this));
 
         // Auto-resize textarea
         this.messageInput.addEventListener('input', this.autoResizeTextarea.bind(this));
     }
 
     async initializeModel() {
+        console.log('Starting model initialization...');
         try {
             this.updateModelStatus('loading', 'Initializing Gemini Model...');
             this.showLoadingModal('Initializing Gemini Model', 'Please wait while we set up the AI model...');
 
             // Check if LanguageModel API is available
+            console.log('🔍 Checking LanguageModel API availability...');
             if (typeof LanguageModel === 'undefined') {
                 console.error('LanguageModel API not available');
                 throw new Error('LanguageModel API not available. Please use Chrome with Gemini Nano support.');
             }
+            console.log('✅ LanguageModel API is available');
 
-            // Create new AbortController for session management
-            this.sessionController = new AbortController();
+
 
             // Check model availability first
+            console.log('🔍 Checking model availability...');
             try {
                 const modelStatus = await LanguageModel.availability();
+                console.log('Model status:', modelStatus);
             } catch (availabilityError) {
                 console.error('Error checking model availability:', availabilityError);
                 // Fallback: try to create the model directly
+                console.log('Falling back to direct model creation...');
                 this.showLoadingModal('Initializing Gemini Model', 'Please wait while we set up the AI model...');
                 this.loadingProgress.style.display = 'block';
                 
                 this.session = await LanguageModel.create({
-                    initialPrompts: [
-                        { role: 'system', content: this.systemPrompt }
-                    ],
-                    signal: this.sessionController.signal,
                     monitor: (m) => {
+                        console.log('Setting up download monitor...');
                         m.addEventListener("downloadprogress", (e) => {
                             const progress = (e.loaded / e.total * 100).toFixed(1);
+                            console.log(`Download progress: ${progress}%`);
                             this.updateLoadingProgress(progress);
                             this.loadingMessage.textContent = `Downloading model: ${progress}%`;
                         });
                         
                         m.addEventListener("downloadcomplete", () => {
+                            console.log('Download completed, initializing model...');
                             this.loadingMessage.textContent = 'Initializing model...';
                             this.loadingProgress.style.display = 'none';
                         });
                     }
                 });
+                console.log('Model created successfully via fallback');
                 return; // Skip the rest of the initialization
             }
             
             const modelStatus = await LanguageModel.availability();
             
             if (modelStatus === "downloadable") {
+                console.log('Model needs to be downloaded');
                 // Model needs to be downloaded
                 this.showLoadingModal('Downloading Gemini Model', 'Please wait while we download the AI model...');
                 this.loadingProgress.style.display = 'block';
                 
+                console.log('Starting model download...');
                 this.session = await LanguageModel.create({
-                    initialPrompts: [
-                        { role: 'system', content: this.systemPrompt }
-                    ],
-                    signal: this.sessionController.signal,
                     monitor: (m) => {
+                        console.log('Setting up download monitor...');
                         m.addEventListener("downloadprogress", (e) => {
                             const progress = (e.loaded / e.total * 100).toFixed(1);
+                            console.log(`Download progress: ${progress}%`);
                             this.updateLoadingProgress(progress);
                             this.loadingMessage.textContent = `Downloading model: ${progress}%`;
                         });
                         
                         // Handle download completion
                         m.addEventListener("downloadcomplete", () => {
+                            console.log('Download completed, initializing model...');
                             this.loadingMessage.textContent = 'Initializing model...';
                             this.loadingProgress.style.display = 'none';
                         });
                     }
                 });
+                console.log('Model download and creation completed');
             } else if (modelStatus === "available") {
+                console.log('Model is already available, loading...');
                 // Model is already available, just load it
                 this.showLoadingModal('Loading Gemini Model', 'Please wait while we initialize the AI model...');
                 this.loadingProgress.style.display = 'none';
                 
-                this.session = await LanguageModel.create({
-                    initialPrompts: [
-                        { role: 'system', content: this.systemPrompt }
-                    ],
-                    signal: this.sessionController.signal
-                });
+                console.log('Creating model session...');
+                this.session = await LanguageModel.create();
+                console.log('Model session created successfully');
             } else {
                 console.error('Unknown model status:', modelStatus);
                 throw new Error(`Model status unknown: ${modelStatus}`);
             }
 
+
+
+            console.log('Model initialization successful!');
             this.isModelReady = true;
             this.updateModelStatus('online', 'Model Ready');
             
             // Immediately hide the loading modal
+            console.log('Hiding loading modal...');
             this.hideLoadingModal();
             
             // Force hide modal again after a short delay
             setTimeout(() => {
+                console.log('Force hiding modal again...');
                 this.hideLoadingModal();
             }, 500);
             
             // Enable send button if documents are uploaded
             this.updateSendButtonState();
+            console.log('Application ready for use');
 
         } catch (error) {
             console.error('Error initializing model:', error);
@@ -593,11 +576,10 @@ class GeminiRAGChat {
         const message = this.messageInput.value.trim();
         console.log('💬 Sending message:', message.substring(0, 50) + (message.length > 50 ? '...' : ''));
         
-        if (!message || !this.isModelReady || this.isGenerating) {
+        if (!message || !this.isModelReady) {
             console.warn('Cannot send message:', {
                 hasMessage: !!message,
-                isModelReady: this.isModelReady,
-                isGenerating: this.isGenerating
+                isModelReady: this.isModelReady
             });
             return;
         }
@@ -608,13 +590,11 @@ class GeminiRAGChat {
             this.startNewChat();
         }
 
-        // Set generation state
-        this.updateUIForGeneration(true);
-
         // Add user message
         this.addMessage('user', message);
         this.messageInput.value = '';
         this.autoResizeTextarea();
+        this.updateSendButtonState();
 
         // Show typing indicator
         const typingId = this.addTypingIndicator();
@@ -628,14 +608,13 @@ class GeminiRAGChat {
                 const context = await this.prepareIntelligentContext(message);
                 console.log('Context length:', context.length, 'characters');
                 
-                if (context && context.trim().length > 0) {
-                    // Create prompt with context
-                    prompt = this.createPromptWithContext(message, context);
-                    console.log('Prompt length:', prompt.length, 'characters');
-                } else {
-                    // Fallback to general conversation if no context found
-                    console.log('No context found, using general conversation mode');
-                    prompt = `${this.systemPrompt}
+                // Create prompt with context
+                prompt = this.createPromptWithContext(message, context);
+                console.log('Prompt length:', prompt.length, 'characters');
+            } else {
+                console.log('No documents provided, using general conversation mode');
+                // Create a general conversation prompt
+                prompt = `You are a helpful AI assistant. Please respond to the following question or request in a helpful and informative way:
 
 User: ${message}
 
@@ -644,7 +623,7 @@ Please provide a clear, helpful response.`;
             } else {
                 console.log('No documents provided or embedding model not ready, using general conversation mode');
                 // Create a general conversation prompt
-                prompt = `${this.systemPrompt}
+                prompt = `You are a helpful AI assistant. Please respond to the following question or request in a helpful and informative way:
 
 User: ${message}
 
@@ -665,19 +644,12 @@ Please provide a clear, helpful response.`;
             } catch (promptError) {
                 console.error('❌ Error calling session.prompt:', promptError);
                 this.removeTypingIndicator(typingId);
-                this.updateUIForGeneration(false);
-                
-                if (promptError.name === 'AbortError') {
-                    this.addMessage('assistant', 'Generation was cancelled.');
-                } else {
-                    this.addMessage('assistant', 'Sorry, I encountered an error while processing your request. Please try again.');
-                }
+                this.addMessage('assistant', 'Sorry, I encountered an error while processing your request. Please try again.');
                 return;
             }
             
             // Remove typing indicator and add response
             this.removeTypingIndicator(typingId);
-            this.updateUIForGeneration(false);
             
             if (result && typeof result === 'string' && result.trim().length > 0) {
                 console.log('✅ Valid response received, adding message');
@@ -696,13 +668,7 @@ Please provide a clear, helpful response.`;
         } catch (error) {
             console.error('❌ Error getting response:', error);
             this.removeTypingIndicator(typingId);
-            this.updateUIForGeneration(false);
-            
-            if (error.name === 'AbortError') {
-                this.addMessage('assistant', 'Generation was cancelled.');
-            } else {
-                this.addMessage('assistant', 'Sorry, I encountered an error while processing your request. Please try again.');
-            }
+            this.addMessage('assistant', 'Sorry, I encountered an error while processing your request. Please try again.');
         }
     }
 
@@ -769,7 +735,7 @@ Please provide a clear, helpful response.`;
     }
 
     createPromptWithContext(userMessage, context) {
-        return `${this.systemPrompt}
+        return `You are a helpful AI assistant that analyzes documents and answers questions based on their content.
 
 Context from uploaded documents:
 ${context}
@@ -1262,138 +1228,63 @@ Please provide a comprehensive answer based on the document content above. If th
         ).join('\n\n');
     }
 
-    // System Prompt Management
-    loadSystemPrompt() {
-        const saved = localStorage.getItem('geminiRAGSystemPrompt');
-        if (saved) {
-            this.systemPrompt = saved;
-            this.systemPromptTextarea.value = saved;
-        } else {
-            this.systemPromptTextarea.value = this.systemPrompt;
-        }
+    // Debug function to show current documents
+    debugDocuments() {
+        console.log('🔍 === DEBUG: Current Documents ===');
+        console.log('📊 Total documents:', this.documents.length);
+        this.documents.forEach((doc, index) => {
+            console.log(`📄 Document ${index + 1}: ${doc.name}`);
+            console.log(`  - Processed: ${doc.processed}`);
+            console.log(`  - Content length: ${doc.content?.length || 0}`);
+            console.log(`  - Content preview: ${doc.content?.substring(0, 200) || 'No content'}...`);
+        });
+        console.log('🔍 === END DEBUG ===');
     }
 
-    saveSystemPrompt() {
-        const newPrompt = this.systemPromptTextarea.value.trim();
-        if (newPrompt) {
-            this.systemPrompt = newPrompt;
-            localStorage.setItem('geminiRAGSystemPrompt', newPrompt);
-            this.showSuccess('System prompt saved successfully!');
-            console.log('💾 System prompt saved:', newPrompt.substring(0, 50) + '...');
-            
-            // Reinitialize model with new system prompt if model is ready
-            if (this.isModelReady) {
-                this.updateSystemPrompt();
-            }
-        } else {
-            this.showError('System prompt cannot be empty');
-        }
-    }
-
-    async updateSystemPrompt() {
+    // Debug context retrieval
+    async debugContext() {
+        console.log('🔍 === DEBUG CONTEXT RETRIEVAL ===');
+        
+        // Show current documents
+        this.debugDocuments();
+        
+        // Show current chunks
+        console.log('📊 Total chunks:', this.documentChunks.length);
+        this.documentChunks.forEach((chunk, index) => {
+            console.log(`Chunk ${index + 1}: ${chunk.documentName} - ${chunk.content.substring(0, 100)}...`);
+        });
+        
+        // Test context retrieval with a sample query
+        const testQuery = "summarize the main points";
+        console.log('🔍 Testing context retrieval with query:', testQuery);
+        
         try {
-            console.log('🔄 Updating system prompt...');
-            this.updateModelStatus('loading', 'Updating AI Configuration...');
-            
-            // Abort current session if it exists
-            if (this.sessionController) {
-                this.sessionController.abort();
-            }
-            
-            // Create new AbortController
-            this.sessionController = new AbortController();
-            
-            // Create new session with updated system prompt
-            this.session = await LanguageModel.create({
-                initialPrompts: [
-                    { role: 'system', content: this.systemPrompt }
-                ],
-                signal: this.sessionController.signal
-            });
-            
-            this.updateModelStatus('online', 'Model Ready');
-            this.showSuccess('AI configuration updated successfully!');
-            console.log('✅ System prompt updated');
+            const context = await this.prepareIntelligentContext(testQuery);
+            console.log('📄 Retrieved context:');
+            console.log(context);
         } catch (error) {
-            console.error('❌ Error updating system prompt:', error);
-            this.updateModelStatus('offline', 'Update Error');
-            this.showError('Failed to update AI configuration');
+            console.error('❌ Error in context retrieval:', error);
         }
-    }
-
-    resetSystemPrompt() {
-        if (confirm('Are you sure you want to reset the system prompt to default?')) {
-            this.systemPrompt = this.promptPresets.default;
-            this.systemPromptTextarea.value = this.systemPrompt;
-            localStorage.removeItem('geminiRAGSystemPrompt');
-            this.showSuccess('System prompt reset to default');
-        }
-    }
-
-    loadPreset(presetName) {
-        if (this.promptPresets[presetName]) {
-            this.systemPrompt = this.promptPresets[presetName];
-            this.systemPromptTextarea.value = this.systemPrompt;
-            this.showSuccess(`Loaded ${presetName} preset`);
-            console.log(`📝 Loaded preset: ${presetName}`);
-        } else {
-            this.showError('Preset not found');
-        }
-    }
-
-    showSuccess(message) {
-        // Create a temporary success message
-        const successDiv = document.createElement('div');
-        successDiv.className = 'alert alert-success alert-dismissible fade show position-fixed';
-        successDiv.style.cssText = 'top: 100px; right: 20px; z-index: 9999; min-width: 300px;';
-        successDiv.innerHTML = `
-            <i class="fas fa-check-circle me-2"></i>
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        `;
         
-        document.body.appendChild(successDiv);
-        
-        // Auto-remove after 3 seconds
-        setTimeout(() => {
-            if (successDiv.parentNode) {
-                successDiv.remove();
+        console.log('🔍 === END DEBUG ===');
+    }
+
+    // Test PDF content extraction
+    testPDFContent() {
+        console.log('🔍 === TESTING PDF CONTENT ===');
+        this.documents.forEach((doc, index) => {
+            console.log(`📄 Document ${index + 1}: ${doc.name}`);
+            console.log(`  - Type: ${doc.type}`);
+            console.log(`  - Size: ${doc.size} bytes`);
+            console.log(`  - Processed: ${doc.processed}`);
+            console.log(`  - Content length: ${doc.content?.length || 0}`);
+            if (doc.content) {
+                console.log(`  - First 300 chars: "${doc.content.substring(0, 300)}"`);
+                console.log(`  - Contains "Gemini": ${doc.content.toLowerCase().includes('gemini')}`);
+                console.log(`  - Contains "DROP": ${doc.content.toLowerCase().includes('drop')}`);
             }
-        }, 3000);
-    }
-
-    // Stop generation and abort session
-    stopGeneration() {
-        if (this.isGenerating && this.sessionController) {
-            console.log('🛑 Stopping generation...');
-            this.sessionController.abort();
-            this.isGenerating = false;
-            this.updateUIForGeneration(false);
-            this.addMessage('assistant', 'Generation stopped by user.');
-        }
-    }
-
-    // Update UI for generation state
-    updateUIForGeneration(isGenerating) {
-        this.isGenerating = isGenerating;
-        this.sendBtn.style.display = isGenerating ? 'none' : 'block';
-        this.stopBtn.style.display = isGenerating ? 'block' : 'none';
-        this.messageInput.disabled = isGenerating;
-        
-        if (isGenerating) {
-            this.sendBtn.disabled = true;
-        } else {
-            this.updateSendButtonState();
-        }
-    }
-
-    // Cleanup function for proper session management
-    cleanup() {
-        console.log('🧹 Cleaning up sessions...');
-        if (this.sessionController) {
-            this.sessionController.abort();
-        }
-        this.isGenerating = false;
+        });
+        console.log('🔍 === END TEST ===');
     }
 }
 
@@ -1443,19 +1334,4 @@ document.head.insertAdjacentHTML('beforeend', typingStyles);
 let app;
 document.addEventListener('DOMContentLoaded', () => {
     app = new GeminiRAGChat();
-});
-
-// Cleanup on page unload
-window.addEventListener('beforeunload', () => {
-    if (app) {
-        app.cleanup();
-    }
-});
-
-// Cleanup on page visibility change (when user switches tabs)
-document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden' && app && app.isGenerating) {
-        console.log('🔄 Page hidden, stopping generation...');
-        app.stopGeneration();
-    }
 });
