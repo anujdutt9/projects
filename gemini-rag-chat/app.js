@@ -52,7 +52,6 @@ class GeminiRAGChat {
         this.chatHistoryContainer = document.getElementById('chatHistory');
         this.newChatBtn = document.getElementById('newChatBtn');
         this.clearHistoryBtn = document.getElementById('clearHistory');
-        this.debugBtn = document.getElementById('debugBtn');
         this.modelStatus = document.getElementById('model-status');
         this.embeddingStatus = document.getElementById('embedding-status');
         this.systemPromptTextarea = document.getElementById('systemPrompt');
@@ -79,7 +78,6 @@ class GeminiRAGChat {
         this.stopBtn.addEventListener('click', this.stopGeneration.bind(this));
         this.newChatBtn.addEventListener('click', this.startNewChat.bind(this));
         this.clearHistoryBtn.addEventListener('click', this.clearChatHistory.bind(this));
-        this.debugBtn.addEventListener('click', this.debugContext.bind(this));
         this.savePromptBtn.addEventListener('click', this.saveSystemPrompt.bind(this));
         this.resetPromptBtn.addEventListener('click', this.resetSystemPrompt.bind(this));
 
@@ -425,9 +423,6 @@ class GeminiRAGChat {
                 console.log('⚠️ Embedding model not ready, skipping chunk processing');
             }
             
-            // Debug current documents
-            this.debugDocuments();
-            
             // Test PDF content
             this.testPDFContent();
         } catch (error) {
@@ -630,17 +625,27 @@ class GeminiRAGChat {
         try {
             let prompt;
             
-            if (this.documents.length > 0) {
+            if (this.documents.length > 0 && this.isEmbeddingModelReady) {
                 console.log('Preparing document context...');
                 // Prepare context from documents
                 const context = await this.prepareIntelligentContext(message);
                 console.log('Context length:', context.length, 'characters');
                 
-                // Create prompt with context
-                prompt = this.createPromptWithContext(message, context);
-                console.log('Prompt length:', prompt.length, 'characters');
+                if (context && context.trim().length > 0) {
+                    // Create prompt with context
+                    prompt = this.createPromptWithContext(message, context);
+                    console.log('Prompt length:', prompt.length, 'characters');
+                } else {
+                    // Fallback to general conversation if no context found
+                    console.log('No context found, using general conversation mode');
+                    prompt = `${this.systemPrompt}
+
+User: ${message}
+
+Please provide a clear, helpful response.`;
+                }
             } else {
-                console.log('No documents provided, using general conversation mode');
+                console.log('No documents provided or embedding model not ready, using general conversation mode');
                 // Create a general conversation prompt
                 prompt = `${this.systemPrompt}
 
@@ -767,8 +772,7 @@ Please provide a clear, helpful response.`;
     }
 
     createPromptWithContext(userMessage, context) {
-        if (context && context.trim().length > 0) {
-            return `${this.systemPrompt}
+        return `${this.systemPrompt}
 
 Context from uploaded documents:
 ${context}
@@ -776,13 +780,6 @@ ${context}
 User Question: ${userMessage}
 
 Please provide a comprehensive answer based on the document content above. If the information is not available in the documents, please say so. Be helpful, accurate, and concise.`;
-        } else {
-            return `${this.systemPrompt}
-
-User Question: ${userMessage}
-
-Please provide a clear, helpful response.`;
-        }
     }
 
     addMessage(sender, text) {
@@ -1268,47 +1265,6 @@ Please provide a clear, helpful response.`;
         ).join('\n\n');
     }
 
-    // Debug function to show current documents
-    debugDocuments() {
-        console.log('🔍 === DEBUG: Current Documents ===');
-        console.log('📊 Total documents:', this.documents.length);
-        this.documents.forEach((doc, index) => {
-            console.log(`📄 Document ${index + 1}: ${doc.name}`);
-            console.log(`  - Processed: ${doc.processed}`);
-            console.log(`  - Content length: ${doc.content?.length || 0}`);
-            console.log(`  - Content preview: ${doc.content?.substring(0, 200) || 'No content'}...`);
-        });
-        console.log('🔍 === END DEBUG ===');
-    }
-
-    // Debug context retrieval
-    async debugContext() {
-        console.log('🔍 === DEBUG CONTEXT RETRIEVAL ===');
-        
-        // Show current documents
-        this.debugDocuments();
-        
-        // Show current chunks
-        console.log('📊 Total chunks:', this.documentChunks.length);
-        this.documentChunks.forEach((chunk, index) => {
-            console.log(`Chunk ${index + 1}: ${chunk.documentName} - ${chunk.content.substring(0, 100)}...`);
-        });
-        
-        // Test context retrieval with a sample query
-        const testQuery = "summarize the main points";
-        console.log('🔍 Testing context retrieval with query:', testQuery);
-        
-        try {
-            const context = await this.prepareIntelligentContext(testQuery);
-            console.log('📄 Retrieved context:');
-            console.log(context);
-        } catch (error) {
-            console.error('❌ Error in context retrieval:', error);
-        }
-        
-        console.log('🔍 === END DEBUG ===');
-    }
-
     // Test PDF content extraction
     testPDFContent() {
         console.log('🔍 === TESTING PDF CONTENT ===');
@@ -1320,8 +1276,6 @@ Please provide a clear, helpful response.`;
             console.log(`  - Content length: ${doc.content?.length || 0}`);
             if (doc.content) {
                 console.log(`  - First 300 chars: "${doc.content.substring(0, 300)}"`);
-                console.log(`  - Contains "Gemini": ${doc.content.toLowerCase().includes('gemini')}`);
-                console.log(`  - Contains "DROP": ${doc.content.toLowerCase().includes('drop')}`);
             }
         });
         console.log('🔍 === END TEST ===');
