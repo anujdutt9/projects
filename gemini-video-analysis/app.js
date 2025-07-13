@@ -983,15 +983,15 @@ Please provide a detailed answer that references specific frames and timestamps 
     showError(message) {
         // Create error notification
         const errorDiv = document.createElement('div');
-        errorDiv.className = 'alert alert-danger alert-dismissible fade show';
+        errorDiv.className = 'alert alert-danger alert-dismissible fade show position-fixed';
+        errorDiv.style.cssText = 'top: 100px; left: 50%; transform: translateX(-50%); z-index: 9999; max-width: 500px;';
         errorDiv.innerHTML = `
             ${message}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         `;
         
-        // Insert at top of demo card
-        const demoCard = document.querySelector('.demo-card');
-        demoCard.insertBefore(errorDiv, demoCard.firstChild);
+        // Insert at top of body
+        document.body.appendChild(errorDiv);
         
         // Auto-remove after 5 seconds
         setTimeout(() => {
