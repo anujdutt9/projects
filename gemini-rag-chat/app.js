@@ -158,6 +158,9 @@ class GeminiRAGChat {
             console.log('🎉 Model initialization successful!');
             this.isModelReady = true;
             this.updateModelStatus('online', 'Model Ready');
+            
+            // Immediately hide the loading modal
+            console.log('🔒 Hiding loading modal...');
             this.hideLoadingModal();
             
             // Enable send button if documents are uploaded
@@ -216,7 +219,31 @@ class GeminiRAGChat {
     }
 
     hideLoadingModal() {
-        this.loadingModal.hide();
+        console.log('🔒 Hiding loading modal...');
+        
+        // Method 1: Try Bootstrap modal hide
+        try {
+            this.loadingModal.hide();
+        } catch (error) {
+            console.warn('⚠️ Bootstrap modal hide failed, using fallback');
+        }
+        
+        // Method 2: Direct DOM manipulation (always works)
+        const modalElement = document.getElementById('loadingModal');
+        if (modalElement) {
+            modalElement.classList.remove('show');
+            modalElement.style.display = 'none';
+            modalElement.setAttribute('aria-hidden', 'true');
+            modalElement.removeAttribute('aria-modal');
+            modalElement.removeAttribute('role');
+        }
+        
+        // Remove modal backdrop and body classes
+        document.body.classList.remove('modal-open');
+        const backdrop = document.querySelector('.modal-backdrop');
+        if (backdrop) backdrop.remove();
+        
+        console.log('✅ Loading modal hidden successfully');
     }
 
     updateLoadingProgress(progress) {
