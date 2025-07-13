@@ -65,7 +65,7 @@ class VideoAnalysisApp {
                     expectedInputs: [
                         { type: 'audio' }, 
                         { type: 'image' },
-                        { type: 'text' }
+                        // { type: 'text' }
                     ],
                 });
                 console.log('Gemini session initialized successfully:', {
