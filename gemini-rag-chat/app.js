@@ -74,8 +74,8 @@ class GeminiRAGChat {
             });
 
             // Check model availability first
-            console.log('🔍 Checking model status...');
-            const modelStatus = await LanguageModel.getModelStatus();
+            console.log('🔍 Checking model availability...');
+            const modelStatus = await LanguageModel.availability();
             console.log('📊 Model status:', modelStatus);
             
             if (modelStatus === "downloadable") {
