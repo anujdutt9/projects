@@ -22,104 +22,34 @@
                 <i class="fas fa-video me-2"></i>
                 Gemini Video Analysis
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="#features">Features</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#demo">Demo</a>
-                    </li>
-                </ul>
-            </div>
         </div>
     </nav>
 
-    <!-- Hero Section -->
-    <section class="hero-section">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-lg-8 text-center">
-                    <h1 class="hero-title">
-                        <i class="fas fa-brain me-3"></i>
-                        AI Video Analysis
-                    </h1>
-                    <p class="hero-subtitle">
-                        Upload videos or audio files and ask questions about their content. 
-                        Powered by Gemini Nano multimodal AI for intelligent video understanding.
-                    </p>
-                    <a href="#demo" class="cta-button">
-                        <i class="fas fa-play me-2"></i>
-                        Try Demo
-                    </a>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Features Section -->
-    <section id="features" class="features-section">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-4 mb-4">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-upload"></i>
+    <!-- Main Demo Section -->
+    <section class="main-demo-section">
+        <div class="container-fluid h-100">
+            <!-- File Upload Area (shown initially) -->
+            <div class="row h-100" id="uploadSection">
+                <div class="col-12 d-flex align-items-center justify-content-center">
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-content">
+                            <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                            <h4>Upload Video or Audio File</h4>
+                            <p>Drag and drop your file here or click to browse</p>
+                            <input type="file" id="fileInput" accept="video/*,audio/*" class="file-input">
+                            <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                                <i class="fas fa-folder-open me-2"></i>
+                                Choose File
+                            </button>
                         </div>
-                        <h3 class="feature-title">Multiple Input Formats</h3>
-                        <p class="feature-description">
-                            Upload video files (MP4, WebM, MOV) or audio files (MP3, WAV, M4A). 
-                            Drag and drop interface with real-time processing.
-                        </p>
                     </div>
-                </div>
-                <div class="col-lg-4 mb-4">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-question-circle"></i>
-                        </div>
-                        <h3 class="feature-title">Intelligent Q&A</h3>
-                        <p class="feature-description">
-                            Ask natural language questions about video content, scenes, 
-                            audio, and visual elements. Get detailed, contextual answers.
-                        </p>
-                    </div>
-                </div>
-                <div class="col-lg-4 mb-4">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                        <h3 class="feature-title">Timestamp Analysis</h3>
-                        <p class="feature-description">
-                            Get answers with specific timestamps and scene references. 
-                            Navigate directly to relevant moments in your content.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Demo Section -->
-    <section id="demo" class="demo-section">
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-12">
-                    <h2 class="text-center mb-4">
-                        <i class="fas fa-video me-2"></i>
-                        Video Analysis Demo
-                    </h2>
                 </div>
             </div>
             
             <!-- Main Analysis Interface - Left/Right Layout -->
-            <div class="row analysis-interface" id="analysisInterface" style="display: none;">
+            <div class="row h-100 analysis-interface" id="analysisInterface" style="display: none;">
                 <!-- Left Side - Video/Audio Player -->
-                <div class="col-lg-6">
+                <div class="col-lg-6 h-100">
                     <div class="media-section">
                         <h5 class="section-title">
                             <i class="fas fa-play-circle me-2"></i>
@@ -165,7 +95,7 @@
                 </div>
 
                 <!-- Right Side - Q&A Interface -->
-                <div class="col-lg-6">
+                <div class="col-lg-6 h-100">
                     <div class="qa-section">
                         <h5 class="section-title">
                             <i class="fas fa-question-circle me-2"></i>
@@ -210,41 +140,8 @@
                     </div>
                 </div>
             </div>
-
-            <!-- File Upload Area (shown initially) -->
-            <div class="row" id="uploadSection">
-                <div class="col-lg-8 mx-auto">
-                    <div class="upload-area" id="uploadArea">
-                        <div class="upload-content">
-                            <i class="fas fa-cloud-upload-alt upload-icon"></i>
-                            <h4>Upload Video or Audio File</h4>
-                            <p>Drag and drop your file here or click to browse</p>
-                            <input type="file" id="fileInput" accept="video/*,audio/*" class="file-input">
-                            <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
-                                <i class="fas fa-folder-open me-2"></i>
-                                Choose File
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     </section>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <h5>Gemini Video Analysis</h5>
-                    <p>Powered by Google's Gemini Nano multimodal AI for intelligent video understanding.</p>
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <p>&copy; 2024 Gemini Video Analysis. Built with modern web technologies.</p>
-                </div>
-            </div>
-        </div>
-    </footer>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
