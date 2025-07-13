@@ -16,8 +16,7 @@ class VideoAnalysisApp {
     initializeElements() {
         this.uploadArea = document.getElementById('uploadArea');
         this.fileInput = document.getElementById('fileInput');
-        this.youtubeUrl = document.getElementById('youtubeUrl');
-        this.analyzeYoutubeBtn = document.getElementById('analyzeYoutube');
+
         this.mediaPlayer = document.getElementById('mediaPlayer');
         this.videoPlayer = document.getElementById('videoPlayer');
         this.audioPlayer = document.getElementById('audioPlayer');
@@ -40,8 +39,7 @@ class VideoAnalysisApp {
         this.uploadArea.addEventListener('dragleave', (e) => this.handleDragLeave(e));
         this.uploadArea.addEventListener('drop', (e) => this.handleDrop(e));
         
-        // YouTube analysis
-        this.analyzeYoutubeBtn.addEventListener('click', () => this.analyzeYouTubeUrl());
+
         
         // Question asking
         this.askQuestionBtn.addEventListener('click', () => this.askQuestion());
@@ -214,19 +212,20 @@ class VideoAnalysisApp {
     async extractMediaData(file) {
         return new Promise((resolve) => {
             if (this.mediaType === 'video') {
-                this.extractVideoFrames(file, resolve);
+                this.extractVideoWithAudio(file, resolve);
             } else {
                 this.extractAudioData(file, resolve);
             }
         });
     }
 
-    // Extract video frames
-    extractVideoFrames(file, resolve) {
+    // Extract video frames and audio
+    extractVideoWithAudio(file, resolve) {
         const video = document.createElement('video');
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         const frames = [];
+        let audioBlob = null;
         
         video.onloadedmetadata = () => {
             canvas.width = video.videoWidth;
@@ -239,7 +238,16 @@ class VideoAnalysisApp {
             let currentTime = 0;
             const extractFrame = () => {
                 if (currentTime >= duration || frames.length >= 10) {
-                    resolve({ type: 'video', frames, duration });
+                    // After extracting frames, extract audio
+                    this.extractAudioFromVideo(video, file, (audioData) => {
+                        resolve({ 
+                            type: 'video', 
+                            frames, 
+                            duration,
+                            audio: audioData,
+                            hasAudio: audioData !== null
+                        });
+                    });
                     return;
                 }
                 
@@ -262,6 +270,47 @@ class VideoAnalysisApp {
         };
         
         video.src = URL.createObjectURL(file);
+    }
+
+    // Extract audio from video file
+    extractAudioFromVideo(video, file, callback) {
+        // Method 1: Try to extract audio using MediaRecorder API
+        try {
+            const mediaRecorder = new MediaRecorder(video.captureStream());
+            const audioChunks = [];
+            
+            mediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    audioChunks.push(event.data);
+                }
+            };
+            
+            mediaRecorder.onstop = () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                callback({
+                    audioBlob: audioBlob,
+                    duration: video.duration,
+                    sampleRate: 44100, // Default sample rate
+                    numberOfChannels: 2 // Stereo
+                });
+            };
+            
+            // Start recording and stop after a short duration
+            mediaRecorder.start();
+            setTimeout(() => {
+                mediaRecorder.stop();
+            }, Math.min(30000, video.duration * 1000)); // Max 30 seconds
+            
+        } catch (error) {
+            console.log('MediaRecorder not supported, using file directly');
+            // Fallback: Use the original file as audio source
+            callback({
+                audioBlob: file,
+                duration: video.duration,
+                sampleRate: 44100,
+                numberOfChannels: 2
+            });
+        }
     }
 
     // Extract audio data
@@ -320,6 +369,14 @@ class VideoAnalysisApp {
                         value: frame.image
                     });
                 }
+                
+                // Add audio if available
+                if (mediaData.hasAudio && mediaData.audio) {
+                    content.push({
+                        type: 'audio',
+                        value: mediaData.audio.audioBlob
+                    });
+                }
             } else {
                 // Add audio
                 content.push({
@@ -349,15 +406,31 @@ class VideoAnalysisApp {
     // Create analysis prompt
     createAnalysisPrompt(mediaData) {
         if (mediaData.type === 'video') {
-            return `Please analyze this video content and provide a comprehensive summary including:
+            let prompt = `Please analyze this video content and provide a comprehensive summary including:
 1. Main topics and themes
 2. Key visual elements and scenes
 3. People, objects, and activities shown
 4. Overall mood and tone
 5. Any text or speech visible
-6. Technical aspects (quality, style, etc.)
+6. Technical aspects (quality, style, etc.)`;
 
-Please be detailed and specific about what you observe.`;
+            // Add audio analysis instructions if audio is available
+            if (mediaData.hasAudio && mediaData.audio) {
+                prompt += `
+
+Additionally, please analyze the audio content including:
+7. Type of audio (speech, music, ambient sounds, etc.)
+8. Main topics or themes discussed in speech
+9. Speakers or performers identified
+10. Emotional tone and mood conveyed through audio
+11. Audio quality and characteristics
+12. Any background music or sound effects
+
+Please provide a comprehensive analysis that combines both visual and audio elements.`;
+            }
+
+            prompt += `\n\nPlease be detailed and specific about what you observe and hear.`;
+            return prompt;
         } else {
             return `Please analyze this audio content and provide a comprehensive summary including:
 1. Type of audio (music, speech, ambient, etc.)
@@ -375,9 +448,9 @@ Please be detailed and specific about what you hear.`;
     generateMockAnalysis(mediaData) {
         const mockResponses = {
             video: [
-                "This appears to be a professional presentation video featuring a speaker in a business setting. The video shows clear visual elements including presentation slides, a well-lit conference room, and professional attire. The content seems to be educational or business-related, with structured visual information being presented.",
-                "I can see a tutorial-style video with step-by-step instructions. The content includes screen recordings, diagrams, and explanatory text overlays. The presenter appears to be demonstrating software or technical procedures with clear visual aids and annotations.",
-                "This is a nature documentary-style video showcasing wildlife and natural landscapes. The footage includes high-quality cinematography of animals in their natural habitat, scenic vistas, and environmental elements. The visual style suggests professional wildlife photography."
+                "This appears to be a professional presentation video featuring a speaker in a business setting. The video shows clear visual elements including presentation slides, a well-lit conference room, and professional attire. The content seems to be educational or business-related, with structured visual information being presented. The audio contains clear speech from the presenter discussing technical topics with a professional, authoritative tone. The speaker appears to be explaining complex concepts with good pacing and clear articulation.",
+                "I can see a tutorial-style video with step-by-step instructions. The content includes screen recordings, diagrams, and explanatory text overlays. The presenter appears to be demonstrating software or technical procedures with clear visual aids and annotations. The audio features a narrator providing detailed explanations of each step, with occasional background music and sound effects that enhance the learning experience. The voice is clear and instructional in tone.",
+                "This is a nature documentary-style video showcasing wildlife and natural landscapes. The footage includes high-quality cinematography of animals in their natural habitat, scenic vistas, and environmental elements. The visual style suggests professional wildlife photography. The audio contains ambient nature sounds, wildlife calls, and a narrator's voice providing educational commentary about the animals and their behavior. The overall audio-visual experience creates an immersive documentary atmosphere."
             ],
             audio: [
                 "This audio contains a podcast discussion about technology trends and innovations. The speakers are engaging in a conversational format, discussing current developments in AI, machine learning, and digital transformation. The tone is informative yet accessible.",
@@ -387,7 +460,15 @@ Please be detailed and specific about what you hear.`;
         };
         
         const responses = mockResponses[mediaData.type];
-        const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+        let randomResponse = responses[Math.floor(Math.random() * responses.length)];
+        
+        // For video files, check if audio analysis was included
+        if (mediaData.type === 'video' && mediaData.hasAudio && mediaData.audio) {
+            // The mock responses already include audio analysis
+        } else if (mediaData.type === 'video') {
+            // Remove audio-related content if no audio was detected
+            randomResponse = randomResponse.replace(/\. The audio.*$/, '');
+        }
         
         return {
             summary: randomResponse,
@@ -438,27 +519,17 @@ Please be detailed and specific about what you hear.`;
             ];
             
             // Add current media context
-            if (this.currentMedia) {
-                if (this.mediaType === 'video') {
-                    // Add a representative frame
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    canvas.width = 640;
-                    canvas.height = 480;
-                    ctx.fillStyle = '#f0f0f0';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    ctx.fillStyle = '#333';
-                    ctx.font = '20px Arial';
-                    ctx.textAlign = 'center';
-                    ctx.fillText('Video Content', canvas.width/2, canvas.height/2);
-                    
-                    canvas.toBlob((blob) => {
+            if (this.currentMedia && this.mediaAnalysis) {
+                if (this.mediaType === 'video' && this.mediaAnalysis.frames) {
+                    // Add a representative frame from the analysis
+                    const frame = this.mediaAnalysis.frames[0];
+                    if (frame && frame.image) {
                         content.push({
                             type: 'image',
-                            value: blob
+                            value: frame.image
                         });
-                    });
-                } else {
+                    }
+                } else if (this.mediaType === 'audio') {
                     content.push({
                         type: 'audio',
                         value: this.currentMedia
@@ -473,7 +544,7 @@ Please be detailed and specific about what you hear.`;
                 }
             ]);
             
-            return response.text;
+            return response.text || 'I apologize, but I couldn\'t generate a response. Please try asking your question again.';
             
         } catch (error) {
             console.error('Error with Gemini Q&A:', error);
@@ -493,16 +564,7 @@ Please be detailed and specific about what you hear.`;
         return mockAnswers[Math.floor(Math.random() * mockAnswers.length)];
     }
 
-    // YouTube URL analysis (placeholder for future implementation)
-    async analyzeYouTubeUrl() {
-        const url = this.youtubeUrl.value.trim();
-        if (!url) {
-            this.showError('Please enter a valid YouTube URL.');
-            return;
-        }
-        
-        this.showError('YouTube URL analysis is coming soon! For now, please upload a video file directly.');
-    }
+
 
     // UI Helper Methods
     showAnalysisStatus() {
