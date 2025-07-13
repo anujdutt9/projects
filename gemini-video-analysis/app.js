@@ -383,63 +383,128 @@ class VideoAnalysisApp {
         }
 
         try {
-            const prompt = this.createAnalysisPrompt(mediaData);
-            const content = [];
-            
-            // Add text prompt
-            content.push({
-                type: 'text',
-                value: prompt
-            });
-            
-            // Add media content
             if (mediaData.type === 'video') {
-                console.log('Processing video frames:', mediaData.frames.length, 'frames available');
-                // Add key frames only (no audio for video files)
-                const framesToSend = mediaData.frames.slice(0, 5); // Limit to 5 frames
-                console.log('Sending', framesToSend.length, 'frames to Gemini');
-                
-                for (const frame of framesToSend) {
-                    if (frame && frame.image) {
-                        content.push({
-                            type: 'image',
-                            value: frame.image
-                        });
-                        console.log('Added frame at time:', frame.time);
-                    }
-                }
+                return await this.analyzeVideoFrames(mediaData);
             } else {
-                // Add audio for audio files only
-                try {
-                    content.push({
-                        type: 'audio',
-                        value: mediaData.audioBlob
-                    });
-                } catch (audioError) {
-                    console.log('Audio blob not valid for audio file');
-                }
+                return await this.analyzeAudio(mediaData);
             }
+        } catch (error) {
+            console.error('Error with Gemini analysis:', error);
+            return {
+                summary: 'Sorry, I encountered an error while analyzing your media. Please try again.',
+                timestamp: new Date().toISOString(),
+                error: true
+            };
+        }
+    }
+
+    // Analyze video frames individually
+    async analyzeVideoFrames(mediaData) {
+        console.log('Starting individual frame analysis for video');
+        
+        const framesToAnalyze = mediaData.frames.slice(0, 5); // Limit to 5 frames
+        const frameAnalyses = [];
+        
+        for (let i = 0; i < framesToAnalyze.length; i++) {
+            const frame = framesToAnalyze[i];
+            if (!frame || !frame.image) continue;
             
-            console.log('Sending content to Gemini:', {
-                contentLength: content.length,
-                hasText: content.some(c => c.type === 'text'),
-                hasImages: content.filter(c => c.type === 'image').length,
-                hasAudio: content.filter(c => c.type === 'audio').length
-            });
+            console.log(`Analyzing frame ${i + 1}/${framesToAnalyze.length} at time ${frame.time}s`);
+            
+            try {
+                const framePrompt = `Please analyze this single frame from a video and describe what you see. Include:
+1. Objects, people, or activities visible
+2. Setting or environment
+3. Any text or signs
+4. Colors, lighting, and visual style
+5. What might be happening in this moment
+
+Frame timestamp: ${frame.time.toFixed(1)} seconds into the video.`;
+                
+                const response = await this.analysisSession.prompt([
+                    {
+                        role: 'user',
+                        content: [
+                            { type: 'text', value: framePrompt },
+                            { type: 'image', value: frame.image }
+                        ]
+                    }
+                ]);
+                
+                if (response && response.text) {
+                    frameAnalyses.push({
+                        time: frame.time,
+                        analysis: response.text
+                    });
+                    console.log(`Frame ${i + 1} analysis complete:`, response.text.substring(0, 100) + '...');
+                } else {
+                    console.log(`Frame ${i + 1} analysis failed - no response`);
+                }
+                
+                // Small delay between frames to avoid overwhelming the API
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+            } catch (error) {
+                console.error(`Error analyzing frame ${i + 1}:`, error);
+            }
+        }
+        
+        console.log('Individual frame analysis complete:', frameAnalyses.length, 'frames analyzed');
+        
+        // Now create a comprehensive summary from all frame analyses
+        if (frameAnalyses.length > 0) {
+            const summaryPrompt = `Based on the analysis of ${frameAnalyses.length} key frames from a video, please provide a comprehensive summary of the entire video content. 
+
+Frame analyses:
+${frameAnalyses.map((fa, index) => `${index + 1}. At ${fa.time.toFixed(1)}s: ${fa.analysis}`).join('\n\n')}
+
+Please provide a coherent summary that:
+1. Identifies the main topic or theme of the video
+2. Describes the key scenes and progression
+3. Mentions important people, objects, or activities
+4. Captures the overall mood and style
+5. Highlights any significant changes or events across the frames
+
+Make this summary flow naturally as if describing a complete video.`;
+            
+            const summaryResponse = await this.analysisSession.prompt([
+                {
+                    role: 'user',
+                    content: [{ type: 'text', value: summaryPrompt }]
+                }
+            ]);
+            
+            return {
+                summary: summaryResponse.text,
+                frameAnalyses: frameAnalyses,
+                timestamp: new Date().toISOString()
+            };
+        } else {
+            return {
+                summary: 'Unable to analyze video frames. Please try again.',
+                frameAnalyses: [],
+                timestamp: new Date().toISOString(),
+                error: true
+            };
+        }
+    }
+
+    // Analyze audio content
+    async analyzeAudio(mediaData) {
+        console.log('Analyzing audio content');
+        
+        try {
+            const audioPrompt = this.createAnalysisPrompt(mediaData);
             
             const response = await this.analysisSession.prompt([
                 {
                     role: 'user',
-                    content: content
+                    content: [
+                        { type: 'text', value: audioPrompt },
+                        { type: 'audio', value: mediaData.audioBlob }
+                    ]
                 }
             ]);
-            
-            console.log('Gemini response received:', {
-                hasResponse: !!response,
-                hasText: !!(response && response.text),
-                responseLength: response && response.text ? response.text.length : 0,
-                responsePreview: response && response.text ? response.text.substring(0, 100) + '...' : 'No text'
-            });
             
             return {
                 summary: response.text,
@@ -447,9 +512,9 @@ class VideoAnalysisApp {
             };
             
         } catch (error) {
-            console.error('Error with Gemini analysis:', error);
+            console.error('Error analyzing audio:', error);
             return {
-                summary: 'Sorry, I encountered an error while analyzing your media. Please try again.',
+                summary: 'Sorry, I encountered an error while analyzing the audio. Please try again.',
                 timestamp: new Date().toISOString(),
                 error: true
             };
@@ -516,30 +581,39 @@ Please be detailed and specific about what you hear.`;
         }
 
         try {
-            const content = [
-                {
-                    type: 'text',
-                    value: `Based on the previously analyzed ${this.mediaType}, please answer this question: ${question}`
-                }
-            ];
+            let content = [];
             
-            // Add current media context
-            if (this.currentMedia && this.mediaAnalysis) {
-                if (this.mediaType === 'video' && this.mediaAnalysis.frames) {
-                    // Add a representative frame from the analysis
-                    const frame = this.mediaAnalysis.frames[0];
-                    if (frame && frame.image) {
-                        content.push({
-                            type: 'image',
-                            value: frame.image
-                        });
-                    }
-                } else if (this.mediaType === 'audio') {
+            if (this.mediaType === 'video' && this.mediaAnalysis && this.mediaAnalysis.frameAnalyses) {
+                // Use the detailed frame analyses for video Q&A
+                const frameAnalyses = this.mediaAnalysis.frameAnalyses;
+                const qaPrompt = `Based on the detailed analysis of ${frameAnalyses.length} key frames from a video, please answer this question: ${question}
+
+Frame-by-frame analysis:
+${frameAnalyses.map((fa, index) => `${index + 1}. At ${fa.time.toFixed(1)}s: ${fa.analysis}`).join('\n\n')}
+
+Please provide a detailed answer that references specific frames and timestamps when relevant.`;
+                
+                content.push({ type: 'text', value: qaPrompt });
+                
+            } else if (this.mediaType === 'audio') {
+                // For audio, use the original approach
+                content.push({
+                    type: 'text',
+                    value: `Based on the previously analyzed audio, please answer this question: ${question}`
+                });
+                
+                if (this.currentMedia) {
                     content.push({
                         type: 'audio',
                         value: this.currentMedia
                     });
                 }
+            } else {
+                // Fallback for video without frame analyses
+                content.push({
+                    type: 'text',
+                    value: `Based on the previously analyzed ${this.mediaType}, please answer this question: ${question}`
+                });
             }
             
             const response = await this.analysisSession.prompt([
