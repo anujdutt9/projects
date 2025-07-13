@@ -877,10 +877,6 @@ Please provide a detailed answer that references specific frames and timestamps 
         const bubble = document.createElement('div');
         bubble.className = `message-bubble ${type}`;
         
-        const timestamp = document.createElement('div');
-        timestamp.className = 'message-timestamp';
-        timestamp.textContent = new Date().toLocaleTimeString();
-        
         // Set avatar icon
         switch (type) {
             case 'user':
@@ -908,7 +904,6 @@ Please provide a detailed answer that references specific frames and timestamps 
         
         messageDiv.appendChild(avatar);
         messageDiv.appendChild(bubble);
-        messageDiv.appendChild(timestamp);
         
         return messageDiv;
     }
