@@ -53,6 +53,27 @@
             <!-- Sidebar -->
             <div class="col-md-4 col-lg-3 sidebar">
                 <div class="sidebar-content">
+                    <!-- AI Assistant Mode -->
+                    <div class="assistant-mode-section mb-4">
+                        <h5 class="section-title">
+                            <i class="fas fa-robot me-2"></i>
+                            Assistant Mode
+                        </h5>
+                        <div class="form-group">
+                            <label for="systemPromptSelector" class="form-label small text-muted">Choose AI Personality:</label>
+                            <select class="form-select form-select-sm" id="systemPromptSelector">
+                                <option value="general">General Assistant</option>
+                                <option value="academic">Academic Researcher</option>
+                                <option value="business">Business Analyst</option>
+                                <option value="creative">Creative Writer</option>
+                            </select>
+                            <small class="form-text text-muted mt-1">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Each mode changes how the AI analyzes and responds to your documents
+                            </small>
+                        </div>
+                    </div>
+
                     <!-- Document Upload Section -->
                     <div class="upload-section">
                         <h5 class="section-title">

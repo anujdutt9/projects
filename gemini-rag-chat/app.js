@@ -17,6 +17,30 @@ class GeminiRAGChat {
         this.maxChunkSize = 500; // Maximum characters per chunk
         this.overlapSize = 50; // Overlap between chunks
         
+        // System prompts for the AI - 4 different personalities
+        this.systemPrompts = {
+            'general': {
+                name: 'General Assistant',
+                prompt: `You are a helpful AI assistant that can analyze documents and answer questions based on their content. You provide clear, accurate, and helpful responses.`
+            },
+            'academic': {
+                name: 'Academic Researcher',
+                prompt: `You are an academic research assistant. When analyzing documents, focus on scholarly insights, cite specific passages, and provide detailed explanations. Be thorough in your analysis and suggest further research directions when appropriate.`
+            },
+            'business': {
+                name: 'Business Analyst',
+                prompt: `You are a business analyst assistant. When reviewing documents, focus on practical insights, key metrics, business implications, and actionable recommendations. Provide concise summaries and highlight important business points.`
+            },
+            'creative': {
+                name: 'Creative Writer',
+                prompt: `You are a creative writing assistant. When analyzing documents, focus on storytelling elements, creative interpretations, and engaging ways to present information. Use vivid language and help users see content from new perspectives.`
+            }
+        };
+        
+        // Set default system prompt
+        this.currentSystemPrompt = this.loadSystemPromptPreference() || 'general';
+        this.systemPrompt = this.systemPrompts[this.currentSystemPrompt].prompt;
+        
         this.initializeElements();
         this.bindEvents();
         this.initializeModel();
@@ -43,6 +67,12 @@ class GeminiRAGChat {
         this.loadingTitle = document.getElementById('loadingTitle');
         this.loadingMessage = document.getElementById('loadingMessage');
         this.loadingProgress = document.getElementById('loadingProgress');
+        
+        // Initialize system prompt selector if it exists
+        this.systemPromptSelector = document.getElementById('systemPromptSelector');
+        if (this.systemPromptSelector) {
+            this.initializeSystemPromptSelector();
+        }
     }
 
     bindEvents() {
@@ -59,10 +89,14 @@ class GeminiRAGChat {
         this.sendBtn.addEventListener('click', this.sendMessage.bind(this));
         this.newChatBtn.addEventListener('click', this.startNewChat.bind(this));
         this.clearHistoryBtn.addEventListener('click', this.clearChatHistory.bind(this));
-        this.debugBtn.addEventListener('click', this.debugContext.bind(this));
 
         // Auto-resize textarea
         this.messageInput.addEventListener('input', this.autoResizeTextarea.bind(this));
+        
+        // System prompt selector event
+        if (this.systemPromptSelector) {
+            this.systemPromptSelector.addEventListener('change', this.handleSystemPromptChange.bind(this));
+        }
     }
 
     async initializeModel() {
@@ -1056,6 +1090,72 @@ Please provide a comprehensive answer based on the document content above. If th
                 errorDiv.remove();
             }
         }, 5000);
+    }
+
+    // System Prompt Management
+    initializeSystemPromptSelector() {
+        if (!this.systemPromptSelector) return;
+        
+        // Clear existing options
+        this.systemPromptSelector.innerHTML = '';
+        
+        // Add options for each system prompt
+        Object.keys(this.systemPrompts).forEach(key => {
+            const option = document.createElement('option');
+            option.value = key;
+            option.textContent = this.systemPrompts[key].name;
+            this.systemPromptSelector.appendChild(option);
+        });
+        
+        // Set selection to current system prompt
+        this.systemPromptSelector.value = this.currentSystemPrompt;
+        
+        console.log(`🎭 Initialized system prompt selector with: ${this.systemPrompts[this.currentSystemPrompt].name}`);
+    }
+
+    handleSystemPromptChange() {
+        const selectedPrompt = this.systemPromptSelector.value;
+        if (selectedPrompt && this.systemPrompts[selectedPrompt]) {
+            this.currentSystemPrompt = selectedPrompt;
+            this.systemPrompt = this.systemPrompts[selectedPrompt].prompt;
+            
+            // Save preference
+            this.saveSystemPromptPreference(selectedPrompt);
+            
+            // Show confirmation message
+            this.showSuccess(`Switched to ${this.systemPrompts[selectedPrompt].name} mode`);
+            
+            console.log(`🔄 System prompt changed to: ${this.systemPrompts[selectedPrompt].name}`);
+        }
+    }
+
+    saveSystemPromptPreference(promptKey) {
+        localStorage.setItem('geminiRAGSystemPrompt', promptKey);
+    }
+
+    loadSystemPromptPreference() {
+        return localStorage.getItem('geminiRAGSystemPrompt');
+    }
+
+    showSuccess(message) {
+        // Create a temporary success message
+        const successDiv = document.createElement('div');
+        successDiv.className = 'alert alert-success alert-dismissible fade show position-fixed';
+        successDiv.style.cssText = 'top: 100px; right: 20px; z-index: 9999; min-width: 300px;';
+        successDiv.innerHTML = `
+            <i class="fas fa-check-circle me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(successDiv);
+        
+        // Auto-remove after 3 seconds
+        setTimeout(() => {
+            if (successDiv.parentNode) {
+                successDiv.remove();
+            }
+        }, 3000);
     }
 
     // Intelligent Document Chunking

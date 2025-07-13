@@ -110,6 +110,45 @@ body {
     letter-spacing: 0.05em;
 }
 
+/* Assistant Mode Section */
+.assistant-mode-section {
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius);
+    padding: 1.25rem;
+    border: 1px solid var(--border-color);
+}
+
+.assistant-mode-section .section-title {
+    margin-bottom: 1rem;
+}
+
+.assistant-mode-section .form-label {
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.assistant-mode-section .form-select {
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+}
+
+.assistant-mode-section .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.assistant-mode-section .form-text {
+    font-size: 0.75rem;
+    line-height: 1.4;
+}
+
+.assistant-mode-section .form-text i {
+    color: var(--primary-color);
+}
+
 /* Upload Section */
 .upload-section {
     flex: 1;

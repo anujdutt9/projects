@@ -9,6 +9,7 @@ A modern, polished document-based RAG (Retrieval-Augmented Generation) AI chat a
 - **Drag & Drop Interface**: Intuitive file upload with visual feedback
 - **AI-Powered Chat**: Intelligent responses based on document content
 - **Real-time Processing**: Live document analysis and context generation
+- **Multiple AI Personalities**: Choose from 4 different AI modes (General, Academic, Business, Creative)
 
 ### User Interface
 - **Modern Design**: Beautiful, responsive UI with gradient backgrounds
