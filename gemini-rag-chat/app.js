@@ -3,7 +3,7 @@ class GeminiRAGChat {
     constructor() {
         this.session = null;
         this.documents = [];
-        this.chatHistory = [];
+        this.chatHistoryData = [];
         this.currentChatId = null;
         this.isModelReady = false;
         
@@ -23,7 +23,7 @@ class GeminiRAGChat {
         this.messages = document.getElementById('messages');
         this.messagesContainer = document.getElementById('messagesContainer');
         this.welcomeMessage = document.getElementById('welcomeMessage');
-        this.chatHistory = document.getElementById('chatHistory');
+        this.chatHistoryContainer = document.getElementById('chatHistory');
         this.clearHistoryBtn = document.getElementById('clearHistory');
         this.modelStatus = document.getElementById('model-status');
         this.loadingModal = new bootstrap.Modal(document.getElementById('loadingModal'));
@@ -353,7 +353,6 @@ class GeminiRAGChat {
                         try {
                             content = await this.extractPDFText(e.target.result);
                             console.log('✅ PDF text extraction successful');
-                            console.log('📄 PDF content:', content);
                         } catch (pdfError) {
                             console.warn('⚠️ PDF text extraction failed:', pdfError);
                             content = `PDF Content: ${file.name} - Unable to extract text. Please ensure the PDF contains selectable text.`;
@@ -713,8 +712,8 @@ Please provide a comprehensive answer based on the document content above. If th
         };
 
         // Add to local storage
-        this.chatHistory.push(chatEntry);
-        localStorage.setItem('geminiRAGChatHistory', JSON.stringify(this.chatHistory));
+        this.chatHistoryData.push(chatEntry);
+        localStorage.setItem('geminiRAGChatHistory', JSON.stringify(this.chatHistoryData));
         
         // Update UI
         this.addChatHistoryItem(chatEntry);
@@ -723,8 +722,8 @@ Please provide a comprehensive answer based on the document content above. If th
     loadChatHistory() {
         const saved = localStorage.getItem('geminiRAGChatHistory');
         if (saved) {
-            this.chatHistory = JSON.parse(saved);
-            this.chatHistory.forEach(chat => this.addChatHistoryItem(chat));
+            this.chatHistoryData = JSON.parse(saved);
+            this.chatHistoryData.forEach(chat => this.addChatHistoryItem(chat));
         }
     }
 
@@ -740,11 +739,11 @@ Please provide a comprehensive answer based on the document content above. If th
             <div class="history-time">${timestamp}</div>
         `;
         
-        this.chatHistory.appendChild(historyItem);
+        this.chatHistoryContainer.appendChild(historyItem);
     }
 
     loadChat(chatId) {
-        const chat = this.chatHistory.find(c => c.id === chatId);
+        const chat = this.chatHistoryData.find(c => c.id === chatId);
         if (!chat) return;
 
         this.currentChatId = chatId;
@@ -767,9 +766,9 @@ Please provide a comprehensive answer based on the document content above. If th
 
     clearChatHistory() {
         if (confirm('Are you sure you want to clear all chat history?')) {
-            this.chatHistory = [];
+            this.chatHistoryData = [];
             localStorage.removeItem('geminiRAGChatHistory');
-            this.chatHistory.innerHTML = '';
+            this.chatHistoryContainer.innerHTML = '';
             this.currentChatId = null;
             this.hideMessagesContainer();
             this.showWelcomeMessage();
