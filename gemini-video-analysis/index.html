@@ -106,33 +106,28 @@
 
     <!-- Demo Section -->
     <section id="demo" class="demo-section">
-        <div class="container">
+        <div class="container-fluid">
             <div class="row">
-                <div class="col-lg-8 mx-auto">
-                    <div class="demo-card">
-                        <h2 class="text-center mb-4">
-                            <i class="fas fa-video me-2"></i>
-                            Video Analysis Demo
-                        </h2>
+                <div class="col-12">
+                    <h2 class="text-center mb-4">
+                        <i class="fas fa-video me-2"></i>
+                        Video Analysis Demo
+                    </h2>
+                </div>
+            </div>
+            
+            <!-- Main Analysis Interface - Left/Right Layout -->
+            <div class="row analysis-interface" id="analysisInterface" style="display: none;">
+                <!-- Left Side - Video/Audio Player -->
+                <div class="col-lg-6">
+                    <div class="media-section">
+                        <h5 class="section-title">
+                            <i class="fas fa-play-circle me-2"></i>
+                            Media Content
+                        </h5>
                         
-                        <!-- File Upload Area -->
-                        <div class="upload-area mb-4" id="uploadArea">
-                            <div class="upload-content">
-                                <i class="fas fa-cloud-upload-alt upload-icon"></i>
-                                <h4>Upload Video or Audio File</h4>
-                                <p>Drag and drop your file here or click to browse</p>
-                                <input type="file" id="fileInput" accept="video/*,audio/*" class="file-input">
-                                <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
-                                    <i class="fas fa-folder-open me-2"></i>
-                                    Choose File
-                                </button>
-                            </div>
-                        </div>
-
-
-
                         <!-- Media Player -->
-                        <div class="media-player mb-4" id="mediaPlayer" style="display: none;">
+                        <div class="media-player mb-3" id="mediaPlayer">
                             <video id="videoPlayer" controls class="w-100">
                                 Your browser does not support the video tag.
                             </video>
@@ -142,7 +137,7 @@
                         </div>
 
                         <!-- Analysis Status -->
-                        <div class="analysis-status mb-4" id="analysisStatus" style="display: none;">
+                        <div class="analysis-status mb-3" id="analysisStatus" style="display: none;">
                             <div class="progress">
                                 <div class="progress-bar progress-bar-striped progress-bar-animated" 
                                      role="progressbar" style="width: 0%"></div>
@@ -151,13 +146,13 @@
                         </div>
 
                         <!-- Analysis Summary -->
-                        <div class="analysis-summary mb-4" id="analysisSummary" style="display: none;">
+                        <div class="analysis-summary" id="analysisSummary" style="display: none;">
                             <div class="card">
                                 <div class="card-header bg-primary text-white">
-                                    <h5 class="mb-0">
+                                    <h6 class="mb-0">
                                         <i class="fas fa-file-alt me-2"></i>
-                                        Video Analysis Summary
-                                    </h5>
+                                        Analysis Summary
+                                    </h6>
                                 </div>
                                 <div class="card-body">
                                     <div id="summaryContent">
@@ -166,10 +161,19 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
 
+                <!-- Right Side - Q&A Interface -->
+                <div class="col-lg-6">
+                    <div class="qa-section">
+                        <h5 class="section-title">
+                            <i class="fas fa-question-circle me-2"></i>
+                            Ask Questions
+                        </h5>
+                        
                         <!-- Question Input -->
-                        <div class="question-section mb-4" id="questionSection" style="display: none;">
-                            <h5><i class="fas fa-question-circle me-2"></i>Ask Questions About Your Media</h5>
+                        <div class="question-section mb-3" id="questionSection" style="display: none;">
                             <div class="input-group">
                                 <input type="text" class="form-control" id="questionInput" 
                                        placeholder="What's happening in this video? Who is speaking? What objects do you see?">
@@ -181,7 +185,7 @@
                             
                             <!-- Suggested Questions -->
                             <div class="suggested-questions mt-3">
-                                <h6>Suggested Questions:</h6>
+                                <h6>Quick Questions:</h6>
                                 <div class="question-chips">
                                     <button class="btn btn-outline-secondary btn-sm me-2 mb-2" onclick="askSuggestedQuestion('What is the main topic of this video?')">
                                         What is the main topic?
@@ -202,6 +206,24 @@
                         <!-- Chat History -->
                         <div class="chat-history" id="chatHistory">
                             <!-- Chat messages will be displayed here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- File Upload Area (shown initially) -->
+            <div class="row" id="uploadSection">
+                <div class="col-lg-8 mx-auto">
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-content">
+                            <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                            <h4>Upload Video or Audio File</h4>
+                            <p>Drag and drop your file here or click to browse</p>
+                            <input type="file" id="fileInput" accept="video/*,audio/*" class="file-input">
+                            <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                                <i class="fas fa-folder-open me-2"></i>
+                                Choose File
+                            </button>
                         </div>
                     </div>
                 </div>

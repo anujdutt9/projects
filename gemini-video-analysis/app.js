@@ -15,21 +15,35 @@ class VideoAnalysisApp {
 
     // Initialize DOM elements
     initializeElements() {
-        this.uploadArea = document.getElementById('uploadArea');
+        // File upload elements
         this.fileInput = document.getElementById('fileInput');
-
-        this.mediaPlayer = document.getElementById('mediaPlayer');
+        this.uploadArea = document.getElementById('uploadArea');
+        this.uploadSection = document.getElementById('uploadSection');
+        this.analysisInterface = document.getElementById('analysisInterface');
+        
+        // Media player elements
         this.videoPlayer = document.getElementById('videoPlayer');
         this.audioPlayer = document.getElementById('audioPlayer');
+        this.mediaPlayer = document.getElementById('mediaPlayer');
+        
+        // Analysis elements
         this.analysisStatus = document.getElementById('analysisStatus');
+        this.progressBar = this.analysisStatus.querySelector('.progress-bar');
         this.statusText = document.getElementById('statusText');
-        this.progressBar = document.querySelector('.progress-bar');
         this.analysisSummary = document.getElementById('analysisSummary');
         this.summaryContent = document.getElementById('summaryContent');
+        
+        // Q&A elements
         this.questionSection = document.getElementById('questionSection');
         this.questionInput = document.getElementById('questionInput');
         this.askQuestionBtn = document.getElementById('askQuestion');
         this.chatHistory = document.getElementById('chatHistory');
+        
+        // Store current media and analysis data
+        this.currentMedia = null;
+        this.mediaType = null;
+        this.mediaAnalysis = null;
+        this.analysisSession = null;
     }
     
     // Remove addTestButton and testGeminiWithSampleImage functions
@@ -191,9 +205,8 @@ class VideoAnalysisApp {
             this.currentMedia = file;
             this.mediaType = file.type.startsWith('video/') ? 'video' : 'audio';
             
-            // Hide previous summary and clear chat
-            this.hideAnalysisSummary();
-            this.chatHistory.innerHTML = '';
+            // Reset interface for new file
+            this.resetInterface();
             
             // Display media player
             this.displayMediaPlayer(file);
@@ -205,6 +218,22 @@ class VideoAnalysisApp {
             console.error('Error processing file:', error);
             this.showError('Error processing file. Please try again.');
         }
+    }
+
+    // Reset interface for new file upload
+    resetInterface() {
+        // Clear chat history
+        this.chatHistory.innerHTML = '';
+        
+        // Hide summary
+        this.hideAnalysisSummary();
+        
+        // Hide question interface
+        this.questionSection.style.display = 'none';
+        
+        // Reset analysis data
+        this.mediaAnalysis = null;
+        this.mediaData = null;
     }
 
     // Validate file type
@@ -230,6 +259,9 @@ class VideoAnalysisApp {
             this.videoPlayer.style.display = 'none';
         }
         
+        // Show the analysis interface and hide upload section
+        this.uploadSection.style.display = 'none';
+        this.analysisInterface.style.display = 'flex';
         this.mediaPlayer.style.display = 'block';
     }
 
@@ -452,7 +484,7 @@ class VideoAnalysisApp {
     async analyzeWithGemini(mediaData, file) {
         if (!this.analysisSession) {
             return {
-                summary: 'Gemini AI is not available. Please ensure you are using Chrome 138+ with Gemini Nano enabled.',
+                summary: 'Gemini AI is not available. Please ensure you are using Chrome 138+ with Gemini Nano support.',
                 timestamp: new Date().toISOString(),
                 error: true
             };
@@ -862,10 +894,14 @@ Please provide a detailed answer that references specific frames and timestamps 
                 break;
         }
         
-        // Set message content
+        // Set message content with enhanced formatting for AI responses
         if (loading) {
             bubble.innerHTML = `${message}<span class="loading-dots"></span>`;
             bubble.classList.add('loading');
+        } else if (type === 'ai') {
+            // Enhanced formatting for AI responses
+            const formattedMessage = this.formatAIResponse(message);
+            bubble.innerHTML = formattedMessage;
         } else {
             bubble.textContent = message;
         }
@@ -875,6 +911,67 @@ Please provide a detailed answer that references specific frames and timestamps 
         messageDiv.appendChild(timestamp);
         
         return messageDiv;
+    }
+
+    // Format AI responses with better structure and styling
+    formatAIResponse(message) {
+        // Split the message into paragraphs
+        const paragraphs = message.split('\n\n');
+        
+        return paragraphs.map(paragraph => {
+            // Check if this is a frame analysis (contains timestamp)
+            if (paragraph.includes('Frame') && (paragraph.includes('Timestamp:') || paragraph.includes('seconds'))) {
+                return this.formatFrameAnalysis(paragraph);
+            }
+            // Check if this is a summary section
+            else if (paragraph.includes('Overall Summary:') || paragraph.includes('Summary:')) {
+                return this.formatSummarySection(paragraph);
+            }
+            // Regular paragraph
+            else {
+                return `<p>${this.formatText(paragraph)}</p>`;
+            }
+        }).join('');
+    }
+
+    // Format frame analysis with special styling
+    formatFrameAnalysis(frameText) {
+        // Extract timestamp
+        const timestampMatch = frameText.match(/(?:Frame \d+ \(Timestamp: |At )([^)]+)/);
+        const timestamp = timestampMatch ? timestampMatch[1] : '';
+        
+        // Extract the rest of the content
+        const content = frameText.replace(/^.*?(?:\): |: )/, '');
+        
+        return `
+            <div class="frame-analysis">
+                <div class="frame-timestamp">${timestamp}</div>
+                <div class="frame-content">${this.formatText(content)}</div>
+            </div>
+        `;
+    }
+
+    // Format summary section
+    formatSummarySection(summaryText) {
+        const content = summaryText.replace(/^(?:Overall Summary: |Summary: )/, '');
+        
+        return `
+            <div class="summary-section">
+                <div class="summary-title">Summary</div>
+                <div class="frame-content">${this.formatText(content)}</div>
+            </div>
+        `;
+    }
+
+    // Format text with basic markdown-like formatting
+    formatText(text) {
+        return text
+            // Bold text
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            // Italic text
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            // Line breaks
+            .replace(/\n/g, '<br>');
     }
 
     scrollToBottom() {
