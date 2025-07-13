@@ -55,8 +55,12 @@ class VideoAnalysisApp {
     // Initialize Gemini session
     async initializeGeminiSession() {
         try {
+            console.log('Initializing Gemini session...');
+            console.log('LanguageModel available:', typeof LanguageModel !== 'undefined');
+            
             // Check if LanguageModel is available (Chrome 138+)
             if (typeof LanguageModel !== 'undefined') {
+                console.log('Creating LanguageModel session...');
                 this.analysisSession = await LanguageModel.create({
                     expectedInputs: [
                         { type: 'audio' }, 
@@ -64,9 +68,12 @@ class VideoAnalysisApp {
                         { type: 'text' }
                     ],
                 });
-                console.log('Gemini session initialized successfully');
+                console.log('Gemini session initialized successfully:', {
+                    sessionExists: !!this.analysisSession,
+                    hasPrompt: typeof this.analysisSession.prompt === 'function'
+                });
             } else {
-                console.warn('LanguageModel not available. Using mock responses for demo.');
+                console.warn('LanguageModel not available. Please ensure you are using Chrome 138+ with Gemini Nano enabled.');
                 this.analysisSession = null;
             }
         } catch (error) {
@@ -413,12 +420,26 @@ class VideoAnalysisApp {
                 }
             }
             
+            console.log('Sending content to Gemini:', {
+                contentLength: content.length,
+                hasText: content.some(c => c.type === 'text'),
+                hasImages: content.filter(c => c.type === 'image').length,
+                hasAudio: content.filter(c => c.type === 'audio').length
+            });
+            
             const response = await this.analysisSession.prompt([
                 {
                     role: 'user',
                     content: content
                 }
             ]);
+            
+            console.log('Gemini response received:', {
+                hasResponse: !!response,
+                hasText: !!(response && response.text),
+                responseLength: response && response.text ? response.text.length : 0,
+                responsePreview: response && response.text ? response.text.substring(0, 100) + '...' : 'No text'
+            });
             
             return {
                 summary: response.text,
