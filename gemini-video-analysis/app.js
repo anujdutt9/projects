@@ -222,20 +222,19 @@ class VideoAnalysisApp {
     async extractMediaData(file) {
         return new Promise((resolve) => {
             if (this.mediaType === 'video') {
-                this.extractVideoWithAudio(file, resolve);
+                this.extractVideoFrames(file, resolve);
             } else {
                 this.extractAudioData(file, resolve);
             }
         });
     }
 
-    // Extract video frames and audio
-    extractVideoWithAudio(file, resolve) {
+    // Extract video frames only (no audio)
+    extractVideoFrames(file, resolve) {
         const video = document.createElement('video');
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         const frames = [];
-        let audioBlob = null;
         
         video.onloadedmetadata = () => {
             canvas.width = video.videoWidth;
@@ -248,15 +247,12 @@ class VideoAnalysisApp {
             let currentTime = 0;
             const extractFrame = () => {
                 if (currentTime >= duration || frames.length >= 10) {
-                    // After extracting frames, extract audio
-                    this.extractAudioFromVideo(video, file, (audioData) => {
-                        resolve({ 
-                            type: 'video', 
-                            frames, 
-                            duration,
-                            audio: audioData,
-                            hasAudio: audioData !== null && audioData.audioBlob !== null
-                        });
+                    // Video analysis complete - no audio
+                    resolve({ 
+                        type: 'video', 
+                        frames, 
+                        duration,
+                        hasAudio: false
                     });
                     return;
                 }
@@ -282,93 +278,7 @@ class VideoAnalysisApp {
         video.src = URL.createObjectURL(file);
     }
 
-    // Extract audio from video file
-    extractAudioFromVideo(video, file, callback) {
-        // Check if video has audio tracks
-        const hasAudio = video.audioTracks && video.audioTracks.length > 0;
-        
-        if (!hasAudio) {
-            console.log('No audio tracks detected in video');
-            callback(null); // No audio available
-            return;
-        }
-        
-        // Add a timeout to prevent hanging
-        const timeout = setTimeout(() => {
-            console.log('Audio extraction timed out, using fallback');
-            callback(null);
-        }, 15000); // 15 second timeout
-        
-        // Method 1: Try to extract audio using MediaRecorder API
-        try {
-            const stream = video.captureStream();
-            const audioTracks = stream.getAudioTracks();
-            
-            if (audioTracks.length === 0) {
-                console.log('No audio tracks in stream, using fallback');
-                callback(null);
-                return;
-            }
-            
-            const mediaRecorder = new MediaRecorder(stream, {
-                mimeType: 'audio/webm;codecs=opus'
-            });
-            
-            const audioChunks = [];
-            
-            mediaRecorder.ondataavailable = (event) => {
-                if (event.data.size > 0) {
-                    audioChunks.push(event.data);
-                }
-            };
-            
-            mediaRecorder.onstop = () => {
-                clearTimeout(timeout);
-                if (audioChunks.length > 0) {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                    callback({
-                        audioBlob: audioBlob,
-                        duration: video.duration,
-                        sampleRate: 44100,
-                        numberOfChannels: 2
-                    });
-                } else {
-                    console.log('No audio data captured');
-                    callback(null);
-                }
-            };
-            
-            mediaRecorder.onerror = (error) => {
-                clearTimeout(timeout);
-                console.error('MediaRecorder error:', error);
-                callback(null);
-            };
-            
-            // Start recording and stop after a short duration
-            mediaRecorder.start();
-            setTimeout(() => {
-                if (mediaRecorder.state === 'recording') {
-                    mediaRecorder.stop();
-                }
-            }, Math.min(10000, video.duration * 1000)); // Max 10 seconds
-            
-        } catch (error) {
-            clearTimeout(timeout);
-            console.log('MediaRecorder not supported or failed:', error);
-            // Fallback: Use the original file as audio source
-            try {
-                callback({
-                    audioBlob: file,
-                    duration: video.duration,
-                    sampleRate: 44100,
-                    numberOfChannels: 2
-                });
-            } catch (fallbackError) {
-                console.error('Fallback audio extraction failed:', fallbackError);
-                callback(null);
-            }
-        }
-    }
+
 
     // Extract audio data
     extractAudioData(file, resolve) {
@@ -422,27 +332,15 @@ class VideoAnalysisApp {
             
             // Add media content
             if (mediaData.type === 'video') {
-                // Add key frames
+                // Add key frames only (no audio for video files)
                 for (const frame of mediaData.frames.slice(0, 5)) { // Limit to 5 frames
                     content.push({
                         type: 'image',
                         value: frame.image
                     });
                 }
-                
-                // Add audio if available and valid
-                if (mediaData.hasAudio && mediaData.audio && mediaData.audio.audioBlob) {
-                    try {
-                        content.push({
-                            type: 'audio',
-                            value: mediaData.audio.audioBlob
-                        });
-                    } catch (audioError) {
-                        console.log('Audio blob not valid, skipping audio analysis');
-                    }
-                }
             } else {
-                // Add audio
+                // Add audio for audio files only
                 try {
                     content.push({
                         type: 'audio',
@@ -478,31 +376,15 @@ class VideoAnalysisApp {
     // Create analysis prompt
     createAnalysisPrompt(mediaData) {
         if (mediaData.type === 'video') {
-            let prompt = `Please analyze this video content and provide a comprehensive summary including:
+            return `Please analyze this video content and provide a comprehensive summary including:
 1. Main topics and themes
 2. Key visual elements and scenes
 3. People, objects, and activities shown
 4. Overall mood and tone
 5. Any text or speech visible
-6. Technical aspects (quality, style, etc.)`;
+6. Technical aspects (quality, style, etc.)
 
-            // Add audio analysis instructions if audio is available
-            if (mediaData.hasAudio && mediaData.audio) {
-                prompt += `
-
-Additionally, please analyze the audio content including:
-7. Type of audio (speech, music, ambient sounds, etc.)
-8. Main topics or themes discussed in speech
-9. Speakers or performers identified
-10. Emotional tone and mood conveyed through audio
-11. Audio quality and characteristics
-12. Any background music or sound effects
-
-Please provide a comprehensive analysis that combines both visual and audio elements.`;
-            }
-
-            prompt += `\n\nPlease be detailed and specific about what you observe and hear.`;
-            return prompt;
+Please be detailed and specific about what you observe visually.`;
         } else {
             return `Please analyze this audio content and provide a comprehensive summary including:
 1. Type of audio (music, speech, ambient, etc.)
