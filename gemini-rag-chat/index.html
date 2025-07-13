@@ -75,6 +75,42 @@
                         </div>
                     </div>
 
+                    <!-- System Prompt Configuration -->
+                    <div class="system-prompt-section">
+                        <h5 class="section-title">
+                            <i class="fas fa-cog me-2"></i>
+                            AI Configuration
+                        </h5>
+                        <div class="prompt-config">
+                            <label for="systemPrompt" class="form-label">System Prompt</label>
+                            <textarea 
+                                id="systemPrompt" 
+                                class="form-control" 
+                                rows="4" 
+                                placeholder="Define the AI's personality and behavior..."
+                            >You are a helpful AI assistant that analyzes documents and answers questions based on their content. Be thorough, accurate, and provide detailed explanations. If information is not available in the documents, clearly state that.</textarea>
+                            <div class="prompt-actions mt-2">
+                                <button class="btn btn-outline-primary btn-sm" id="savePromptBtn">
+                                    <i class="fas fa-save me-1"></i>
+                                    Save
+                                </button>
+                                <button class="btn btn-outline-secondary btn-sm" id="resetPromptBtn">
+                                    <i class="fas fa-undo me-1"></i>
+                                    Reset
+                                </button>
+                            </div>
+                            <div class="prompt-presets mt-2">
+                                <small class="text-muted">Quick Presets:</small>
+                                <div class="preset-buttons">
+                                    <button class="btn btn-outline-info btn-sm preset-btn" data-preset="default">Default</button>
+                                    <button class="btn btn-outline-info btn-sm preset-btn" data-preset="friendly">Friendly</button>
+                                    <button class="btn btn-outline-info btn-sm preset-btn" data-preset="professional">Professional</button>
+                                    <button class="btn btn-outline-info btn-sm preset-btn" data-preset="concise">Concise</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Chat History -->
                     <div class="chat-history">
                         <h5 class="section-title">
@@ -149,6 +185,9 @@
                                 ></textarea>
                                 <button class="btn btn-primary send-btn" id="sendBtn" disabled>
                                     <i class="fas fa-paper-plane"></i>
+                                </button>
+                                <button class="btn btn-danger stop-btn" id="stopBtn" style="display: none;">
+                                    <i class="fas fa-stop"></i>
                                 </button>
                             </div>
                             <div class="input-footer">
