@@ -104,6 +104,8 @@ class VideoAnalysisApp {
                         ]
                     }
                 ]);
+
+                console.log('Gemini response:', response);
                 
                 console.log('Gemini test response:', {
                     hasResponse: !!response,
