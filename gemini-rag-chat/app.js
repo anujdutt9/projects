@@ -1,4 +1,4 @@
-// Gemini RAG Chat Application
+// Gemini RAG Chat Application - v1.1 (Cache bust: 2024-01-15)
 class GeminiRAGChat {
     constructor() {
         this.session = null;
@@ -75,8 +75,38 @@ class GeminiRAGChat {
 
             // Check model availability first
             console.log('🔍 Checking model availability...');
+            try {
+                const modelStatus = await LanguageModel.availability();
+                console.log('📊 Model status:', modelStatus);
+            } catch (availabilityError) {
+                console.error('❌ Error checking model availability:', availabilityError);
+                // Fallback: try to create the model directly
+                console.log('🔄 Falling back to direct model creation...');
+                this.showLoadingModal('Initializing Gemini Model', 'Please wait while we set up the AI model...');
+                this.loadingProgress.style.display = 'block';
+                
+                this.session = await LanguageModel.create({
+                    monitor: (m) => {
+                        console.log('📡 Setting up download monitor...');
+                        m.addEventListener("downloadprogress", (e) => {
+                            const progress = (e.loaded / e.total * 100).toFixed(1);
+                            console.log(`📊 Download progress: ${progress}%`);
+                            this.updateLoadingProgress(progress);
+                            this.loadingMessage.textContent = `Downloading model: ${progress}%`;
+                        });
+                        
+                        m.addEventListener("downloadcomplete", () => {
+                            console.log('✅ Download completed, initializing model...');
+                            this.loadingMessage.textContent = 'Initializing model...';
+                            this.loadingProgress.style.display = 'none';
+                        });
+                    }
+                });
+                console.log('✅ Model created successfully via fallback');
+                return; // Skip the rest of the initialization
+            }
+            
             const modelStatus = await LanguageModel.availability();
-            console.log('📊 Model status:', modelStatus);
             
             if (modelStatus === "downloadable") {
                 console.log('📥 Model needs to be downloaded');
