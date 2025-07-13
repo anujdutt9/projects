@@ -190,6 +190,12 @@ class VideoAnalysisApp {
             
             // Store analysis results
             this.mediaAnalysis = analysis;
+            console.log('Media analysis completed:', {
+                type: this.mediaType,
+                hasFrames: analysis.frames ? analysis.frames.length : 0,
+                hasAudio: analysis.hasAudio,
+                summary: analysis.summary ? analysis.summary.substring(0, 100) + '...' : 'No summary'
+            });
             
             this.updateProgress(100, 'Analysis complete!');
             
@@ -197,7 +203,11 @@ class VideoAnalysisApp {
             setTimeout(() => {
                 this.hideAnalysisStatus();
                 this.showQuestionInterface();
-                this.addSystemMessage('Media analysis complete! You can now ask questions about the content.');
+                if (analysis.error) {
+                    this.addSystemMessage('Analysis failed. Please try uploading your media file again.');
+                } else {
+                    this.addSystemMessage('Media analysis complete! You can now ask questions about the content.');
+                }
             }, 1000);
             
         } catch (error) {
@@ -245,7 +255,7 @@ class VideoAnalysisApp {
                             frames, 
                             duration,
                             audio: audioData,
-                            hasAudio: audioData !== null
+                            hasAudio: audioData !== null && audioData.audioBlob !== null
                         });
                     });
                     return;
@@ -274,9 +284,36 @@ class VideoAnalysisApp {
 
     // Extract audio from video file
     extractAudioFromVideo(video, file, callback) {
+        // Check if video has audio tracks
+        const hasAudio = video.audioTracks && video.audioTracks.length > 0;
+        
+        if (!hasAudio) {
+            console.log('No audio tracks detected in video');
+            callback(null); // No audio available
+            return;
+        }
+        
+        // Add a timeout to prevent hanging
+        const timeout = setTimeout(() => {
+            console.log('Audio extraction timed out, using fallback');
+            callback(null);
+        }, 15000); // 15 second timeout
+        
         // Method 1: Try to extract audio using MediaRecorder API
         try {
-            const mediaRecorder = new MediaRecorder(video.captureStream());
+            const stream = video.captureStream();
+            const audioTracks = stream.getAudioTracks();
+            
+            if (audioTracks.length === 0) {
+                console.log('No audio tracks in stream, using fallback');
+                callback(null);
+                return;
+            }
+            
+            const mediaRecorder = new MediaRecorder(stream, {
+                mimeType: 'audio/webm;codecs=opus'
+            });
+            
             const audioChunks = [];
             
             mediaRecorder.ondataavailable = (event) => {
@@ -286,30 +323,50 @@ class VideoAnalysisApp {
             };
             
             mediaRecorder.onstop = () => {
-                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                callback({
-                    audioBlob: audioBlob,
-                    duration: video.duration,
-                    sampleRate: 44100, // Default sample rate
-                    numberOfChannels: 2 // Stereo
-                });
+                clearTimeout(timeout);
+                if (audioChunks.length > 0) {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    callback({
+                        audioBlob: audioBlob,
+                        duration: video.duration,
+                        sampleRate: 44100,
+                        numberOfChannels: 2
+                    });
+                } else {
+                    console.log('No audio data captured');
+                    callback(null);
+                }
+            };
+            
+            mediaRecorder.onerror = (error) => {
+                clearTimeout(timeout);
+                console.error('MediaRecorder error:', error);
+                callback(null);
             };
             
             // Start recording and stop after a short duration
             mediaRecorder.start();
             setTimeout(() => {
-                mediaRecorder.stop();
-            }, Math.min(30000, video.duration * 1000)); // Max 30 seconds
+                if (mediaRecorder.state === 'recording') {
+                    mediaRecorder.stop();
+                }
+            }, Math.min(10000, video.duration * 1000)); // Max 10 seconds
             
         } catch (error) {
-            console.log('MediaRecorder not supported, using file directly');
+            clearTimeout(timeout);
+            console.log('MediaRecorder not supported or failed:', error);
             // Fallback: Use the original file as audio source
-            callback({
-                audioBlob: file,
-                duration: video.duration,
-                sampleRate: 44100,
-                numberOfChannels: 2
-            });
+            try {
+                callback({
+                    audioBlob: file,
+                    duration: video.duration,
+                    sampleRate: 44100,
+                    numberOfChannels: 2
+                });
+            } catch (fallbackError) {
+                console.error('Fallback audio extraction failed:', fallbackError);
+                callback(null);
+            }
         }
     }
 
@@ -346,8 +403,11 @@ class VideoAnalysisApp {
     // Analyze with Gemini
     async analyzeWithGemini(mediaData, file) {
         if (!this.analysisSession) {
-            // Mock analysis for demo
-            return this.generateMockAnalysis(mediaData);
+            return {
+                summary: 'Gemini AI is not available. Please ensure you are using Chrome 138+ with Gemini Nano enabled.',
+                timestamp: new Date().toISOString(),
+                error: true
+            };
         }
 
         try {
@@ -370,19 +430,27 @@ class VideoAnalysisApp {
                     });
                 }
                 
-                // Add audio if available
-                if (mediaData.hasAudio && mediaData.audio) {
-                    content.push({
-                        type: 'audio',
-                        value: mediaData.audio.audioBlob
-                    });
+                // Add audio if available and valid
+                if (mediaData.hasAudio && mediaData.audio && mediaData.audio.audioBlob) {
+                    try {
+                        content.push({
+                            type: 'audio',
+                            value: mediaData.audio.audioBlob
+                        });
+                    } catch (audioError) {
+                        console.log('Audio blob not valid, skipping audio analysis');
+                    }
                 }
             } else {
                 // Add audio
-                content.push({
-                    type: 'audio',
-                    value: mediaData.audioBlob
-                });
+                try {
+                    content.push({
+                        type: 'audio',
+                        value: mediaData.audioBlob
+                    });
+                } catch (audioError) {
+                    console.log('Audio blob not valid for audio file');
+                }
             }
             
             const response = await this.analysisSession.prompt([
@@ -399,7 +467,11 @@ class VideoAnalysisApp {
             
         } catch (error) {
             console.error('Error with Gemini analysis:', error);
-            return this.generateMockAnalysis(mediaData);
+            return {
+                summary: 'Sorry, I encountered an error while analyzing your media. Please try again.',
+                timestamp: new Date().toISOString(),
+                error: true
+            };
         }
     }
 
@@ -444,38 +516,7 @@ Please be detailed and specific about what you hear.`;
         }
     }
 
-    // Generate mock analysis for demo
-    generateMockAnalysis(mediaData) {
-        const mockResponses = {
-            video: [
-                "This appears to be a professional presentation video featuring a speaker in a business setting. The video shows clear visual elements including presentation slides, a well-lit conference room, and professional attire. The content seems to be educational or business-related, with structured visual information being presented. The audio contains clear speech from the presenter discussing technical topics with a professional, authoritative tone. The speaker appears to be explaining complex concepts with good pacing and clear articulation.",
-                "I can see a tutorial-style video with step-by-step instructions. The content includes screen recordings, diagrams, and explanatory text overlays. The presenter appears to be demonstrating software or technical procedures with clear visual aids and annotations. The audio features a narrator providing detailed explanations of each step, with occasional background music and sound effects that enhance the learning experience. The voice is clear and instructional in tone.",
-                "This is a nature documentary-style video showcasing wildlife and natural landscapes. The footage includes high-quality cinematography of animals in their natural habitat, scenic vistas, and environmental elements. The visual style suggests professional wildlife photography. The audio contains ambient nature sounds, wildlife calls, and a narrator's voice providing educational commentary about the animals and their behavior. The overall audio-visual experience creates an immersive documentary atmosphere."
-            ],
-            audio: [
-                "This audio contains a podcast discussion about technology trends and innovations. The speakers are engaging in a conversational format, discussing current developments in AI, machine learning, and digital transformation. The tone is informative yet accessible.",
-                "I can hear a musical performance featuring acoustic instruments and vocals. The audio quality is clear with good balance between instruments. The style appears to be folk or acoustic music with harmonious melodies and thoughtful lyrics.",
-                "This is an educational lecture or presentation audio covering academic topics. The speaker has a clear, authoritative voice and is presenting structured information with examples and explanations. The content seems to be from a university course or professional seminar."
-            ]
-        };
-        
-        const responses = mockResponses[mediaData.type];
-        let randomResponse = responses[Math.floor(Math.random() * responses.length)];
-        
-        // For video files, check if audio analysis was included
-        if (mediaData.type === 'video' && mediaData.hasAudio && mediaData.audio) {
-            // The mock responses already include audio analysis
-        } else if (mediaData.type === 'video') {
-            // Remove audio-related content if no audio was detected
-            randomResponse = randomResponse.replace(/\. The audio.*$/, '');
-        }
-        
-        return {
-            summary: randomResponse,
-            timestamp: new Date().toISOString(),
-            mock: true
-        };
-    }
+
 
     // Ask question about media
     async askQuestion() {
@@ -506,8 +547,7 @@ Please be detailed and specific about what you hear.`;
     // Get answer from Gemini
     async getAnswer(question) {
         if (!this.analysisSession) {
-            // Mock answer for demo
-            return this.generateMockAnswer(question);
+            return 'Gemini AI is not available. Please ensure you are using Chrome 138+ with Gemini Nano enabled.';
         }
 
         try {
@@ -544,25 +584,19 @@ Please be detailed and specific about what you hear.`;
                 }
             ]);
             
-            return response.text || 'I apologize, but I couldn\'t generate a response. Please try asking your question again.';
+            if (response && response.text) {
+                return response.text;
+            } else {
+                return 'I apologize, but I couldn\'t generate a response. Please try asking your question again.';
+            }
             
         } catch (error) {
             console.error('Error with Gemini Q&A:', error);
-            return this.generateMockAnswer(question);
+            return 'Sorry, I encountered an error while processing your question. Please try again.';
         }
     }
 
-    // Generate mock answer for demo
-    generateMockAnswer(question) {
-        const mockAnswers = [
-            "Based on the content I analyzed, I can see that the main focus is on demonstrating practical applications of the technology. The presenter shows clear examples and provides step-by-step guidance throughout the session.",
-            "The visual elements include several key components: presentation slides with data visualizations, live demonstrations of the software interface, and supporting graphics that illustrate the concepts being discussed.",
-            "The overall tone of the content is educational and informative, with a professional yet approachable style. The presenter maintains good engagement with clear explanations and practical examples.",
-            "I can identify several important themes: innovation in technology, practical implementation strategies, and best practices for successful deployment. The content is structured to guide viewers through a comprehensive understanding of the subject matter."
-        ];
-        
-        return mockAnswers[Math.floor(Math.random() * mockAnswers.length)];
-    }
+
 
 
 
