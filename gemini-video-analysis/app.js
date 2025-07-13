@@ -297,6 +297,7 @@ class VideoAnalysisApp {
                     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                     canvas.toBlob((blob) => {
                         if (blob) {
+                            console.log('Frame blob:', blob.type, blob.size);
                             frames.push({
                                 time: video.currentTime,
                                 image: blob
