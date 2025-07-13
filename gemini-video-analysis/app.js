@@ -575,6 +575,7 @@ Please provide a coherent summary that:
 
 Make this summary flow naturally as if describing a complete video.`;
             
+            console.log('Generating summary from frame analyses...');
             const summaryResponse = await this.analysisSession.prompt([
                 {
                     role: 'user',
@@ -582,8 +583,10 @@ Make this summary flow naturally as if describing a complete video.`;
                 }
             ]);
             
+            console.log('Summary response:', summaryResponse);
+            
             return {
-                summary: summaryResponse.text,
+                summary: summaryResponse,
                 frameAnalyses: frameAnalyses,
                 timestamp: new Date().toISOString()
             };
@@ -615,7 +618,7 @@ Make this summary flow naturally as if describing a complete video.`;
             ]);
             
             return {
-                summary: response.text,
+                summary: response,
                 timestamp: new Date().toISOString()
             };
             
@@ -738,6 +741,8 @@ Please provide a detailed answer that references specific frames and timestamps 
                 });
             }
             
+            console.log('Sending Q&A prompt to Gemini:', content[0].value.substring(0, 200) + '...');
+            
             const response = await this.analysisSession.prompt([
                 {
                     role: 'user',
@@ -745,8 +750,10 @@ Please provide a detailed answer that references specific frames and timestamps 
                 }
             ]);
             
-            if (response && response.text) {
-                return response.text;
+            console.log('Q&A response:', response);
+            
+            if (response) {
+                return response;
             } else {
                 return 'I apologize, but I couldn\'t generate a response. Please try asking your question again.';
             }
