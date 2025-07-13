@@ -533,6 +533,8 @@ Frame timestamp: ${frame.time.toFixed(1)} seconds into the video.`;
                         ]
                     }
                 ]);
+
+                console.log('Gemini response:', response);
                 
                 console.log(`Frame ${i + 1} Gemini response:`, {
                     hasResponse: !!response,
