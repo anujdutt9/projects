@@ -715,21 +715,21 @@ Please be detailed and specific about what you hear.`;
         this.questionInput.value = '';
         
         // Show loading state
-        this.addAIMessage('Analyzing your question...', true);
+        const loadingMessage = this.addAIMessage('', true);
         
         try {
-            const answer = await this.getAnswer(question);
-            this.updateLastAIMessage(answer);
+            await this.streamAnswer(question, loadingMessage);
         } catch (error) {
             console.error('Error getting answer:', error);
             this.updateLastAIMessage('Sorry, I encountered an error while processing your question. Please try again.');
         }
     }
 
-    // Get answer from Gemini
-    async getAnswer(question) {
+    // Stream answer from Gemini
+    async streamAnswer(question, loadingMessage) {
         if (!this.analysisSession) {
-            return 'Gemini AI is not available. Please ensure you are using Chrome 138+ with Gemini Nano enabled.';
+            this.updateLastAIMessage('Gemini AI is not available. Please ensure you are using Chrome 138+ with Gemini Nano enabled.');
+            return;
         }
         
         // Check if the model is ready
@@ -739,11 +739,13 @@ Please be detailed and specific about what you hear.`;
             console.log('Model status for Q&A:', modelStatus);
             
             if (modelStatus !== "available") {
-                return `Gemini model is not available (status: ${modelStatus}). Please ensure Gemini Nano is enabled in Chrome.`;
+                this.updateLastAIMessage(`Gemini model is not available (status: ${modelStatus}). Please ensure Gemini Nano is enabled in Chrome.`);
+                return;
             }
         } catch (error) {
             console.error('Model not available for Q&A:', error);
-            return 'Gemini model is not available. Please ensure Gemini Nano is enabled in Chrome.';
+            this.updateLastAIMessage('Gemini model is not available. Please ensure Gemini Nano is enabled in Chrome.');
+            return;
         }
 
         try {
@@ -784,26 +786,42 @@ Please provide a detailed answer that references specific frames and timestamps 
             
             console.log('Sending Q&A prompt to Gemini:', content[0].value.substring(0, 200) + '...');
             
+            // Use streaming response
             const response = await this.analysisSession.prompt([
                 {
                     role: 'user',
                     content: content
                 }
-            ]);
+            ], {
+                stream: true
+            });
             
-            console.log('Q&A response:', response);
+            console.log('Q&A streaming response:', response);
             
-            if (response) {
-                return response;
+            if (response && response.stream) {
+                let fullResponse = '';
+                
+                for await (const chunk of response.stream) {
+                    if (chunk.text) {
+                        fullResponse += chunk.text;
+                        this.updateLastAIMessage(fullResponse);
+                    }
+                }
+                
+                // Final update with formatted response
+                const formattedResponse = this.formatAIResponse(fullResponse);
+                this.updateLastAIMessage(formattedResponse);
             } else {
-                return 'I apologize, but I couldn\'t generate a response. Please try asking your question again.';
+                this.updateLastAIMessage('I apologize, but I couldn\'t generate a response. Please try asking your question again.');
             }
             
         } catch (error) {
             console.error('Error with Gemini Q&A:', error);
-            return 'Sorry, I encountered an error while processing your question. Please try again.';
+            this.updateLastAIMessage('Sorry, I encountered an error while processing your question. Please try again.');
         }
     }
+
+
 
 
 
