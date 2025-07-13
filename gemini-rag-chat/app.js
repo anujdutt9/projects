@@ -64,14 +64,7 @@ class GeminiRAGChat {
             }
             console.log('✅ LanguageModel API is available');
 
-            // Add timeout to prevent infinite loading
-            console.log('⏰ Setting up 60-second timeout...');
-            const timeoutPromise = new Promise((_, reject) => {
-                setTimeout(() => {
-                    console.error('⏰ Model initialization timed out after 60 seconds');
-                    reject(new Error('Model initialization timed out. Please refresh and try again.'));
-                }, 60000); // 60 second timeout
-            });
+
 
             // Check model availability first
             console.log('🔍 Checking model availability...');
@@ -148,12 +141,7 @@ class GeminiRAGChat {
                 throw new Error(`Model status unknown: ${modelStatus}`);
             }
 
-            // Race between model creation and timeout
-            console.log('🏁 Waiting for model initialization to complete...');
-            await Promise.race([
-                Promise.resolve(), // Model creation is already awaited above
-                timeoutPromise
-            ]);
+
 
             console.log('🎉 Model initialization successful!');
             this.isModelReady = true;
@@ -185,9 +173,7 @@ class GeminiRAGChat {
             this.hideLoadingModal();
             
             let errorMessage = 'Failed to initialize Gemini model. ';
-            if (error.message.includes('timed out')) {
-                errorMessage += 'The model took too long to initialize. Please refresh the page and try again.';
-            } else if (error.message.includes('LanguageModel API not available')) {
+            if (error.message.includes('LanguageModel API not available')) {
                 errorMessage += 'Please ensure you are using Chrome with Gemini Nano support.';
             } else {
                 errorMessage += 'Please refresh the page and try again.';
@@ -510,12 +496,20 @@ class GeminiRAGChat {
             
             console.log('🤖 Sending prompt to Gemini...');
             // Get response from Gemini
-            const response = await this.session.prompt(prompt);
+            const result = await this.session.prompt(prompt);
             console.log('✅ Received response from Gemini');
+            console.log('📄 Response object:', result);
+            console.log('📝 Response text:', result);
             
             // Remove typing indicator and add response
             this.removeTypingIndicator(typingId);
-            this.addMessage('assistant', response.text);
+            
+            if (result) {
+                this.addMessage('assistant', result);
+            } else {
+                console.error('❌ Invalid response from Gemini:', result);
+                this.addMessage('assistant', 'Sorry, I received an invalid response. Please try again.');
+            }
             
             // Save to chat history
             this.saveChatHistory(message, response.text);
@@ -607,6 +601,12 @@ Please provide a comprehensive answer based on the document content above. If th
     }
 
     formatMessageText(text) {
+        // Handle null/undefined text
+        if (!text) {
+            console.warn('⚠️ Received empty or undefined text from Gemini');
+            return 'Sorry, I received an empty response. Please try again.';
+        }
+        
         // Convert URLs to links
         const urlRegex = /(https?:\/\/[^\s]+)/g;
         text = text.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
