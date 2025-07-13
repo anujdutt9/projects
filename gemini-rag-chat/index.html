@@ -59,7 +59,7 @@
                             <i class="fas fa-robot me-2"></i>
                             Assistant Mode
                         </h5>
-                        <div class="form-group">
+                        <div class="form-group mb-3">
                             <label for="systemPromptSelector" class="form-label small text-muted">Choose AI Personality:</label>
                             <select class="form-select form-select-sm" id="systemPromptSelector">
                                 <option value="general">General Assistant</option>
@@ -71,6 +71,46 @@
                                 <i class="fas fa-info-circle me-1"></i>
                                 Each mode changes how the AI analyzes and responds to your documents
                             </small>
+                        </div>
+                        
+                        <!-- Model Parameters -->
+                        <div class="model-params-section">
+                            <h6 class="section-subtitle">
+                                <i class="fas fa-sliders-h me-2"></i>
+                                Model Parameters
+                            </h6>
+                            <div class="form-group mb-2">
+                                <label for="temperatureSlider" class="form-label small text-muted">
+                                    Temperature: <span id="temperatureValue">0.7</span>
+                                </label>
+                                <input type="range" class="form-range" id="temperatureSlider" 
+                                       min="0" max="2" step="0.1" value="0.7">
+                                <small class="form-text text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Higher = more creative, Lower = more focused
+                                </small>
+                            </div>
+                            <div class="form-group mb-2">
+                                <label for="topKSlider" class="form-label small text-muted">
+                                    Top-K: <span id="topKValue">40</span>
+                                </label>
+                                <input type="range" class="form-range" id="topKSlider" 
+                                       min="1" max="100" step="1" value="40">
+                                <small class="form-text text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Controls response diversity (1-100)
+                                </small>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-outline-primary btn-sm" id="resetParamsBtn">
+                                    <i class="fas fa-undo me-1"></i>
+                                    Reset to Defaults
+                                </button>
+                                <button class="btn btn-primary btn-sm" id="applyParamsBtn">
+                                    <i class="fas fa-check me-1"></i>
+                                    Apply Changes
+                                </button>
+                            </div>
                         </div>
                     </div>
 

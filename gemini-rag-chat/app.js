@@ -43,6 +43,13 @@ class GeminiRAGChat {
         this.currentSystemPrompt = this.loadSystemPromptPreference() || 'general';
         this.systemPrompt = this.systemPrompts[this.currentSystemPrompt].prompt;
         
+        // Model parameters
+        this.modelParams = {
+            temperature: null, // Will be loaded from LanguageModel.params()
+            topK: null
+        };
+        this.defaultParams = null; // Store default params for reference
+        
         this.initializeElements();
         this.bindEvents();
         this.initializeModel();
@@ -62,8 +69,16 @@ class GeminiRAGChat {
         
         const sessionOptions = {
             signal: this.sessionController.signal,
+            temperature: this.modelParams.temperature,
+            topK: this.modelParams.topK,
             ...options
         };
+        
+        console.log('📊 Session options:', {
+            temperature: sessionOptions.temperature,
+            topK: sessionOptions.topK,
+            hasSignal: !!sessionOptions.signal
+        });
         
         this.session = await LanguageModel.create(sessionOptions);
         console.log('✅ Model session created successfully');
@@ -147,6 +162,14 @@ class GeminiRAGChat {
         // Initialize system prompt selector if it exists
         this.systemPromptSelector = document.getElementById('systemPromptSelector');
         
+        // Initialize model parameter controls
+        this.temperatureSlider = document.getElementById('temperatureSlider');
+        this.temperatureValue = document.getElementById('temperatureValue');
+        this.topKSlider = document.getElementById('topKSlider');
+        this.topKValue = document.getElementById('topKValue');
+        this.resetParamsBtn = document.getElementById('resetParamsBtn');
+        this.applyParamsBtn = document.getElementById('applyParamsBtn');
+        
         // Log missing elements for debugging
         const requiredElements = [
             'uploadArea', 'fileInput', 'uploadedFiles', 'messageInput', 'sendBtn',
@@ -203,6 +226,23 @@ class GeminiRAGChat {
             this.systemPromptSelector.addEventListener('change', this.handleSystemPromptChange.bind(this));
         }
         
+        // Model parameter events
+        if (this.temperatureSlider) {
+            this.temperatureSlider.addEventListener('input', this.handleTemperatureChange.bind(this));
+        }
+        
+        if (this.topKSlider) {
+            this.topKSlider.addEventListener('input', this.handleTopKChange.bind(this));
+        }
+        
+        if (this.resetParamsBtn) {
+            this.resetParamsBtn.addEventListener('click', this.resetModelParams.bind(this));
+        }
+        
+        if (this.applyParamsBtn) {
+            this.applyParamsBtn.addEventListener('click', this.applyModelParams.bind(this));
+        }
+        
         // Handle page unload to clean up session
         window.addEventListener('beforeunload', () => {
             this.cleanup();
@@ -225,6 +265,9 @@ class GeminiRAGChat {
 
             // Create new AbortController for session management
             this.sessionController = new AbortController();
+            
+            // Load default parameters first
+            await this.loadDefaultParams();
 
 
 
@@ -1297,6 +1340,119 @@ Please provide a comprehensive answer based on the document content above. If th
 
     loadSystemPromptPreference() {
         return localStorage.getItem('geminiRAGSystemPrompt');
+    }
+
+    saveModelParams() {
+        localStorage.setItem('geminiRAGModelParams', JSON.stringify(this.modelParams));
+    }
+
+    loadModelParams() {
+        const saved = localStorage.getItem('geminiRAGModelParams');
+        if (saved) {
+            try {
+                const params = JSON.parse(saved);
+                this.modelParams = { ...this.modelParams, ...params };
+                return true;
+            } catch (error) {
+                console.warn('Failed to load saved model params:', error);
+            }
+        }
+        return false;
+    }
+
+    async loadDefaultParams() {
+        try {
+            if (typeof LanguageModel !== 'undefined') {
+                this.defaultParams = await LanguageModel.params();
+                console.log('📊 Default model params:', this.defaultParams);
+                
+                // If no custom params are saved, use defaults
+                if (!this.loadModelParams()) {
+                    this.modelParams.temperature = this.defaultParams.defaultTemperature;
+                    this.modelParams.topK = this.defaultParams.defaultTopK;
+                }
+                
+                // Initialize UI with current values
+                this.initializeModelParamsUI();
+                
+                return true;
+            }
+        } catch (error) {
+            console.error('Failed to load default params:', error);
+        }
+        return false;
+    }
+
+    // Model Parameter UI Methods
+    initializeModelParamsUI() {
+        if (this.temperatureSlider && this.temperatureValue) {
+            this.temperatureSlider.value = this.modelParams.temperature || 0.7;
+            this.temperatureValue.textContent = this.modelParams.temperature || 0.7;
+        }
+        
+        if (this.topKSlider && this.topKValue) {
+            this.topKSlider.value = this.modelParams.topK || 40;
+            this.topKValue.textContent = this.modelParams.topK || 40;
+        }
+    }
+
+    handleTemperatureChange() {
+        if (this.temperatureSlider && this.temperatureValue) {
+            const value = parseFloat(this.temperatureSlider.value);
+            this.temperatureValue.textContent = value.toFixed(1);
+        }
+    }
+
+    handleTopKChange() {
+        if (this.topKSlider && this.topKValue) {
+            const value = parseInt(this.topKSlider.value);
+            this.topKValue.textContent = value;
+        }
+    }
+
+    resetModelParams() {
+        if (this.defaultParams) {
+            this.modelParams.temperature = this.defaultParams.defaultTemperature;
+            this.modelParams.topK = this.defaultParams.defaultTopK;
+            
+            this.initializeModelParamsUI();
+            this.saveModelParams();
+            
+            this.showSuccess('Model parameters reset to defaults');
+            console.log('🔄 Model parameters reset to defaults');
+        }
+    }
+
+    async applyModelParams() {
+        try {
+            // Get current values from sliders
+            if (this.temperatureSlider && this.topKSlider) {
+                this.modelParams.temperature = parseFloat(this.temperatureSlider.value);
+                this.modelParams.topK = parseInt(this.topKSlider.value);
+            }
+            
+            // Save to localStorage
+            this.saveModelParams();
+            
+            // Recreate session with new parameters
+            if (this.isModelReady) {
+                console.log('🔄 Applying new model parameters...');
+                this.updateModelStatus('loading', 'Updating Model Parameters...');
+                
+                await this.createSession();
+                
+                this.isModelReady = true;
+                this.updateModelStatus('online', 'Model Ready');
+                this.showSuccess('Model parameters applied successfully');
+                console.log('✅ Model parameters applied');
+            } else {
+                this.showSuccess('Model parameters saved for next session');
+            }
+            
+        } catch (error) {
+            console.error('❌ Error applying model parameters:', error);
+            this.showError('Failed to apply model parameters. Please try again.');
+        }
     }
 
     showSuccess(message) {
