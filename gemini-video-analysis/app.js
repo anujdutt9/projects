@@ -10,9 +10,7 @@ class VideoAnalysisApp {
         this.initializeElements();
         this.setupEventListeners();
         this.initializeGeminiSession();
-        
-        // Add test button after a short delay to ensure DOM is ready
-        setTimeout(() => this.addTestButton(), 1000);
+        // Removed test button setup
     }
 
     // Initialize DOM elements
@@ -32,110 +30,7 @@ class VideoAnalysisApp {
         this.chatHistory = document.getElementById('chatHistory');
     }
     
-    // Add test button for debugging
-    addTestButton() {
-        const demoCard = document.querySelector('.demo-card');
-        if (demoCard) {
-            const testButton = document.createElement('button');
-            testButton.className = 'btn btn-warning mb-3';
-            testButton.innerHTML = '<i class="fas fa-bug me-2"></i>Test Gemini with Sample Image';
-            testButton.onclick = () => this.testGeminiWithSampleImage();
-            
-            // Insert after the upload area
-            const uploadArea = document.getElementById('uploadArea');
-            uploadArea.parentNode.insertBefore(testButton, uploadArea.nextSibling);
-        }
-    }
-    
-    // Test Gemini with a sample image file
-    async testGeminiWithSampleImage() {
-        console.log('=== Testing Gemini with Sample Image ===');
-        
-        // Check if Gemini is available
-        if (!this.analysisSession) {
-            console.error('Gemini session not available');
-            this.showError('Gemini session not available. Please ensure you are using Chrome 138+ with Gemini Nano enabled.');
-            return;
-        }
-        
-        // Check if the model is ready
-        try {
-            console.log('Checking model availability...');
-            const modelStatus = await LanguageModel.availability();
-            console.log('Model status:', modelStatus);
-            
-            if (modelStatus !== "available") {
-                this.showError(`Gemini model is not available (status: ${modelStatus}). Please ensure Gemini Nano is enabled in Chrome.`);
-                return;
-            }
-        } catch (error) {
-            console.error('Model not available:', error);
-            this.showError('Gemini model is not available. Please ensure Gemini Nano is enabled in Chrome.');
-            return;
-        }
-        
-        // Create a file input for the test image
-        const fileInput = document.createElement('input');
-        fileInput.type = 'file';
-        fileInput.accept = 'image/*';
-        fileInput.style.display = 'none';
-        
-        fileInput.onchange = async (event) => {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            try {
-                console.log('Test image file selected:', {
-                    name: file.name,
-                    type: file.type,
-                    size: file.size
-                });
-                
-                // Test with Gemini
-                const testPrompt = 'What do you see in this image? Please describe the colors, objects, people, and any text visible.';
-                
-                console.log('Sending test image to Gemini...');
-                const response = await this.analysisSession.prompt([
-                    {
-                        role: 'user',
-                        content: [
-                            { type: 'text', value: testPrompt },
-                            { type: 'image', value: file }
-                        ]
-                    }
-                ]);
-
-                console.log('Gemini response:', response);
-                
-                console.log('Gemini test response:', {
-                    hasResponse: !!response,
-                    responseType: typeof response,
-                    hasText: !!(response && response.text),
-                    responseKeys: response ? Object.keys(response) : 'no response',
-                    responseText: response && response.text ? response.text.substring(0, 200) + '...' : 'No text'
-                });
-                
-                if (response && response.text) {
-                    this.addSystemMessage('✅ Gemini test successful! Response: ' + response.text.substring(0, 100) + '...');
-                    console.log('✅ Gemini test successful!');
-                } else {
-                    this.addSystemMessage('❌ Gemini test failed - no response received');
-                    console.log('❌ Gemini test failed - no response received');
-                }
-                
-            } catch (error) {
-                console.error('Test failed with error:', error);
-                this.addSystemMessage('❌ Gemini test failed with error: ' + error.message);
-            } finally {
-                // Clean up
-                document.body.removeChild(fileInput);
-            }
-        };
-        
-        // Trigger file selection
-        document.body.appendChild(fileInput);
-        fileInput.click();
-    }
+    // Remove addTestButton and testGeminiWithSampleImage functions
 
     // Setup event listeners
     setupEventListeners() {
@@ -631,22 +526,27 @@ Frame timestamp: ${frame.time.toFixed(1)} seconds into the video.`;
                 ]);
 
                 console.log('Gemini response:', response);
+                console.log('Response type:', typeof response);
+                console.log('Response keys:', response ? Object.keys(response) : 'no response');
+                
+                // Response is just the text directly
+                const responseText = response;
                 
                 console.log(`Frame ${i + 1} Gemini response:`, {
                     hasResponse: !!response,
                     responseType: typeof response,
-                    hasText: !!(response && response.text),
-                    responseKeys: response ? Object.keys(response) : 'no response'
+                    hasText: !!responseText,
+                    responseTextPreview: responseText ? responseText.substring(0, 100) + '...' : 'No text'
                 });
                 
-                if (response && response.text) {
+                if (responseText) {
                     frameAnalyses.push({
                         time: frame.time,
-                        analysis: response.text
+                        analysis: responseText
                     });
-                    console.log(`Frame ${i + 1} analysis complete:`, response.text.substring(0, 100) + '...');
+                    console.log(`Frame ${i + 1} analysis complete:`, responseText.substring(0, 100) + '...');
                 } else {
-                    console.log(`Frame ${i + 1} analysis failed - no response`);
+                    console.log(`Frame ${i + 1} analysis failed - no response text found`);
                 }
                 
                 // Small delay between frames to avoid overwhelming the API
