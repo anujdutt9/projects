@@ -24,6 +24,7 @@ class GeminiRAGChat {
         this.messagesContainer = document.getElementById('messagesContainer');
         this.welcomeMessage = document.getElementById('welcomeMessage');
         this.chatHistoryContainer = document.getElementById('chatHistory');
+        this.newChatBtn = document.getElementById('newChatBtn');
         this.clearHistoryBtn = document.getElementById('clearHistory');
         this.modelStatus = document.getElementById('model-status');
         this.loadingModal = new bootstrap.Modal(document.getElementById('loadingModal'));
@@ -44,6 +45,7 @@ class GeminiRAGChat {
         this.messageInput.addEventListener('input', this.handleInputChange.bind(this));
         this.messageInput.addEventListener('keydown', this.handleKeyDown.bind(this));
         this.sendBtn.addEventListener('click', this.sendMessage.bind(this));
+        this.newChatBtn.addEventListener('click', this.startNewChat.bind(this));
         this.clearHistoryBtn.addEventListener('click', this.clearChatHistory.bind(this));
 
         // Auto-resize textarea
@@ -511,9 +513,8 @@ class GeminiRAGChat {
 
         // Create new chat if none exists
         if (!this.currentChatId) {
-            this.currentChatId = this.generateId();
-            console.log('🆕 Creating new chat session:', this.currentChatId);
-            this.createNewChat();
+            console.log('🆕 No current chat, starting new session...');
+            this.startNewChat();
         }
 
         // Add user message
@@ -700,54 +701,140 @@ Please provide a comprehensive answer based on the document content above. If th
     }
 
     // Chat History Management
-    saveChatHistory(userMessage, assistantResponse) {
-        const chatEntry = {
+    startNewChat() {
+        console.log('🆕 Starting new chat session...');
+        
+        // Generate new chat ID
+        this.currentChatId = this.generateId();
+        
+        // Create new chat session
+        const newChat = {
             id: this.currentChatId,
-            title: userMessage.substring(0, 50) + (userMessage.length > 50 ? '...' : ''),
+            title: 'New Chat',
             timestamp: new Date().toISOString(),
-            messages: [
-                { sender: 'user', text: userMessage },
-                { sender: 'assistant', text: assistantResponse }
-            ]
+            messages: [],
+            lastUpdated: new Date().toISOString()
         };
-
-        // Add to local storage
-        this.chatHistoryData.push(chatEntry);
-        localStorage.setItem('geminiRAGChatHistory', JSON.stringify(this.chatHistoryData));
+        
+        // Add to chat history
+        this.chatHistoryData.push(newChat);
+        this.saveChatHistoryToStorage();
         
         // Update UI
-        this.addChatHistoryItem(chatEntry);
+        this.addChatHistoryItem(newChat);
+        this.loadChat(this.currentChatId);
+        
+        // Clear current messages and show welcome
+        this.messages.innerHTML = '';
+        this.createNewChat();
+        
+        console.log('✅ New chat session created:', this.currentChatId);
+    }
+
+    saveChatHistory(userMessage, assistantResponse) {
+        if (!this.currentChatId) {
+            console.warn('⚠️ No current chat ID, creating new chat...');
+            this.startNewChat();
+        }
+
+        // Find current chat
+        const currentChat = this.chatHistoryData.find(chat => chat.id === this.currentChatId);
+        if (!currentChat) {
+            console.error('❌ Current chat not found, creating new one...');
+            this.startNewChat();
+            return;
+        }
+
+        // Add messages to current chat
+        currentChat.messages.push(
+            { sender: 'user', text: userMessage, timestamp: new Date().toISOString() },
+            { sender: 'assistant', text: assistantResponse, timestamp: new Date().toISOString() }
+        );
+
+        // Update chat title if it's still "New Chat"
+        if (currentChat.title === 'New Chat') {
+            currentChat.title = userMessage.substring(0, 50) + (userMessage.length > 50 ? '...' : '');
+        }
+
+        // Update last updated timestamp
+        currentChat.lastUpdated = new Date().toISOString();
+
+        // Save to storage
+        this.saveChatHistoryToStorage();
+        
+        // Update UI
+        this.updateChatHistoryItem(currentChat);
+        
+        console.log('💾 Chat history saved for session:', this.currentChatId);
+    }
+
+    saveChatHistoryToStorage() {
+        localStorage.setItem('geminiRAGChatHistory', JSON.stringify(this.chatHistoryData));
     }
 
     loadChatHistory() {
         const saved = localStorage.getItem('geminiRAGChatHistory');
         if (saved) {
-            this.chatHistoryData = JSON.parse(saved);
-            this.chatHistoryData.forEach(chat => this.addChatHistoryItem(chat));
+            try {
+                this.chatHistoryData = JSON.parse(saved);
+                // Sort by last updated (newest first)
+                this.chatHistoryData.sort((a, b) => new Date(b.lastUpdated) - new Date(a.lastUpdated));
+                this.chatHistoryData.forEach(chat => this.addChatHistoryItem(chat));
+                console.log('📚 Loaded', this.chatHistoryData.length, 'chat sessions');
+            } catch (error) {
+                console.error('❌ Error loading chat history:', error);
+                this.chatHistoryData = [];
+            }
         }
     }
 
     addChatHistoryItem(chat) {
         const historyItem = document.createElement('div');
         historyItem.className = 'history-item';
+        historyItem.dataset.chatId = chat.id;
         historyItem.onclick = () => this.loadChat(chat.id);
         
-        const timestamp = new Date(chat.timestamp).toLocaleString();
+        const timestamp = new Date(chat.lastUpdated || chat.timestamp).toLocaleString();
+        const messageCount = chat.messages.length;
         
         historyItem.innerHTML = `
             <div class="history-title">${chat.title}</div>
-            <div class="history-time">${timestamp}</div>
+            <div class="history-meta">
+                <span class="history-time">${timestamp}</span>
+                <span class="history-count">${messageCount} messages</span>
+            </div>
         `;
         
         this.chatHistoryContainer.appendChild(historyItem);
     }
 
+    updateChatHistoryItem(chat) {
+        const historyItem = this.chatHistoryContainer.querySelector(`[data-chat-id="${chat.id}"]`);
+        if (historyItem) {
+            const timestamp = new Date(chat.lastUpdated).toLocaleString();
+            const messageCount = chat.messages.length;
+            
+            historyItem.innerHTML = `
+                <div class="history-title">${chat.title}</div>
+                <div class="history-meta">
+                    <span class="history-time">${timestamp}</span>
+                    <span class="history-count">${messageCount} messages</span>
+                </div>
+            `;
+        }
+    }
+
     loadChat(chatId) {
         const chat = this.chatHistoryData.find(c => c.id === chatId);
-        if (!chat) return;
+        if (!chat) {
+            console.error('❌ Chat not found:', chatId);
+            return;
+        }
 
+        console.log('📖 Loading chat session:', chatId);
+        
+        // Set current chat
         this.currentChatId = chatId;
-        this.createNewChat();
         
         // Clear current messages
         this.messages.innerHTML = '';
@@ -761,17 +848,27 @@ Please provide a comprehensive answer based on the document content above. If th
         document.querySelectorAll('.history-item').forEach(item => {
             item.classList.remove('active');
         });
-        event.target.closest('.history-item').classList.add('active');
+        
+        const activeItem = this.chatHistoryContainer.querySelector(`[data-chat-id="${chatId}"]`);
+        if (activeItem) {
+            activeItem.classList.add('active');
+        }
+        
+        // Show chat container
+        this.createNewChat();
+        
+        console.log('✅ Chat session loaded:', chatId);
     }
 
     clearChatHistory() {
-        if (confirm('Are you sure you want to clear all chat history?')) {
+        if (confirm('Are you sure you want to clear all chat history? This action cannot be undone.')) {
             this.chatHistoryData = [];
             localStorage.removeItem('geminiRAGChatHistory');
             this.chatHistoryContainer.innerHTML = '';
             this.currentChatId = null;
             this.hideMessagesContainer();
             this.showWelcomeMessage();
+            console.log('🗑️ Chat history cleared');
         }
     }
 
@@ -864,4 +961,4 @@ document.head.insertAdjacentHTML('beforeend', typingStyles);
 let app;
 document.addEventListener('DOMContentLoaded', () => {
     app = new GeminiRAGChat();
-}); 
+});
