@@ -75,41 +75,52 @@
                         
                         <!-- Model Parameters -->
                         <div class="model-params-section">
-                            <h6 class="section-subtitle">
-                                <i class="fas fa-sliders-h me-2"></i>
-                                Model Parameters
-                            </h6>
-                            <div class="form-group mb-2">
-                                <label for="temperatureSlider" class="form-label small text-muted">
-                                    Temperature: <span id="temperatureValue">0.7</span>
-                                </label>
-                                <input type="range" class="form-range" id="temperatureSlider" 
-                                       min="0" max="2" step="0.1" value="0.7">
-                                <small class="form-text text-muted">
-                                    <i class="fas fa-info-circle me-1"></i>
-                                    Higher = more creative, Lower = more focused
-                                </small>
-                            </div>
-                            <div class="form-group mb-2">
-                                <label for="topKSlider" class="form-label small text-muted">
-                                    Top-K: <span id="topKValue">3</span>
-                                </label>
-                                <input type="range" class="form-range" id="topKSlider" 
-                                       min="1" max="8" step="1" value="3">
-                                <small class="form-text text-muted">
-                                    <i class="fas fa-info-circle me-1"></i>
-                                    Controls response diversity (1-8)
-                                </small>
-                            </div>
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-outline-primary btn-sm" id="resetParamsBtn">
-                                    <i class="fas fa-undo me-1"></i>
-                                    Reset to Defaults
+                            <div class="params-header" id="paramsHeader">
+                                <h6 class="section-subtitle mb-0">
+                                    <i class="fas fa-sliders-h me-2"></i>
+                                    Model Parameters
+                                </h6>
+                                <div class="params-summary" id="paramsSummary">
+                                    <span class="param-value">T: <span id="tempSummary">1.0</span></span>
+                                    <span class="param-value">K: <span id="topKSummary">3</span></span>
+                                </div>
+                                <button class="btn btn-link btn-sm expand-btn" id="expandParamsBtn">
+                                    <i class="fas fa-chevron-down"></i>
                                 </button>
-                                <button class="btn btn-primary btn-sm" id="applyParamsBtn">
-                                    <i class="fas fa-check me-1"></i>
-                                    Apply Changes
-                                </button>
+                            </div>
+                            <div class="params-content" id="paramsContent" style="display: none;">
+                                <div class="form-group mb-2">
+                                    <label for="temperatureSlider" class="form-label small text-muted">
+                                        Temperature: <span id="temperatureValue">1.0</span>
+                                    </label>
+                                    <input type="range" class="form-range" id="temperatureSlider" 
+                                           min="0" max="2" step="0.1" value="1.0">
+                                    <small class="form-text text-muted">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Higher = more creative, Lower = more focused
+                                    </small>
+                                </div>
+                                <div class="form-group mb-2">
+                                    <label for="topKSlider" class="form-label small text-muted">
+                                        Top-K: <span id="topKValue">3</span>
+                                    </label>
+                                    <input type="range" class="form-range" id="topKSlider" 
+                                           min="1" max="8" step="1" value="3">
+                                    <small class="form-text text-muted">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Controls response diversity (1-8)
+                                    </small>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-outline-primary btn-sm" id="resetParamsBtn">
+                                        <i class="fas fa-undo me-1"></i>
+                                        Reset to Defaults
+                                    </button>
+                                    <button class="btn btn-primary btn-sm" id="applyParamsBtn">
+                                        <i class="fas fa-check me-1"></i>
+                                        Apply Changes
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>

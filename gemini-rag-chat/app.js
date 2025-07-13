@@ -177,6 +177,13 @@ class GeminiRAGChat {
         this.resetParamsBtn = document.getElementById('resetParamsBtn');
         this.applyParamsBtn = document.getElementById('applyParamsBtn');
         
+        // Initialize expander controls
+        this.paramsHeader = document.getElementById('paramsHeader');
+        this.paramsContent = document.getElementById('paramsContent');
+        this.expandParamsBtn = document.getElementById('expandParamsBtn');
+        this.tempSummary = document.getElementById('tempSummary');
+        this.topKSummary = document.getElementById('topKSummary');
+        
         // Log missing elements for debugging
         const requiredElements = [
             'uploadArea', 'fileInput', 'uploadedFiles', 'messageInput', 'sendBtn',
@@ -248,6 +255,11 @@ class GeminiRAGChat {
         
         if (this.applyParamsBtn) {
             this.applyParamsBtn.addEventListener('click', this.applyModelParams.bind(this));
+        }
+        
+        // Expander events
+        if (this.paramsHeader) {
+            this.paramsHeader.addEventListener('click', this.toggleParamsExpander.bind(this));
         }
         
         // Handle page unload to clean up session
@@ -1391,6 +1403,9 @@ Please provide a comprehensive answer based on the document content above. If th
         
         // Update slider ranges based on model capabilities
         this.updateSliderRanges();
+        
+        // Update the summary display
+        this.updateParamsSummary();
     }
 
     updateSliderRanges() {
@@ -1420,6 +1435,7 @@ Please provide a comprehensive answer based on the document content above. If th
         if (this.temperatureSlider && this.temperatureValue) {
             const value = parseFloat(this.temperatureSlider.value);
             this.temperatureValue.textContent = value.toFixed(1);
+            this.updateParamsSummary();
         }
     }
 
@@ -1427,6 +1443,31 @@ Please provide a comprehensive answer based on the document content above. If th
         if (this.topKSlider && this.topKValue) {
             const value = parseInt(this.topKSlider.value);
             this.topKValue.textContent = value;
+            this.updateParamsSummary();
+        }
+    }
+
+    toggleParamsExpander() {
+        if (this.paramsContent && this.expandParamsBtn) {
+            const isExpanded = this.paramsContent.style.display !== 'none';
+            
+            if (isExpanded) {
+                this.paramsContent.style.display = 'none';
+                this.expandParamsBtn.classList.remove('expanded');
+            } else {
+                this.paramsContent.style.display = 'block';
+                this.expandParamsBtn.classList.add('expanded');
+            }
+        }
+    }
+
+    updateParamsSummary() {
+        if (this.tempSummary && this.topKSummary) {
+            const tempValue = this.temperatureSlider ? parseFloat(this.temperatureSlider.value) : 1.0;
+            const topKValue = this.topKSlider ? parseInt(this.topKSlider.value) : 3;
+            
+            this.tempSummary.textContent = tempValue.toFixed(1);
+            this.topKSummary.textContent = topKValue;
         }
     }
 
