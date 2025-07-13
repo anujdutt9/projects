@@ -190,10 +190,11 @@ class VideoAnalysisApp {
             
             // Store analysis results
             this.mediaAnalysis = analysis;
+            this.mediaData = mediaData; // Store the media data for Q&A
             console.log('Media analysis completed:', {
                 type: this.mediaType,
-                hasFrames: analysis.frames ? analysis.frames.length : 0,
-                hasAudio: analysis.hasAudio,
+                hasFrames: mediaData.frames ? mediaData.frames.length : 0,
+                hasAudio: mediaData.hasAudio,
                 summary: analysis.summary ? analysis.summary.substring(0, 100) + '...' : 'No summary'
             });
             
@@ -231,98 +232,13 @@ class VideoAnalysisApp {
         }
     }
 
-    // Extract video frames using FFmpeg.wasm
-    async extractVideoFrames(file, resolve) {
-        try {
-            console.log('Starting FFmpeg frame extraction for:', file.name);
-            
-            // Initialize FFmpeg
-            const { createFFmpeg, fetchFile } = FFmpeg;
-            const ffmpeg = createFFmpeg({ 
-                log: true,
-                corePath: 'https://unpkg.com/@ffmpeg/core@0.12.4/dist/umd/ffmpeg-core.js'
-            });
-            
-            await ffmpeg.load();
-            console.log('FFmpeg loaded successfully');
-            
-            // Write the video file to FFmpeg's virtual filesystem
-            ffmpeg.FS('writeFile', 'input.mp4', await fetchFile(file));
-            console.log('Video file written to FFmpeg filesystem');
-            
-            // Get video duration first
-            await ffmpeg.run('-i', 'input.mp4', '-f', 'null', '-');
-            const durationOutput = ffmpeg.FS('readFile', 'input.mp4');
-            console.log('Video duration check complete');
-            
-            // Extract frames at regular intervals (every 2 seconds or max 10 frames)
-            const frameRate = 0.5; // 1 frame every 2 seconds
-            const maxFrames = 10;
-            
-            console.log('Extracting frames with FFmpeg...');
-            await ffmpeg.run(
-                '-i', 'input.mp4',
-                '-vf', `fps=${frameRate}`,
-                '-frames:v', maxFrames.toString(),
-                '-f', 'image2',
-                'frame_%03d.jpg'
-            );
-            
-            // Read extracted frames
-            const frames = [];
-            for (let i = 1; i <= maxFrames; i++) {
-                try {
-                    const frameNumber = i.toString().padStart(3, '0');
-                    const frameData = ffmpeg.FS('readFile', `frame_${frameNumber}.jpg`);
-                    
-                    if (frameData && frameData.length > 0) {
-                        const blob = new Blob([frameData.buffer], { type: 'image/jpeg' });
-                        frames.push({
-                            time: (i - 1) * (1 / frameRate),
-                            image: blob
-                        });
-                        console.log(`Frame ${i} extracted at time ${(i - 1) * (1 / frameRate)}s`);
-                    }
-                } catch (error) {
-                    console.log(`Frame ${i} not found, stopping extraction`);
-                    break;
-                }
-            }
-            
-            console.log('FFmpeg frame extraction complete:', frames.length, 'frames extracted');
-            
-            // Clean up FFmpeg filesystem
-            try {
-                ffmpeg.FS('unlink', 'input.mp4');
-                for (let i = 1; i <= maxFrames; i++) {
-                    const frameNumber = i.toString().padStart(3, '0');
-                    try {
-                        ffmpeg.FS('unlink', `frame_${frameNumber}.jpg`);
-                    } catch (e) {
-                        // Frame file doesn't exist, ignore
-                    }
-                }
-            } catch (e) {
-                console.log('Cleanup error (non-critical):', e);
-            }
-            
-            resolve({ 
-                type: 'video', 
-                frames, 
-                duration: frames.length * (1 / frameRate),
-                hasAudio: false
-            });
-            
-        } catch (error) {
-            console.error('FFmpeg frame extraction error:', error);
-            
-            // Fallback to simple canvas method if FFmpeg fails
-            console.log('Falling back to canvas method...');
-            this.extractVideoFramesCanvas(file, resolve);
-        }
+    // Extract video frames using canvas method (simplified approach)
+    extractVideoFrames(file, resolve) {
+        console.log('Starting canvas frame extraction for:', file.name);
+        this.extractVideoFramesCanvas(file, resolve);
     }
     
-    // Fallback canvas method for video frame extraction
+    // Canvas method for video frame extraction
     extractVideoFramesCanvas(file, resolve) {
         const video = document.createElement('video');
         const canvas = document.createElement('canvas');
@@ -330,7 +246,7 @@ class VideoAnalysisApp {
         const frames = [];
         
         video.onloadedmetadata = () => {
-            console.log('Canvas fallback - Video metadata loaded:', {
+            console.log('Video metadata loaded:', {
                 duration: video.duration,
                 width: video.videoWidth,
                 height: video.videoHeight
@@ -344,7 +260,7 @@ class VideoAnalysisApp {
             const numFrames = Math.min(5, Math.floor(duration)); // Max 5 frames for fallback
             const frameInterval = duration / numFrames;
             
-            console.log('Canvas fallback - Frame extraction plan:', {
+            console.log('Frame extraction plan:', {
                 duration,
                 numFrames,
                 frameInterval
@@ -354,7 +270,7 @@ class VideoAnalysisApp {
             
             const extractFrame = () => {
                 if (frameIndex >= numFrames) {
-                    console.log('Canvas fallback - Frame extraction complete:', frames.length, 'frames extracted');
+                    console.log('Frame extraction complete:', frames.length, 'frames extracted');
                     resolve({ 
                         type: 'video', 
                         frames, 
@@ -378,18 +294,18 @@ class VideoAnalysisApp {
                                 time: video.currentTime,
                                 image: blob
                             });
-                            console.log('Canvas fallback - Frame extracted at time:', video.currentTime, 'Total frames:', frames.length);
+                            console.log('Frame extracted at time:', video.currentTime, 'Total frames:', frames.length);
                         }
                         extractFrame();
                     }, 'image/jpeg', 0.8);
                 } catch (error) {
-                    console.error('Canvas fallback - Error extracting frame:', error);
+                    console.error('Error extracting frame:', error);
                     extractFrame(); // Continue with next frame
                 }
             };
             
             video.onerror = (error) => {
-                console.error('Canvas fallback - Video error:', error);
+                console.error('Video error:', error);
                 resolve({ 
                     type: 'video', 
                     frames: [], 
@@ -404,7 +320,7 @@ class VideoAnalysisApp {
         };
         
         video.onerror = (error) => {
-            console.error('Canvas fallback - Video loading error:', error);
+            console.error('Video loading error:', error);
             resolve({ 
                 type: 'video', 
                 frames: [], 
