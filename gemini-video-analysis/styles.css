@@ -523,6 +523,10 @@ body {
     height: 100%;
 }
 
+.question-section {
+    flex-shrink: 0;
+}
+
 .chat-history {
     flex: 1;
     overflow-y: auto;
@@ -531,6 +535,7 @@ body {
     border-radius: 8px;
     border: 1px solid var(--border-color);
     min-height: 0;
+    height: 0; /* This forces the flex item to take remaining space */
 }
 
 .chat-history::-webkit-scrollbar {
