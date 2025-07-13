@@ -341,16 +341,20 @@ class GeminiRAGChat {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             
-            reader.onload = (e) => {
+            reader.onload = async (e) => {
                 try {
                     let content = '';
                     
                     if (file.type === 'text/plain') {
                         content = e.target.result;
                     } else if (file.type === 'application/pdf') {
-                        // For PDF files, we'll extract text content
-                        // In a real implementation, you'd use a PDF parsing library
-                        content = `PDF Content: ${file.name} - Text extraction would be implemented here`;
+                        // For PDF files, try to extract text using PDF.js
+                        try {
+                            content = await this.extractPDFText(e.target.result);
+                        } catch (pdfError) {
+                            console.warn('⚠️ PDF text extraction failed:', pdfError);
+                            content = `PDF Content: ${file.name} - Unable to extract text. Please ensure the PDF contains selectable text.`;
+                        }
                     } else {
                         // For other file types
                         content = `Document Content: ${file.name} - Content extraction would be implemented here`;
@@ -369,6 +373,43 @@ class GeminiRAGChat {
             } else {
                 reader.readAsArrayBuffer(file);
             }
+        });
+    }
+
+    async extractPDFText(arrayBuffer) {
+        // Load PDF.js library dynamically
+        if (typeof pdfjsLib === 'undefined') {
+            await this.loadPDFJS();
+        }
+        
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        let fullText = '';
+        
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+            const page = await pdf.getPage(pageNum);
+            const textContent = await page.getTextContent();
+            const pageText = textContent.items.map(item => item.str).join(' ');
+            fullText += pageText + '\n';
+        }
+        
+        return fullText.trim();
+    }
+
+    async loadPDFJS() {
+        return new Promise((resolve, reject) => {
+            if (typeof pdfjsLib !== 'undefined') {
+                resolve();
+                return;
+            }
+            
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+            script.onload = () => {
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                resolve();
+            };
+            script.onerror = reject;
+            document.head.appendChild(script);
         });
     }
 
@@ -534,7 +575,7 @@ Please provide a clear, helpful response.`;
             }
             
             // Save to chat history
-            this.saveChatHistory(message, response.text);
+            this.saveChatHistory(message, result);
 
         } catch (error) {
             console.error('❌ Error getting response:', error);
