@@ -787,25 +787,113 @@ Please provide a detailed answer that references specific frames and timestamps 
             
             console.log('Sending Q&A prompt to Gemini:', content[0].value.substring(0, 200) + '...');
             
-            const response = await this.analysisSession.prompt([
+            // Use streaming response
+            return await this.streamResponse(content);
+            
+        } catch (error) {
+            console.error('Error with Gemini Q&A:', error);
+            return 'Sorry, I encountered an error while processing your question. Please try again.';
+        }
+    }
+
+    // Streaming response implementation
+    async streamResponse(content) {
+        try {
+            console.log('Starting streaming response...');
+            
+            // Create streaming message
+            const messageId = this.addStreamingMessage();
+            
+            // Get streaming response
+            const stream = this.analysisSession.promptStreaming([
                 {
                     role: 'user',
                     content: content
                 }
             ]);
             
-            console.log('Q&A response:', response);
+            let fullResponse = '';
+            let chunkCount = 0;
             
-            if (response) {
-                return response;
-            } else {
-                return 'I apologize, but I couldn\'t generate a response. Please try asking your question again.';
+            console.log('Processing stream chunks...');
+            
+            for await (const chunk of stream) {
+                chunkCount++;
+                fullResponse += chunk;
+                
+                // Update the streaming message with current content
+                this.updateStreamingMessage(messageId, fullResponse);
+                
+                // Log progress every 10 chunks
+                if (chunkCount % 10 === 0) {
+                    console.log(`Processed ${chunkCount} chunks, response length: ${fullResponse.length}`);
+                }
             }
             
+            console.log(`Streaming completed: ${chunkCount} chunks, ${fullResponse.length} characters`);
+            
+            // Finalize the streaming message
+            this.finalizeStreamingMessage(messageId, fullResponse);
+            
+            return fullResponse;
+            
         } catch (error) {
-            console.error('Error with Gemini Q&A:', error);
-            return 'Sorry, I encountered an error while processing your question. Please try again.';
+            console.error('Error in streaming response:', error);
+            throw error;
         }
+    }
+
+    // Streaming Message Management
+    addStreamingMessage() {
+        const messageId = this.generateId();
+        
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'chat-message message-ai streaming';
+        messageDiv.id = `message-${messageId}`;
+        
+        const avatar = document.createElement('div');
+        avatar.className = 'message-avatar avatar-ai';
+        avatar.innerHTML = '<i class="fas fa-robot"></i>';
+        
+        const bubble = document.createElement('div');
+        bubble.className = 'message-bubble ai';
+        bubble.innerHTML = '<div class="streaming-content"><span class="streaming-cursor">▋</span></div>';
+        
+        messageDiv.appendChild(avatar);
+        messageDiv.appendChild(bubble);
+        
+        this.chatHistory.appendChild(messageDiv);
+        this.scrollToBottom();
+        
+        return messageId;
+    }
+
+    updateStreamingMessage(messageId, content) {
+        const messageDiv = document.getElementById(`message-${messageId}`);
+        if (messageDiv) {
+            const contentDiv = messageDiv.querySelector('.streaming-content');
+            if (contentDiv) {
+                const formattedContent = this.formatAIResponse(content);
+                contentDiv.innerHTML = formattedContent + '<span class="streaming-cursor">▋</span>';
+            }
+        }
+        this.scrollToBottom();
+    }
+
+    finalizeStreamingMessage(messageId, content) {
+        const messageDiv = document.getElementById(`message-${messageId}`);
+        if (messageDiv) {
+            messageDiv.classList.remove('streaming');
+            const contentDiv = messageDiv.querySelector('.streaming-content');
+            if (contentDiv) {
+                contentDiv.innerHTML = this.formatAIResponse(content);
+            }
+        }
+    }
+
+    // Generate unique ID for messages
+    generateId() {
+        return Date.now().toString(36) + Math.random().toString(36).substr(2);
     }
 
 
