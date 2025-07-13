@@ -237,17 +237,31 @@ class VideoAnalysisApp {
         const frames = [];
         
         video.onloadedmetadata = () => {
+            console.log('Video metadata loaded:', {
+                duration: video.duration,
+                width: video.videoWidth,
+                height: video.videoHeight
+            });
+            
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             
             // Extract frames at regular intervals
             const duration = video.duration;
-            const frameInterval = Math.max(1, Math.floor(duration / 10)); // 10 frames max
+            const numFrames = Math.min(10, Math.floor(duration)); // Max 10 frames
+            const frameInterval = duration / numFrames;
             
-            let currentTime = 0;
+            console.log('Frame extraction plan:', {
+                duration,
+                numFrames,
+                frameInterval
+            });
+            
+            let frameIndex = 0;
+            
             const extractFrame = () => {
-                if (currentTime >= duration || frames.length >= 10) {
-                    // Video analysis complete - no audio
+                if (frameIndex >= numFrames) {
+                    console.log('Frame extraction complete:', frames.length, 'frames extracted');
                     resolve({ 
                         type: 'video', 
                         frames, 
@@ -257,22 +271,54 @@ class VideoAnalysisApp {
                     return;
                 }
                 
+                const currentTime = frameIndex * frameInterval;
                 video.currentTime = currentTime;
-                currentTime += frameInterval;
+                frameIndex++;
             };
             
             video.onseeked = () => {
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                canvas.toBlob((blob) => {
-                    frames.push({
-                        time: video.currentTime,
-                        image: blob
-                    });
-                    extractFrame();
-                }, 'image/jpeg', 0.8);
+                try {
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    canvas.toBlob((blob) => {
+                        if (blob) {
+                            frames.push({
+                                time: video.currentTime,
+                                image: blob
+                            });
+                            console.log('Frame extracted at time:', video.currentTime, 'Total frames:', frames.length);
+                        }
+                        extractFrame();
+                    }, 'image/jpeg', 0.8);
+                } catch (error) {
+                    console.error('Error extracting frame:', error);
+                    extractFrame(); // Continue with next frame
+                }
             };
             
+            video.onerror = (error) => {
+                console.error('Video error:', error);
+                resolve({ 
+                    type: 'video', 
+                    frames: [], 
+                    duration: 0,
+                    hasAudio: false,
+                    error: true
+                });
+            };
+            
+            // Start frame extraction
             extractFrame();
+        };
+        
+        video.onerror = (error) => {
+            console.error('Video loading error:', error);
+            resolve({ 
+                type: 'video', 
+                frames: [], 
+                duration: 0,
+                hasAudio: false,
+                error: true
+            });
         };
         
         video.src = URL.createObjectURL(file);
@@ -332,12 +378,19 @@ class VideoAnalysisApp {
             
             // Add media content
             if (mediaData.type === 'video') {
+                console.log('Processing video frames:', mediaData.frames.length, 'frames available');
                 // Add key frames only (no audio for video files)
-                for (const frame of mediaData.frames.slice(0, 5)) { // Limit to 5 frames
-                    content.push({
-                        type: 'image',
-                        value: frame.image
-                    });
+                const framesToSend = mediaData.frames.slice(0, 5); // Limit to 5 frames
+                console.log('Sending', framesToSend.length, 'frames to Gemini');
+                
+                for (const frame of framesToSend) {
+                    if (frame && frame.image) {
+                        content.push({
+                            type: 'image',
+                            value: frame.image
+                        });
+                        console.log('Added frame at time:', frame.time);
+                    }
                 }
             } else {
                 // Add audio for audio files only
