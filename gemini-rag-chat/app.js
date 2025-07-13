@@ -338,6 +338,7 @@ class GeminiRAGChat {
     }
 
     async extractFileContent(file) {
+        console.log('📄 Extracting content from file:', file.name);
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             
@@ -351,6 +352,8 @@ class GeminiRAGChat {
                         // For PDF files, try to extract text using PDF.js
                         try {
                             content = await this.extractPDFText(e.target.result);
+                            console.log('✅ PDF text extraction successful');
+                            console.log('📄 PDF content:', content);
                         } catch (pdfError) {
                             console.warn('⚠️ PDF text extraction failed:', pdfError);
                             content = `PDF Content: ${file.name} - Unable to extract text. Please ensure the PDF contains selectable text.`;
