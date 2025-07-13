@@ -70,28 +70,57 @@ class GeminiRAGChat {
         
         // Initialize system prompt selector if it exists
         this.systemPromptSelector = document.getElementById('systemPromptSelector');
+        
+        // Log missing elements for debugging
+        const requiredElements = [
+            'uploadArea', 'fileInput', 'uploadedFiles', 'messageInput', 'sendBtn',
+            'messages', 'messagesContainer', 'welcomeMessage', 'chatHistory',
+            'newChatBtn', 'clearHistory', 'model-status', 'embedding-status'
+        ];
+        
+        const missingElements = requiredElements.filter(id => !document.getElementById(id));
+        if (missingElements.length > 0) {
+            console.warn('⚠️ Missing required elements:', missingElements);
+        }
+        
         if (this.systemPromptSelector) {
             this.initializeSystemPromptSelector();
+        } else {
+            console.log('ℹ️ System prompt selector not found - feature will be disabled');
         }
     }
 
     bindEvents() {
         // File upload events
-        this.uploadArea.addEventListener('click', () => this.fileInput.click());
-        this.uploadArea.addEventListener('dragover', this.handleDragOver.bind(this));
-        this.uploadArea.addEventListener('dragleave', this.handleDragLeave.bind(this));
-        this.uploadArea.addEventListener('drop', this.handleDrop.bind(this));
-        this.fileInput.addEventListener('change', this.handleFileSelect.bind(this));
+        if (this.uploadArea) {
+            this.uploadArea.addEventListener('click', () => this.fileInput.click());
+            this.uploadArea.addEventListener('dragover', this.handleDragOver.bind(this));
+            this.uploadArea.addEventListener('dragleave', this.handleDragLeave.bind(this));
+            this.uploadArea.addEventListener('drop', this.handleDrop.bind(this));
+        }
+        
+        if (this.fileInput) {
+            this.fileInput.addEventListener('change', this.handleFileSelect.bind(this));
+        }
 
         // Chat events
-        this.messageInput.addEventListener('input', this.handleInputChange.bind(this));
-        this.messageInput.addEventListener('keydown', this.handleKeyDown.bind(this));
-        this.sendBtn.addEventListener('click', this.sendMessage.bind(this));
-        this.newChatBtn.addEventListener('click', this.startNewChat.bind(this));
-        this.clearHistoryBtn.addEventListener('click', this.clearChatHistory.bind(this));
-
-        // Auto-resize textarea
-        this.messageInput.addEventListener('input', this.autoResizeTextarea.bind(this));
+        if (this.messageInput) {
+            this.messageInput.addEventListener('input', this.handleInputChange.bind(this));
+            this.messageInput.addEventListener('keydown', this.handleKeyDown.bind(this));
+            this.messageInput.addEventListener('input', this.autoResizeTextarea.bind(this));
+        }
+        
+        if (this.sendBtn) {
+            this.sendBtn.addEventListener('click', this.sendMessage.bind(this));
+        }
+        
+        if (this.newChatBtn) {
+            this.newChatBtn.addEventListener('click', this.startNewChat.bind(this));
+        }
+        
+        if (this.clearHistoryBtn) {
+            this.clearHistoryBtn.addEventListener('click', this.clearChatHistory.bind(this));
+        }
         
         // System prompt selector event
         if (this.systemPromptSelector) {
