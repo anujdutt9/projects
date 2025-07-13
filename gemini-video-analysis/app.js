@@ -24,6 +24,8 @@ class VideoAnalysisApp {
         this.analysisStatus = document.getElementById('analysisStatus');
         this.statusText = document.getElementById('statusText');
         this.progressBar = document.querySelector('.progress-bar');
+        this.analysisSummary = document.getElementById('analysisSummary');
+        this.summaryContent = document.getElementById('summaryContent');
         this.questionSection = document.getElementById('questionSection');
         this.questionInput = document.getElementById('questionInput');
         this.askQuestionBtn = document.getElementById('askQuestion');
@@ -189,6 +191,10 @@ class VideoAnalysisApp {
             this.currentMedia = file;
             this.mediaType = file.type.startsWith('video/') ? 'video' : 'audio';
             
+            // Hide previous summary and clear chat
+            this.hideAnalysisSummary();
+            this.chatHistory.innerHTML = '';
+            
             // Display media player
             this.displayMediaPlayer(file);
             
@@ -265,15 +271,21 @@ class VideoAnalysisApp {
             
             this.updateProgress(100, 'Analysis complete!');
             
-            // Show question interface
+            // Show question interface and summary
             setTimeout(() => {
                 this.hideAnalysisStatus();
-                this.showQuestionInterface();
+                
                 if (analysis.error) {
                     this.addSystemMessage('Analysis failed. Please try uploading your media file again.');
                 } else {
+                    // Show the analysis summary
+                    if (analysis.summary) {
+                        this.showAnalysisSummary(analysis.summary);
+                    }
                     this.addSystemMessage('Media analysis complete! You can now ask questions about the content.');
                 }
+                
+                this.showQuestionInterface();
             }, 1000);
             
         } catch (error) {
@@ -776,6 +788,15 @@ Please provide a detailed answer that references specific frames and timestamps 
 
     hideAnalysisStatus() {
         this.analysisStatus.style.display = 'none';
+    }
+
+    showAnalysisSummary(summary) {
+        this.summaryContent.innerHTML = summary.replace(/\n/g, '<br>');
+        this.analysisSummary.style.display = 'block';
+    }
+
+    hideAnalysisSummary() {
+        this.analysisSummary.style.display = 'none';
     }
 
     updateProgress(percentage, text) {
