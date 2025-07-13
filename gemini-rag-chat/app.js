@@ -65,7 +65,7 @@ class GeminiRAGChat {
         // Create new AbortController for this session
         this.sessionController = new AbortController();
         
-        console.log('🔄 Creating new model session...');
+        console.log('Creating new model session...');
         
         const sessionOptions = {
             signal: this.sessionController.signal,
@@ -74,28 +74,28 @@ class GeminiRAGChat {
             ...options
         };
         
-        console.log('📊 Session options:', {
+        console.log('Session options:', {
             temperature: sessionOptions.temperature,
             topK: sessionOptions.topK,
             hasSignal: !!sessionOptions.signal
         });
         
         this.session = await LanguageModel.create(sessionOptions);
-        console.log('✅ Model session created successfully');
+        console.log('Model session created successfully');
         
         return this.session;
     }
 
     async destroySession() {
         if (this.sessionController) {
-            console.log('🛑 Aborting current session...');
+            console.log('Aborting current session...');
             this.sessionController.abort();
             this.sessionController = null;
         }
         
         if (this.session) {
             this.session = null;
-            console.log('🗑️ Session destroyed');
+            console.log('Session destroyed');
         }
         
         this.isModelReady = false;
@@ -106,7 +106,7 @@ class GeminiRAGChat {
     // Stop generation and abort session
     stopGeneration() {
         if (this.isGenerating) {
-            console.log('🛑 Stopping generation...');
+            console.log('Stopping generation...');
             
             // Abort the session controller if it exists
             if (this.sessionController) {
@@ -123,7 +123,7 @@ class GeminiRAGChat {
 
     // Cleanup function for proper session management
     cleanup() {
-        console.log('🧹 Cleaning up sessions...');
+        console.log('Cleaning up sessions...');
         if (this.sessionController) {
             this.sessionController.abort();
         }
@@ -199,7 +199,7 @@ class GeminiRAGChat {
         if (this.systemPromptSelector) {
             this.initializeSystemPromptSelector();
         } else {
-            console.log('ℹ️ System prompt selector not found - feature will be disabled');
+            console.log('System prompt selector not found - feature will be disabled');
         }
     }
 
@@ -275,12 +275,12 @@ class GeminiRAGChat {
             this.showLoadingModal('Initializing Gemini Model', 'Please wait while we set up the AI model...');
 
             // Check if LanguageModel API is available
-            console.log('🔍 Checking LanguageModel API availability...');
+            console.log('Checking LanguageModel API availability...');
             if (typeof LanguageModel === 'undefined') {
                 console.error('LanguageModel API not available');
                 throw new Error('LanguageModel API not available. Please use Chrome with Gemini Nano support.');
             }
-            console.log('✅ LanguageModel API is available');
+            console.log('LanguageModel API is available');
 
             // Create new AbortController for session management
             this.sessionController = new AbortController();
@@ -291,7 +291,7 @@ class GeminiRAGChat {
 
 
             // Check model availability first
-            console.log('🔍 Checking model availability...');
+            console.log('Checking model availability...');
             try {
                 const modelStatus = await LanguageModel.availability();
                 console.log('Model status:', modelStatus);
@@ -413,11 +413,11 @@ class GeminiRAGChat {
 
     async initializeEmbeddingModel() {
         try {
-            console.log('🔍 Initializing Universal Sentence Encoder...');
+            console.log('Initializing Universal Sentence Encoder...');
             
             // Check if the library is available
             if (typeof use === 'undefined') {
-                console.error('❌ Universal Sentence Encoder library not available');
+                console.error('Universal Sentence Encoder library not available');
                 this.isEmbeddingModelReady = false;
                 this.updateEmbeddingStatus('offline', 'Library Not Available');
                 return;
@@ -427,14 +427,14 @@ class GeminiRAGChat {
             this.embeddingModel = await use.load();
             this.isEmbeddingModelReady = true;
             this.updateEmbeddingStatus('online', 'Embeddings Ready');
-            console.log('✅ Embedding model ready');
+            console.log('Embedding model ready');
             
             // Process existing documents if any
             if (this.documents.length > 0) {
                 await this.processDocumentChunks();
             }
         } catch (error) {
-            console.error('❌ Error initializing embedding model:', error);
+            console.error('Error initializing embedding model:', error);
             this.isEmbeddingModelReady = false;
             this.updateEmbeddingStatus('offline', 'Embeddings Error');
         }
@@ -488,7 +488,6 @@ class GeminiRAGChat {
     }
 
     hideLoadingModal() {
-        console.log('Hiding loading modal...');
         
         // Method 1: Try Bootstrap modal hide
         try {
@@ -501,7 +500,6 @@ class GeminiRAGChat {
         // Method 2: Direct DOM manipulation (always works)
         const modalElement = document.getElementById('loadingModal');
         if (modalElement) {
-            console.log('Applying direct DOM changes...');
             modalElement.classList.remove('show');
             modalElement.style.display = 'none';
             modalElement.setAttribute('aria-hidden', 'true');
@@ -520,14 +518,11 @@ class GeminiRAGChat {
         const backdrop = document.querySelector('.modal-backdrop');
         if (backdrop) {
             backdrop.remove();
-            console.log('Modal backdrop removed');
         }
         
         // Force remove any remaining modal-related elements
         const remainingBackdrops = document.querySelectorAll('.modal-backdrop');
         remainingBackdrops.forEach(backdrop => backdrop.remove());
-        
-        console.log('Loading modal hidden successfully');
     }
 
     updateLoadingProgress(progress) {
@@ -600,9 +595,9 @@ class GeminiRAGChat {
         this.addFileToList(fileData);
 
         try {
-            console.log(`📄 Processing file: ${file.name}`);
+            console.log(`Processing file: ${file.name}`);
             const content = await this.extractFileContent(file);
-            console.log(`📄 Extracted content length: ${content.length} characters`);
+            console.log(`Extracted content length: ${content.length} characters`);
             
             fileData.content = content;
             fileData.processed = true;
@@ -612,10 +607,10 @@ class GeminiRAGChat {
             
             // Process chunks for the new document
             if (this.isEmbeddingModelReady) {
-                console.log('🔍 Processing chunks for new document...');
+                console.log('Processing chunks for new document...');
                 await this.processDocumentChunks();
             } else {
-                console.log('⚠️ Embedding model not ready, skipping chunk processing');
+                console.log('Embedding model not ready, skipping chunk processing');
             }
             
         } catch (error) {
@@ -626,7 +621,7 @@ class GeminiRAGChat {
     }
 
     async extractFileContent(file) {
-        console.log('📄 Extracting content from file:', file.name);
+        console.log('Extracting content from file:', file.name);
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             
@@ -787,7 +782,6 @@ class GeminiRAGChat {
 
     async sendMessage() {
         const message = this.messageInput.value.trim();
-        console.log('💬 Sending message:', message.substring(0, 50) + (message.length > 50 ? '...' : ''));
         
         if (!message || !this.isModelReady) {
             console.warn('Cannot send message:', {
@@ -839,28 +833,28 @@ class GeminiRAGChat {
 User: ${message}
 
 Please provide a clear, helpful response.`;
-                console.log('📝 General prompt length:', prompt.length, 'characters');
+                console.log('General prompt length:', prompt.length, 'characters');
             }
             
-            console.log('🤖 Sending prompt to Gemini with streaming...');
+            console.log('Sending prompt to Gemini Nano with streaming...');
             
             // Use streaming for better user experience
             const result = await this.streamResponse(prompt, typingId);
             
             if (result && result.trim().length > 0) {
-                console.log('✅ Streaming response completed');
+                console.log('Streaming response completed');
                 // Save to chat history
                 this.saveChatHistory(message, result);
                 
                 // Add to conversation context for future messages
                 this.addToConversationContext(message, result);
             } else {
-                console.error('❌ Empty response from streaming');
+                console.error('Empty response from streaming');
                 this.addMessage('assistant', 'Sorry, I received an empty response. Please try again.');
             }
 
         } catch (error) {
-            console.error('❌ Error getting response:', error);
+            console.error('Error getting response:', error);
             this.removeTypingIndicator(typingId);
             this.addMessage('assistant', 'Sorry, I encountered an error while processing your request. Please try again.');
         } finally {
@@ -870,24 +864,24 @@ Please provide a clear, helpful response.`;
     }
 
     async prepareIntelligentContext(userMessage) {
-        console.log('🔍 Preparing intelligent context for query:', userMessage);
-        console.log('📊 Document chunks available:', this.documentChunks.length);
-        console.log('🧠 Embedding model ready:', this.isEmbeddingModelReady);
+        console.log('Preparing intelligent context for query:', userMessage);
+        console.log('Document chunks available:', this.documentChunks.length);
+        console.log('Embedding model ready:', this.isEmbeddingModelReady);
         
         // Always fallback to document context if no chunks or embedding model not ready
         if (this.documentChunks.length === 0 || !this.isEmbeddingModelReady) {
-            console.log('⚠️ Using fallback context (no chunks or embedding model not ready)');
+            console.log('Using fallback context (no chunks or embedding model not ready)');
             return this.prepareDocumentContext();
         }
         
         try {
             // Find relevant chunks based on user query
-            console.log('🔍 Searching for relevant chunks...');
+            console.log('Searching for relevant chunks...');
             const relevantChunks = await this.findRelevantChunks(userMessage, 3);
-            console.log('📄 Found relevant chunks:', relevantChunks.length);
+            console.log('Found relevant chunks:', relevantChunks.length);
             
             if (relevantChunks.length === 0) {
-                console.log('⚠️ No relevant chunks found, using fallback');
+                console.log('No relevant chunks found, using fallback');
                 return this.prepareDocumentContext();
             }
             
@@ -895,30 +889,30 @@ Please provide a clear, helpful response.`;
             let context = '';
             for (const result of relevantChunks) {
                 const chunk = result.chunk;
-                console.log(`📄 Adding chunk from ${chunk.documentName} (similarity: ${result.similarity.toFixed(3)})`);
+                console.log(`Adding chunk from ${chunk.documentName} (similarity: ${result.similarity.toFixed(3)})`);
                 context += `Document: ${chunk.documentName} (Chunk ${chunk.chunkIndex + 1})\nContent: ${chunk.content}\n\n`;
             }
             
             // Add conversation context if available
             const conversationContext = this.getConversationContext();
             if (conversationContext) {
-                console.log('💬 Adding conversation context');
+                console.log('Adding conversation context');
                 context += `Previous Conversation:\n${conversationContext}\n\n`;
             }
             
-            console.log('✅ Final context length:', context.length, 'characters');
+            console.log('Final context length:', context.length, 'characters');
             
             // If context is too short, add more from fallback
             if (context.length < 500) {
-                console.log('⚠️ Context too short, adding fallback content');
+                console.log('Context too short, adding fallback content');
                 const fallbackContext = this.prepareDocumentContext();
                 context += `\nAdditional Document Content:\n${fallbackContext}`;
             }
             
             return context.trim();
         } catch (error) {
-            console.error('❌ Error preparing intelligent context:', error);
-            console.log('🔄 Falling back to document context');
+            console.error('Error preparing intelligent context:', error);
+            console.log('Falling back to document context');
             // Fallback to old method
             return this.prepareDocumentContext();
         }
@@ -1006,7 +1000,7 @@ Please provide a comprehensive answer based on the document content above. If th
     formatMessageText(text) {
         // Handle null/undefined text
         if (!text) {
-            console.warn('⚠️ Received empty or undefined text from Gemini');
+            console.warn('Received empty or undefined text from Gemini Nano');
             return 'Sorry, I received an empty response. Please try again.';
         }
         
@@ -1039,7 +1033,7 @@ Please provide a comprehensive answer based on the document content above. If th
 
     // Chat History Management
     startNewChat() {
-        console.log('🆕 Starting new chat session...');
+        console.log('Starting new chat session...');
         
         // Generate new chat ID
         this.currentChatId = this.generateId();
@@ -1066,19 +1060,19 @@ Please provide a comprehensive answer based on the document content above. If th
         this.conversationContext = [];
         this.createNewChat();
         
-        console.log('✅ New chat session created:', this.currentChatId);
+        console.log('New chat session created:', this.currentChatId);
     }
 
     saveChatHistory(userMessage, assistantResponse) {
         if (!this.currentChatId) {
-            console.warn('⚠️ No current chat ID, creating new chat...');
+            console.warn('No current chat ID, creating new chat...');
             this.startNewChat();
         }
 
         // Find current chat
         const currentChat = this.chatHistoryData.find(chat => chat.id === this.currentChatId);
         if (!currentChat) {
-            console.error('❌ Current chat not found, creating new one...');
+            console.error('Current chat not found, creating new one...');
             this.startNewChat();
             return;
         }
@@ -1103,7 +1097,7 @@ Please provide a comprehensive answer based on the document content above. If th
         // Update UI
         this.updateChatHistoryItem(currentChat);
         
-        console.log('💾 Chat history saved for session:', this.currentChatId);
+        console.log('Chat history saved for session:', this.currentChatId);
     }
 
     saveChatHistoryToStorage() {
@@ -1118,9 +1112,9 @@ Please provide a comprehensive answer based on the document content above. If th
                 // Sort by last updated (newest first)
                 this.chatHistoryData.sort((a, b) => new Date(b.lastUpdated) - new Date(a.lastUpdated));
                 this.chatHistoryData.forEach(chat => this.addChatHistoryItem(chat));
-                console.log('📚 Loaded', this.chatHistoryData.length, 'chat sessions');
+                console.log('Loaded', this.chatHistoryData.length, 'chat sessions');
             } catch (error) {
-                console.error('❌ Error loading chat history:', error);
+                console.error('Error loading chat history:', error);
                 this.chatHistoryData = [];
             }
         }
@@ -1165,11 +1159,11 @@ Please provide a comprehensive answer based on the document content above. If th
     loadChat(chatId) {
         const chat = this.chatHistoryData.find(c => c.id === chatId);
         if (!chat) {
-            console.error('❌ Chat not found:', chatId);
+            console.error('Chat not found:', chatId);
             return;
         }
 
-        console.log('📖 Loading chat session:', chatId);
+        console.log('Loading chat session:', chatId);
         
         // Set current chat
         this.currentChatId = chatId;
@@ -1207,7 +1201,7 @@ Please provide a comprehensive answer based on the document content above. If th
         // Show chat container
         this.createNewChat();
         
-        console.log('✅ Chat session loaded:', chatId);
+        console.log('Chat session loaded:', chatId);
     }
 
     clearChatHistory() {
@@ -1218,7 +1212,7 @@ Please provide a comprehensive answer based on the document content above. If th
             this.currentChatId = null;
             this.hideMessagesContainer();
             this.showWelcomeMessage();
-            console.log('🗑️ Chat history cleared');
+            console.log('Chat history cleared');
         }
     }
 
@@ -1282,7 +1276,7 @@ Please provide a comprehensive answer based on the document content above. If th
         // Set selection to current system prompt
         this.systemPromptSelector.value = this.currentSystemPrompt;
         
-        console.log(`🎭 Initialized system prompt selector with: ${this.systemPrompts[this.currentSystemPrompt].name}`);
+        console.log(`Initialized system prompt selector with: ${this.systemPrompts[this.currentSystemPrompt].name}`);
     }
 
     async handleSystemPromptChange() {
@@ -1300,13 +1294,13 @@ Please provide a comprehensive answer based on the document content above. If th
             // Show confirmation message
             this.showSuccess(`Switched to ${this.systemPrompts[selectedPrompt].name} mode`);
             
-            console.log(`🔄 System prompt changed to: ${this.systemPrompts[selectedPrompt].name}`);
+            console.log(`System prompt changed to: ${this.systemPrompts[selectedPrompt].name}`);
         }
     }
 
     async updateSystemPrompt() {
         try {
-            console.log('🔄 Updating system prompt...');
+            console.log('Updating system prompt...');
             this.updateModelStatus('loading', 'Updating AI Configuration...');
             
             // Abort current session if it exists
@@ -1327,10 +1321,10 @@ Please provide a comprehensive answer based on the document content above. If th
             
             this.isModelReady = true;
             this.updateModelStatus('online', 'Model Ready');
-            console.log('✅ System prompt updated successfully');
+            console.log('System prompt updated successfully');
             
         } catch (error) {
-            console.error('❌ Error updating system prompt:', error);
+            console.error('Error updating system prompt:', error);
             this.updateModelStatus('offline', 'Update Failed');
             this.showError('Failed to update AI configuration. Please try again.');
         }
@@ -1366,7 +1360,7 @@ Please provide a comprehensive answer based on the document content above. If th
         try {
             if (typeof LanguageModel !== 'undefined') {
                 this.defaultParams = await LanguageModel.params();
-                console.log('📊 Default model params:', this.defaultParams);
+                console.log('Default model params:', this.defaultParams);
                 
                 // If no custom params are saved, use defaults
                 if (!this.loadModelParams()) {
@@ -1424,7 +1418,7 @@ Please provide a comprehensive answer based on the document content above. If th
                 this.topKSlider.step = 1;
             }
             
-            console.log('📊 Updated slider ranges:', {
+            console.log('Updated slider ranges:', {
                 temperature: { min: 0, max: this.defaultParams.maxTemperature },
                 topK: { min: 1, max: this.defaultParams.maxTopK }
             });
@@ -1480,7 +1474,7 @@ Please provide a comprehensive answer based on the document content above. If th
             this.saveModelParams();
             
             this.showSuccess('Model parameters reset to defaults');
-            console.log('🔄 Model parameters reset to defaults');
+            console.log('Model parameters reset to defaults');
         }
     }
 
@@ -1503,7 +1497,7 @@ Please provide a comprehensive answer based on the document content above. If th
             
             // Recreate session with new parameters
             if (this.isModelReady) {
-                console.log('🔄 Applying new model parameters...');
+                console.log('Applying new model parameters...');
                 this.updateModelStatus('loading', 'Updating Model Parameters...');
                 
                 await this.createSession();
@@ -1511,13 +1505,13 @@ Please provide a comprehensive answer based on the document content above. If th
                 this.isModelReady = true;
                 this.updateModelStatus('online', 'Model Ready');
                 this.showSuccess('Model parameters applied successfully');
-                console.log('✅ Model parameters applied');
+                console.log('Model parameters applied');
             } else {
                 this.showSuccess('Model parameters saved for next session');
             }
             
         } catch (error) {
-            console.error('❌ Error applying model parameters:', error);
+            console.error('Error applying model parameters:', error);
             this.showError('Failed to apply model parameters. Please try again.');
         }
     }
@@ -1525,7 +1519,7 @@ Please provide a comprehensive answer based on the document content above. If th
     // Streaming Response Method
     async streamResponse(prompt, typingId) {
         try {
-            console.log('🌊 Starting streaming response...');
+            console.log('Starting streaming response...');
             
             // Remove typing indicator and create streaming message
             this.removeTypingIndicator(typingId);
@@ -1536,12 +1530,12 @@ Please provide a comprehensive answer based on the document content above. If th
             let fullResponse = '';
             let chunkCount = 0;
             
-            console.log('📡 Processing stream chunks...');
+            console.log('Processing stream chunks...');
             
             for await (const chunk of stream) {
                 // Check if generation was stopped
                 if (!this.isGenerating) {
-                    console.log('🛑 Streaming stopped by user');
+                    console.log('Streaming stopped by user');
                     this.updateStreamingMessage(messageId, fullResponse + '\n\n[Generation stopped by user]');
                     return fullResponse;
                 }
@@ -1554,11 +1548,11 @@ Please provide a comprehensive answer based on the document content above. If th
                 
                 // Log progress every 10 chunks
                 if (chunkCount % 10 === 0) {
-                    console.log(`📡 Processed ${chunkCount} chunks, response length: ${fullResponse.length}`);
+                    console.log(`Processed ${chunkCount} chunks, response length: ${fullResponse.length}`);
                 }
             }
             
-            console.log(`✅ Streaming completed: ${chunkCount} chunks, ${fullResponse.length} characters`);
+            console.log(`Streaming completed: ${chunkCount} chunks, ${fullResponse.length} characters`);
             
             // Finalize the streaming message
             this.finalizeStreamingMessage(messageId, fullResponse);
@@ -1566,7 +1560,7 @@ Please provide a comprehensive answer based on the document content above. If th
             return fullResponse;
             
         } catch (error) {
-            console.error('❌ Error in streaming response:', error);
+            console.error('Error in streaming response:', error);
             throw error;
         }
     }
@@ -1691,53 +1685,53 @@ Please provide a comprehensive answer based on the document content above. If th
             return;
         }
         
-        console.log('🔍 Processing document chunks...');
-        console.log('📄 Total documents to process:', this.documents.length);
+        console.log('Processing document chunks...');
+        console.log('Total documents to process:', this.documents.length);
         this.documentChunks = [];
         this.chunkEmbeddings = [];
         
         for (const doc of this.documents) {
             if (doc.processed && doc.content) {
-                console.log(`📄 Processing document: ${doc.name} (${doc.content.length} chars)`);
+                console.log(`Processing document: ${doc.name} (${doc.content.length} chars)`);
                 const chunks = this.createDocumentChunks(doc.content, doc.name);
-                console.log(`📄 Created ${chunks.length} chunks for ${doc.name}`);
-                for (let i = 0; i < Math.min(3, chunks.length); i++) {
-                    console.log(`  Chunk ${i + 1}: ${chunks[i].content.substring(0, 100)}...`);
-                }
+                console.log(`Created ${chunks.length} chunks for ${doc.name}`);
+                // for (let i = 0; i < Math.min(3, chunks.length); i++) {
+                //     console.log(`  Chunk ${i + 1}: ${chunks[i].content.substring(0, 100)}...`);
+                // }
                 this.documentChunks.push(...chunks);
             } else {
-                console.log(`⚠️ Skipping document ${doc.name} - processed: ${doc.processed}, content length: ${doc.content?.length || 0}`);
+                console.log(`Skipping document ${doc.name} - processed: ${doc.processed}, content length: ${doc.content?.length || 0}`);
             }
         }
         
-        console.log(`📊 Total chunks created: ${this.documentChunks.length}`);
+        console.log(`Total chunks created: ${this.documentChunks.length}`);
         
         // Generate embeddings for all chunks
         if (this.documentChunks.length > 0) {
             await this.generateChunkEmbeddings();
         } else {
-            console.log('⚠️ No chunks to embed');
+            console.log('No chunks to embed');
         }
     }
 
     async generateChunkEmbeddings() {
         try {
-            console.log('🔍 Generating embeddings for chunks...');
+            console.log('Generating embeddings for chunks...');
             const chunkTexts = this.documentChunks.map(chunk => chunk.content);
             const embeddings = await this.embeddingModel.embed(chunkTexts);
             
             // Convert to regular arrays for easier manipulation
             this.chunkEmbeddings = await embeddings.array();
-            console.log(`✅ Generated embeddings for ${this.chunkEmbeddings.length} chunks`);
+            console.log(`Generated embeddings for ${this.chunkEmbeddings.length} chunks`);
         } catch (error) {
-            console.error('❌ Error generating embeddings:', error);
+            console.error('Error generating embeddings:', error);
         }
     }
 
     // Semantic Search for Relevant Chunks
     async findRelevantChunks(query, topK = 5) {
         if (!this.isEmbeddingModelReady || this.chunkEmbeddings.length === 0) {
-            console.warn('⚠️ Embeddings not available, returning empty results');
+            console.warn('Embeddings not available, returning empty results');
             return [];
         }
         
@@ -1760,10 +1754,10 @@ Please provide a comprehensive answer based on the document content above. If th
             similarities.sort((a, b) => b.similarity - a.similarity);
             const topChunks = similarities.slice(0, topK);
             
-            console.log(`🔍 Found ${topChunks.length} relevant chunks for query: "${query}"`);
+            console.log(`Found ${topChunks.length} relevant chunks for query: "${query}"`);
             return topChunks;
         } catch (error) {
-            console.error('❌ Error in semantic search:', error);
+            console.error('Error in semantic search:', error);
             return [];
         }
     }
@@ -1802,65 +1796,6 @@ Please provide a comprehensive answer based on the document content above. If th
         return this.conversationContext.map(exchange => 
             `User: ${exchange.user}\nAssistant: ${exchange.assistant}`
         ).join('\n\n');
-    }
-
-    // Debug function to show current documents
-    debugDocuments() {
-        console.log('🔍 === DEBUG: Current Documents ===');
-        console.log('📊 Total documents:', this.documents.length);
-        this.documents.forEach((doc, index) => {
-            console.log(`📄 Document ${index + 1}: ${doc.name}`);
-            console.log(`  - Processed: ${doc.processed}`);
-            console.log(`  - Content length: ${doc.content?.length || 0}`);
-            console.log(`  - Content preview: ${doc.content?.substring(0, 200) || 'No content'}...`);
-        });
-        console.log('🔍 === END DEBUG ===');
-    }
-
-    // Debug context retrieval
-    async debugContext() {
-        console.log('🔍 === DEBUG CONTEXT RETRIEVAL ===');
-        
-        // Show current documents
-        this.debugDocuments();
-        
-        // Show current chunks
-        console.log('📊 Total chunks:', this.documentChunks.length);
-        this.documentChunks.forEach((chunk, index) => {
-            console.log(`Chunk ${index + 1}: ${chunk.documentName} - ${chunk.content.substring(0, 100)}...`);
-        });
-        
-        // Test context retrieval with a sample query
-        const testQuery = "summarize the main points";
-        console.log('🔍 Testing context retrieval with query:', testQuery);
-        
-        try {
-            const context = await this.prepareIntelligentContext(testQuery);
-            console.log('📄 Retrieved context:');
-            console.log(context);
-        } catch (error) {
-            console.error('❌ Error in context retrieval:', error);
-        }
-        
-        console.log('🔍 === END DEBUG ===');
-    }
-
-    // Test PDF content extraction
-    testPDFContent() {
-        console.log('🔍 === TESTING PDF CONTENT ===');
-        this.documents.forEach((doc, index) => {
-            console.log(`📄 Document ${index + 1}: ${doc.name}`);
-            console.log(`  - Type: ${doc.type}`);
-            console.log(`  - Size: ${doc.size} bytes`);
-            console.log(`  - Processed: ${doc.processed}`);
-            console.log(`  - Content length: ${doc.content?.length || 0}`);
-            if (doc.content) {
-                console.log(`  - First 300 chars: "${doc.content.substring(0, 300)}"`);
-                console.log(`  - Contains "Gemini": ${doc.content.toLowerCase().includes('gemini')}`);
-                console.log(`  - Contains "DROP": ${doc.content.toLowerCase().includes('drop')}`);
-            }
-        });
-        console.log('🔍 === END TEST ===');
     }
 }
 
