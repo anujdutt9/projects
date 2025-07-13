@@ -449,8 +449,7 @@ class GeminiRAGChat {
 
     updateSendButtonState() {
         const hasText = this.messageInput.value.trim().length > 0;
-        const hasDocuments = this.documents.length > 0;
-        const isReady = this.isModelReady && hasText && hasDocuments;
+        const isReady = this.isModelReady && hasText;
         
         this.sendBtn.disabled = !isReady;
     }
@@ -459,11 +458,10 @@ class GeminiRAGChat {
         const message = this.messageInput.value.trim();
         console.log('💬 Sending message:', message.substring(0, 50) + (message.length > 50 ? '...' : ''));
         
-        if (!message || !this.isModelReady || this.documents.length === 0) {
+        if (!message || !this.isModelReady) {
             console.warn('⚠️ Cannot send message:', {
                 hasMessage: !!message,
-                isModelReady: this.isModelReady,
-                documentsCount: this.documents.length
+                isModelReady: this.isModelReady
             });
             return;
         }
@@ -485,26 +483,50 @@ class GeminiRAGChat {
         const typingId = this.addTypingIndicator();
 
         try {
-            console.log('🔍 Preparing document context...');
-            // Prepare context from documents
-            const context = this.prepareDocumentContext();
-            console.log('📚 Context length:', context.length, 'characters');
+            let prompt;
             
-            // Create prompt with context
-            const prompt = this.createPromptWithContext(message, context);
-            console.log('📝 Prompt length:', prompt.length, 'characters');
+            if (this.documents.length > 0) {
+                console.log('🔍 Preparing document context...');
+                // Prepare context from documents
+                const context = this.prepareDocumentContext();
+                console.log('📚 Context length:', context.length, 'characters');
+                
+                // Create prompt with context
+                prompt = this.createPromptWithContext(message, context);
+                console.log('📝 Prompt length:', prompt.length, 'characters');
+            } else {
+                console.log('💬 No documents provided, using general conversation mode');
+                // Create a general conversation prompt
+                prompt = `You are a helpful AI assistant. Please respond to the following question or request in a helpful and informative way:
+
+User: ${message}
+
+Please provide a clear, helpful response.`;
+                console.log('📝 General prompt length:', prompt.length, 'characters');
+            }
             
             console.log('🤖 Sending prompt to Gemini...');
             // Get response from Gemini
-            const result = await this.session.prompt(prompt);
-            console.log('✅ Received response from Gemini');
-            console.log('📄 Response object:', result);
-            console.log('📝 Response text:', result);
+            let result;
+            try {
+                console.log('🔍 Prompt:', prompt);
+                result = await this.session.prompt(prompt);
+                console.log('✅ Received response from Gemini');
+                console.log('📄 Response object:', result);
+                console.log('📝 Response type:', typeof result);
+                console.log('📝 Response text:', result);
+            } catch (promptError) {
+                console.error('❌ Error calling session.prompt:', promptError);
+                this.removeTypingIndicator(typingId);
+                this.addMessage('assistant', 'Sorry, I encountered an error while processing your request. Please try again.');
+                return;
+            }
             
             // Remove typing indicator and add response
             this.removeTypingIndicator(typingId);
             
-            if (result) {
+            if (result && typeof result === 'string' && result.trim().length > 0) {
+                console.log('✅ Valid response received, adding message');
                 this.addMessage('assistant', result);
             } else {
                 console.error('❌ Invalid response from Gemini:', result);
