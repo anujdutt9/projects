@@ -60,8 +60,14 @@ class GeminiRAGChat {
                 throw new Error('LanguageModel API not available. Please use Chrome with Gemini Nano support.');
             }
 
+            // Add timeout to prevent infinite loading
+            const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error('Model initialization timed out. Please refresh and try again.')), 60000); // 60 second timeout
+            });
+
             // Check model availability first
             const modelStatus = await LanguageModel.getModelStatus();
+            console.log('Model status:', modelStatus);
             
             if (modelStatus === "downloadable") {
                 // Model needs to be downloaded
@@ -75,6 +81,12 @@ class GeminiRAGChat {
                             this.updateLoadingProgress(progress);
                             this.loadingMessage.textContent = `Downloading model: ${progress}%`;
                         });
+                        
+                        // Handle download completion
+                        m.addEventListener("downloadcomplete", () => {
+                            this.loadingMessage.textContent = 'Initializing model...';
+                            this.loadingProgress.style.display = 'none';
+                        });
                     }
                 });
             } else if (modelStatus === "available") {
@@ -87,6 +99,12 @@ class GeminiRAGChat {
                 throw new Error(`Model status unknown: ${modelStatus}`);
             }
 
+            // Race between model creation and timeout
+            await Promise.race([
+                Promise.resolve(), // Model creation is already awaited above
+                timeoutPromise
+            ]);
+
             this.isModelReady = true;
             this.updateModelStatus('online', 'Model Ready');
             this.hideLoadingModal();
@@ -98,7 +116,17 @@ class GeminiRAGChat {
             console.error('Error initializing model:', error);
             this.updateModelStatus('offline', 'Model Error');
             this.hideLoadingModal();
-            this.showError('Failed to initialize Gemini model. Please ensure you are using Chrome with Gemini Nano support.');
+            
+            let errorMessage = 'Failed to initialize Gemini model. ';
+            if (error.message.includes('timed out')) {
+                errorMessage += 'The model took too long to initialize. Please refresh the page and try again.';
+            } else if (error.message.includes('LanguageModel API not available')) {
+                errorMessage += 'Please ensure you are using Chrome with Gemini Nano support.';
+            } else {
+                errorMessage += 'Please refresh the page and try again.';
+            }
+            
+            this.showError(errorMessage);
         }
     }
 
