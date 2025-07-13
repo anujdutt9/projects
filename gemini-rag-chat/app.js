@@ -407,7 +407,6 @@ class GeminiRAGChat {
             console.log(`📄 Processing file: ${file.name}`);
             const content = await this.extractFileContent(file);
             console.log(`📄 Extracted content length: ${content.length} characters`);
-            console.log(`📄 Content preview: ${content.substring(0, 200)}...`);
             
             fileData.content = content;
             fileData.processed = true;
@@ -423,8 +422,6 @@ class GeminiRAGChat {
                 console.log('⚠️ Embedding model not ready, skipping chunk processing');
             }
             
-            // Test PDF content
-            this.testPDFContent();
         } catch (error) {
             console.error('Error processing file:', file.name, error);
             this.updateFileStatus(fileId, 'error');
@@ -1263,22 +1260,6 @@ Please provide a comprehensive answer based on the document content above. If th
         return this.conversationContext.map(exchange => 
             `User: ${exchange.user}\nAssistant: ${exchange.assistant}`
         ).join('\n\n');
-    }
-
-    // Test PDF content extraction
-    testPDFContent() {
-        console.log('🔍 === TESTING PDF CONTENT ===');
-        this.documents.forEach((doc, index) => {
-            console.log(`📄 Document ${index + 1}: ${doc.name}`);
-            console.log(`  - Type: ${doc.type}`);
-            console.log(`  - Size: ${doc.size} bytes`);
-            console.log(`  - Processed: ${doc.processed}`);
-            console.log(`  - Content length: ${doc.content?.length || 0}`);
-            if (doc.content) {
-                console.log(`  - First 300 chars: "${doc.content.substring(0, 300)}"`);
-            }
-        });
-        console.log('🔍 === END TEST ===');
     }
 
     // System Prompt Management
