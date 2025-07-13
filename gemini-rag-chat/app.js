@@ -37,6 +37,7 @@ class GeminiRAGChat {
         this.chatHistoryContainer = document.getElementById('chatHistory');
         this.newChatBtn = document.getElementById('newChatBtn');
         this.clearHistoryBtn = document.getElementById('clearHistory');
+        this.debugBtn = document.getElementById('debugBtn');
         this.modelStatus = document.getElementById('model-status');
         this.embeddingStatus = document.getElementById('embedding-status');
         this.loadingModal = new bootstrap.Modal(document.getElementById('loadingModal'));
@@ -59,6 +60,7 @@ class GeminiRAGChat {
         this.sendBtn.addEventListener('click', this.sendMessage.bind(this));
         this.newChatBtn.addEventListener('click', this.startNewChat.bind(this));
         this.clearHistoryBtn.addEventListener('click', this.clearChatHistory.bind(this));
+        this.debugBtn.addEventListener('click', this.debugContext.bind(this));
 
         // Auto-resize textarea
         this.messageInput.addEventListener('input', this.autoResizeTextarea.bind(this));
@@ -200,6 +202,15 @@ class GeminiRAGChat {
     async initializeEmbeddingModel() {
         try {
             console.log('🔍 Initializing Universal Sentence Encoder...');
+            
+            // Check if the library is available
+            if (typeof use === 'undefined') {
+                console.error('❌ Universal Sentence Encoder library not available');
+                this.isEmbeddingModelReady = false;
+                this.updateEmbeddingStatus('offline', 'Library Not Available');
+                return;
+            }
+            
             this.updateEmbeddingStatus('loading', 'Loading Embeddings...');
             this.embeddingModel = await use.load();
             this.isEmbeddingModelReady = true;
@@ -377,7 +388,11 @@ class GeminiRAGChat {
         this.addFileToList(fileData);
 
         try {
+            console.log(`📄 Processing file: ${file.name}`);
             const content = await this.extractFileContent(file);
+            console.log(`📄 Extracted content length: ${content.length} characters`);
+            console.log(`📄 Content preview: ${content.substring(0, 200)}...`);
+            
             fileData.content = content;
             fileData.processed = true;
             this.documents.push(fileData);
@@ -386,8 +401,17 @@ class GeminiRAGChat {
             
             // Process chunks for the new document
             if (this.isEmbeddingModelReady) {
+                console.log('🔍 Processing chunks for new document...');
                 await this.processDocumentChunks();
+            } else {
+                console.log('⚠️ Embedding model not ready, skipping chunk processing');
             }
+            
+            // Debug current documents
+            this.debugDocuments();
+            
+            // Test PDF content
+            this.testPDFContent();
         } catch (error) {
             console.error('Error processing file:', file.name, error);
             this.updateFileStatus(fileId, 'error');
@@ -647,34 +671,55 @@ Please provide a clear, helpful response.`;
     }
 
     async prepareIntelligentContext(userMessage) {
-        if (this.documentChunks.length === 0) {
-            return '';
+        console.log('🔍 Preparing intelligent context for query:', userMessage);
+        console.log('📊 Document chunks available:', this.documentChunks.length);
+        console.log('🧠 Embedding model ready:', this.isEmbeddingModelReady);
+        
+        // Always fallback to document context if no chunks or embedding model not ready
+        if (this.documentChunks.length === 0 || !this.isEmbeddingModelReady) {
+            console.log('⚠️ Using fallback context (no chunks or embedding model not ready)');
+            return this.prepareDocumentContext();
         }
         
         try {
             // Find relevant chunks based on user query
+            console.log('🔍 Searching for relevant chunks...');
             const relevantChunks = await this.findRelevantChunks(userMessage, 3);
+            console.log('📄 Found relevant chunks:', relevantChunks.length);
             
             if (relevantChunks.length === 0) {
-                return '';
+                console.log('⚠️ No relevant chunks found, using fallback');
+                return this.prepareDocumentContext();
             }
             
             // Build context from relevant chunks
             let context = '';
             for (const result of relevantChunks) {
                 const chunk = result.chunk;
+                console.log(`📄 Adding chunk from ${chunk.documentName} (similarity: ${result.similarity.toFixed(3)})`);
                 context += `Document: ${chunk.documentName} (Chunk ${chunk.chunkIndex + 1})\nContent: ${chunk.content}\n\n`;
             }
             
             // Add conversation context if available
             const conversationContext = this.getConversationContext();
             if (conversationContext) {
+                console.log('💬 Adding conversation context');
                 context += `Previous Conversation:\n${conversationContext}\n\n`;
+            }
+            
+            console.log('✅ Final context length:', context.length, 'characters');
+            
+            // If context is too short, add more from fallback
+            if (context.length < 500) {
+                console.log('⚠️ Context too short, adding fallback content');
+                const fallbackContext = this.prepareDocumentContext();
+                context += `\nAdditional Document Content:\n${fallbackContext}`;
             }
             
             return context.trim();
         } catch (error) {
             console.error('❌ Error preparing intelligent context:', error);
+            console.log('🔄 Falling back to document context');
             // Fallback to old method
             return this.prepareDocumentContext();
         }
@@ -1069,20 +1114,31 @@ Please provide a comprehensive answer based on the document content above. If th
         }
         
         console.log('🔍 Processing document chunks...');
+        console.log('📄 Total documents to process:', this.documents.length);
         this.documentChunks = [];
         this.chunkEmbeddings = [];
         
         for (const doc of this.documents) {
             if (doc.processed && doc.content) {
+                console.log(`📄 Processing document: ${doc.name} (${doc.content.length} chars)`);
                 const chunks = this.createDocumentChunks(doc.content, doc.name);
-                this.documentChunks.push(...chunks);
                 console.log(`📄 Created ${chunks.length} chunks for ${doc.name}`);
+                for (let i = 0; i < Math.min(3, chunks.length); i++) {
+                    console.log(`  Chunk ${i + 1}: ${chunks[i].content.substring(0, 100)}...`);
+                }
+                this.documentChunks.push(...chunks);
+            } else {
+                console.log(`⚠️ Skipping document ${doc.name} - processed: ${doc.processed}, content length: ${doc.content?.length || 0}`);
             }
         }
+        
+        console.log(`📊 Total chunks created: ${this.documentChunks.length}`);
         
         // Generate embeddings for all chunks
         if (this.documentChunks.length > 0) {
             await this.generateChunkEmbeddings();
+        } else {
+            console.log('⚠️ No chunks to embed');
         }
     }
 
@@ -1168,6 +1224,65 @@ Please provide a comprehensive answer based on the document content above. If th
         return this.conversationContext.map(exchange => 
             `User: ${exchange.user}\nAssistant: ${exchange.assistant}`
         ).join('\n\n');
+    }
+
+    // Debug function to show current documents
+    debugDocuments() {
+        console.log('🔍 === DEBUG: Current Documents ===');
+        console.log('📊 Total documents:', this.documents.length);
+        this.documents.forEach((doc, index) => {
+            console.log(`📄 Document ${index + 1}: ${doc.name}`);
+            console.log(`  - Processed: ${doc.processed}`);
+            console.log(`  - Content length: ${doc.content?.length || 0}`);
+            console.log(`  - Content preview: ${doc.content?.substring(0, 200) || 'No content'}...`);
+        });
+        console.log('🔍 === END DEBUG ===');
+    }
+
+    // Debug context retrieval
+    async debugContext() {
+        console.log('🔍 === DEBUG CONTEXT RETRIEVAL ===');
+        
+        // Show current documents
+        this.debugDocuments();
+        
+        // Show current chunks
+        console.log('📊 Total chunks:', this.documentChunks.length);
+        this.documentChunks.forEach((chunk, index) => {
+            console.log(`Chunk ${index + 1}: ${chunk.documentName} - ${chunk.content.substring(0, 100)}...`);
+        });
+        
+        // Test context retrieval with a sample query
+        const testQuery = "summarize the main points";
+        console.log('🔍 Testing context retrieval with query:', testQuery);
+        
+        try {
+            const context = await this.prepareIntelligentContext(testQuery);
+            console.log('📄 Retrieved context:');
+            console.log(context);
+        } catch (error) {
+            console.error('❌ Error in context retrieval:', error);
+        }
+        
+        console.log('🔍 === END DEBUG ===');
+    }
+
+    // Test PDF content extraction
+    testPDFContent() {
+        console.log('🔍 === TESTING PDF CONTENT ===');
+        this.documents.forEach((doc, index) => {
+            console.log(`📄 Document ${index + 1}: ${doc.name}`);
+            console.log(`  - Type: ${doc.type}`);
+            console.log(`  - Size: ${doc.size} bytes`);
+            console.log(`  - Processed: ${doc.processed}`);
+            console.log(`  - Content length: ${doc.content?.length || 0}`);
+            if (doc.content) {
+                console.log(`  - First 300 chars: "${doc.content.substring(0, 300)}"`);
+                console.log(`  - Contains "Gemini": ${doc.content.toLowerCase().includes('gemini')}`);
+                console.log(`  - Contains "DROP": ${doc.content.toLowerCase().includes('drop')}`);
+            }
+        });
+        console.log('🔍 === END TEST ===');
     }
 }
 
