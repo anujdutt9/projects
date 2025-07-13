@@ -309,11 +309,14 @@ class VideoAnalysisApp {
                     this.addSystemMessage('Analysis failed. Please try uploading your media file again.');
                     this.showAnalysisSummary('Analysis failed. Please try uploading your media file again.');
                 } else {
+                    // Clear previous system messages
+                    this.clearSystemMessages();
+                    
                     // Update the analysis summary with real content
                     if (analysis.summary) {
                         this.showAnalysisSummary(analysis.summary);
                     }
-                    this.addSystemMessage('Media analysis complete! You can now ask questions about the content.');
+                    this.addSystemMessage('Analysis complete! You can now ask questions about the content.');
                 }
             }, 1000);
             
@@ -851,6 +854,12 @@ Please provide a detailed answer that references specific frames and timestamps 
         const messageElement = this.createMessageElement(message, 'system');
         this.chatHistory.appendChild(messageElement);
         this.scrollToBottom();
+    }
+
+    clearSystemMessages() {
+        // Remove all system messages from chat history
+        const systemMessages = this.chatHistory.querySelectorAll('.message-system');
+        systemMessages.forEach(message => message.remove());
     }
 
     updateLastAIMessage(message) {
