@@ -2,6 +2,8 @@
 class GeminiRAGChat {
     constructor() {
         this.session = null;
+        this.sessionController = null; // AbortController for session management
+        this.isGenerating = false; // Track if currently generating
         this.documents = [];
         this.chatHistoryData = [];
         this.currentChatId = null;
@@ -46,6 +48,80 @@ class GeminiRAGChat {
         this.initializeModel();
         this.initializeEmbeddingModel();
         this.loadChatHistory();
+    }
+
+    // Session Management Methods
+    async createSession(options = {}) {
+        // Clean up existing session if any
+        await this.destroySession();
+        
+        // Create new AbortController for this session
+        this.sessionController = new AbortController();
+        
+        console.log('🔄 Creating new model session...');
+        
+        const sessionOptions = {
+            signal: this.sessionController.signal,
+            ...options
+        };
+        
+        this.session = await LanguageModel.create(sessionOptions);
+        console.log('✅ Model session created successfully');
+        
+        return this.session;
+    }
+
+    async destroySession() {
+        if (this.sessionController) {
+            console.log('🛑 Aborting current session...');
+            this.sessionController.abort();
+            this.sessionController = null;
+        }
+        
+        if (this.session) {
+            this.session = null;
+            console.log('🗑️ Session destroyed');
+        }
+        
+        this.isModelReady = false;
+        this.isGenerating = false;
+        this.updateModelStatus('offline', 'Session Ended');
+    }
+
+    // Stop generation and abort session
+    stopGeneration() {
+        if (this.isGenerating && this.sessionController) {
+            console.log('🛑 Stopping generation...');
+            this.sessionController.abort();
+            this.isGenerating = false;
+            this.updateUIForGeneration(false);
+            this.addMessage('assistant', 'Generation stopped by user.');
+        }
+    }
+
+    // Cleanup function for proper session management
+    cleanup() {
+        console.log('🧹 Cleaning up sessions...');
+        if (this.sessionController) {
+            this.sessionController.abort();
+        }
+        this.isGenerating = false;
+    }
+
+    // Update UI based on generation state
+    updateUIForGeneration(isGenerating) {
+        this.isGenerating = isGenerating;
+        
+        if (this.sendBtn) {
+            this.sendBtn.disabled = isGenerating;
+            this.sendBtn.innerHTML = isGenerating ? 
+                '<i class="fas fa-stop"></i>' : 
+                '<i class="fas fa-paper-plane"></i>';
+        }
+        
+        if (this.messageInput) {
+            this.messageInput.disabled = isGenerating;
+        }
     }
 
     initializeElements() {
@@ -126,6 +202,11 @@ class GeminiRAGChat {
         if (this.systemPromptSelector) {
             this.systemPromptSelector.addEventListener('change', this.handleSystemPromptChange.bind(this));
         }
+        
+        // Handle page unload to clean up session
+        window.addEventListener('beforeunload', () => {
+            this.cleanup();
+        });
     }
 
     async initializeModel() {
@@ -142,6 +223,9 @@ class GeminiRAGChat {
             }
             console.log('✅ LanguageModel API is available');
 
+            // Create new AbortController for session management
+            this.sessionController = new AbortController();
+
 
 
             // Check model availability first
@@ -157,6 +241,7 @@ class GeminiRAGChat {
                 this.loadingProgress.style.display = 'block';
                 
                 this.session = await LanguageModel.create({
+                    signal: this.sessionController.signal,
                     monitor: (m) => {
                         console.log('Setting up download monitor...');
                         m.addEventListener("downloadprogress", (e) => {
@@ -187,6 +272,7 @@ class GeminiRAGChat {
                 
                 console.log('Starting model download...');
                 this.session = await LanguageModel.create({
+                    signal: this.sessionController.signal,
                     monitor: (m) => {
                         console.log('Setting up download monitor...');
                         m.addEventListener("downloadprogress", (e) => {
@@ -212,7 +298,9 @@ class GeminiRAGChat {
                 this.loadingProgress.style.display = 'none';
                 
                 console.log('Creating model session...');
-                this.session = await LanguageModel.create();
+                this.session = await LanguageModel.create({
+                    signal: this.sessionController.signal
+                });
                 console.log('Model session created successfully');
             } else {
                 console.error('Unknown model status:', modelStatus);
@@ -647,6 +735,12 @@ class GeminiRAGChat {
             return;
         }
 
+        // If currently generating, stop generation
+        if (this.isGenerating) {
+            this.stopGeneration();
+            return;
+        }
+
         // Create new chat if none exists
         if (!this.currentChatId) {
             console.log('No current chat, starting new session...');
@@ -659,8 +753,9 @@ class GeminiRAGChat {
         this.autoResizeTextarea();
         this.updateSendButtonState();
 
-        // Show typing indicator
+        // Show typing indicator and set generation state
         const typingId = this.addTypingIndicator();
+        this.updateUIForGeneration(true);
 
         try {
             let prompt;
@@ -723,6 +818,9 @@ Please provide a clear, helpful response.`;
             console.error('❌ Error getting response:', error);
             this.removeTypingIndicator(typingId);
             this.addMessage('assistant', 'Sorry, I encountered an error while processing your request. Please try again.');
+        } finally {
+            // Reset generation state
+            this.updateUIForGeneration(false);
         }
     }
 
@@ -1142,7 +1240,7 @@ Please provide a comprehensive answer based on the document content above. If th
         console.log(`🎭 Initialized system prompt selector with: ${this.systemPrompts[this.currentSystemPrompt].name}`);
     }
 
-    handleSystemPromptChange() {
+    async handleSystemPromptChange() {
         const selectedPrompt = this.systemPromptSelector.value;
         if (selectedPrompt && this.systemPrompts[selectedPrompt]) {
             this.currentSystemPrompt = selectedPrompt;
@@ -1151,10 +1249,45 @@ Please provide a comprehensive answer based on the document content above. If th
             // Save preference
             this.saveSystemPromptPreference(selectedPrompt);
             
+            // Update session with new system prompt
+            await this.updateSystemPrompt();
+            
             // Show confirmation message
             this.showSuccess(`Switched to ${this.systemPrompts[selectedPrompt].name} mode`);
             
             console.log(`🔄 System prompt changed to: ${this.systemPrompts[selectedPrompt].name}`);
+        }
+    }
+
+    async updateSystemPrompt() {
+        try {
+            console.log('🔄 Updating system prompt...');
+            this.updateModelStatus('loading', 'Updating AI Configuration...');
+            
+            // Abort current session if it exists
+            if (this.sessionController) {
+                this.sessionController.abort();
+            }
+            
+            // Create new AbortController
+            this.sessionController = new AbortController();
+            
+            // Create new session with updated system prompt
+            this.session = await LanguageModel.create({
+                initialPrompts: [
+                    { role: 'system', content: this.systemPrompt }
+                ],
+                signal: this.sessionController.signal
+            });
+            
+            this.isModelReady = true;
+            this.updateModelStatus('online', 'Model Ready');
+            console.log('✅ System prompt updated successfully');
+            
+        } catch (error) {
+            console.error('❌ Error updating system prompt:', error);
+            this.updateModelStatus('offline', 'Update Failed');
+            this.showError('Failed to update AI configuration. Please try again.');
         }
     }
 
