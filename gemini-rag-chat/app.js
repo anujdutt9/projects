@@ -163,6 +163,12 @@ class GeminiRAGChat {
             console.log('🔒 Hiding loading modal...');
             this.hideLoadingModal();
             
+            // Force hide modal again after a short delay
+            setTimeout(() => {
+                console.log('🔒 Force hiding modal again...');
+                this.hideLoadingModal();
+            }, 500);
+            
             // Enable send button if documents are uploaded
             this.updateSendButtonState();
             console.log('✅ Application ready for use');
@@ -224,6 +230,7 @@ class GeminiRAGChat {
         // Method 1: Try Bootstrap modal hide
         try {
             this.loadingModal.hide();
+            console.log('✅ Bootstrap modal hide successful');
         } catch (error) {
             console.warn('⚠️ Bootstrap modal hide failed, using fallback');
         }
@@ -231,17 +238,31 @@ class GeminiRAGChat {
         // Method 2: Direct DOM manipulation (always works)
         const modalElement = document.getElementById('loadingModal');
         if (modalElement) {
+            console.log('🔧 Applying direct DOM changes...');
             modalElement.classList.remove('show');
             modalElement.style.display = 'none';
             modalElement.setAttribute('aria-hidden', 'true');
             modalElement.removeAttribute('aria-modal');
             modalElement.removeAttribute('role');
+            modalElement.style.paddingRight = '';
+        } else {
+            console.warn('⚠️ Modal element not found');
         }
         
         // Remove modal backdrop and body classes
         document.body.classList.remove('modal-open');
+        document.body.style.paddingRight = '';
+        document.body.style.overflow = '';
+        
         const backdrop = document.querySelector('.modal-backdrop');
-        if (backdrop) backdrop.remove();
+        if (backdrop) {
+            backdrop.remove();
+            console.log('✅ Modal backdrop removed');
+        }
+        
+        // Force remove any remaining modal-related elements
+        const remainingBackdrops = document.querySelectorAll('.modal-backdrop');
+        remainingBackdrops.forEach(backdrop => backdrop.remove());
         
         console.log('✅ Loading modal hidden successfully');
     }
