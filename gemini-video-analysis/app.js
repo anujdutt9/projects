@@ -10,6 +10,9 @@ class VideoAnalysisApp {
         this.initializeElements();
         this.setupEventListeners();
         this.initializeGeminiSession();
+        
+        // Add test button after a short delay to ensure DOM is ready
+        setTimeout(() => this.addTestButton(), 1000);
     }
 
     // Initialize DOM elements
@@ -27,6 +30,92 @@ class VideoAnalysisApp {
         this.questionInput = document.getElementById('questionInput');
         this.askQuestionBtn = document.getElementById('askQuestion');
         this.chatHistory = document.getElementById('chatHistory');
+    }
+    
+    // Add test button for debugging
+    addTestButton() {
+        const demoCard = document.querySelector('.demo-card');
+        if (demoCard) {
+            const testButton = document.createElement('button');
+            testButton.className = 'btn btn-warning mb-3';
+            testButton.innerHTML = '<i class="fas fa-bug me-2"></i>Test Gemini with Sample Image';
+            testButton.onclick = () => this.testGeminiWithSampleImage();
+            
+            // Insert after the upload area
+            const uploadArea = document.getElementById('uploadArea');
+            uploadArea.parentNode.insertBefore(testButton, uploadArea.nextSibling);
+        }
+    }
+    
+    // Test Gemini with a sample image file
+    async testGeminiWithSampleImage() {
+        console.log('=== Testing Gemini with Sample Image ===');
+        
+        if (!this.analysisSession) {
+            console.error('Gemini session not available');
+            this.showError('Gemini session not available. Please refresh the page.');
+            return;
+        }
+        
+        // Create a file input for the test image
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = 'image/*';
+        fileInput.style.display = 'none';
+        
+        fileInput.onchange = async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            try {
+                console.log('Test image file selected:', {
+                    name: file.name,
+                    type: file.type,
+                    size: file.size
+                });
+                
+                // Test with Gemini
+                const testPrompt = 'What do you see in this image? Please describe the colors, objects, people, and any text visible.';
+                
+                console.log('Sending test image to Gemini...');
+                const response = await this.analysisSession.prompt([
+                    {
+                        role: 'user',
+                        content: [
+                            { type: 'text', value: testPrompt },
+                            { type: 'image', value: file }
+                        ]
+                    }
+                ]);
+                
+                console.log('Gemini test response:', {
+                    hasResponse: !!response,
+                    responseType: typeof response,
+                    hasText: !!(response && response.text),
+                    responseKeys: response ? Object.keys(response) : 'no response',
+                    responseText: response && response.text ? response.text.substring(0, 200) + '...' : 'No text'
+                });
+                
+                if (response && response.text) {
+                    this.addSystemMessage('✅ Gemini test successful! Response: ' + response.text.substring(0, 100) + '...');
+                    console.log('✅ Gemini test successful!');
+                } else {
+                    this.addSystemMessage('❌ Gemini test failed - no response received');
+                    console.log('❌ Gemini test failed - no response received');
+                }
+                
+            } catch (error) {
+                console.error('Test failed with error:', error);
+                this.addSystemMessage('❌ Gemini test failed with error: ' + error.message);
+            } finally {
+                // Clean up
+                document.body.removeChild(fileInput);
+            }
+        };
+        
+        // Trigger file selection
+        document.body.appendChild(fileInput);
+        fileInput.click();
     }
 
     // Setup event listeners
@@ -294,15 +383,20 @@ class VideoAnalysisApp {
             
             video.onseeked = () => {
                 try {
+                    console.log('Video seeked to:', video.currentTime, 'Canvas size:', canvas.width, 'x', canvas.height);
                     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    console.log('Image drawn to canvas');
+                    
                     canvas.toBlob((blob) => {
                         if (blob) {
-                            console.log('Frame blob:', blob.type, blob.size);
+                            console.log('Frame blob created:', blob.type, blob.size, 'bytes');
                             frames.push({
                                 time: video.currentTime,
                                 image: blob
                             });
                             console.log('Frame extracted at time:', video.currentTime, 'Total frames:', frames.length);
+                        } else {
+                            console.error('Blob creation failed - blob is null');
                         }
                         extractFrame();
                     }, 'image/jpeg', 0.8);
@@ -413,6 +507,12 @@ class VideoAnalysisApp {
             console.log(`Analyzing frame ${i + 1}/${framesToAnalyze.length} at time ${frame.time}s`);
             
             try {
+                console.log(`Preparing to analyze frame ${i + 1}:`, {
+                    hasImage: !!frame.image,
+                    imageType: frame.image ? frame.image.type : 'none',
+                    imageSize: frame.image ? frame.image.size : 'none'
+                });
+                
                 const framePrompt = `Please analyze this single frame from a video and describe what you see. Include:
 1. Objects, people, or activities visible
 2. Setting or environment
@@ -421,6 +521,8 @@ class VideoAnalysisApp {
 5. What might be happening in this moment
 
 Frame timestamp: ${frame.time.toFixed(1)} seconds into the video.`;
+                
+                console.log('Sending frame to Gemini with prompt:', framePrompt.substring(0, 100) + '...');
                 
                 const response = await this.analysisSession.prompt([
                     {
@@ -431,6 +533,13 @@ Frame timestamp: ${frame.time.toFixed(1)} seconds into the video.`;
                         ]
                     }
                 ]);
+                
+                console.log(`Frame ${i + 1} Gemini response:`, {
+                    hasResponse: !!response,
+                    responseType: typeof response,
+                    hasText: !!(response && response.text),
+                    responseKeys: response ? Object.keys(response) : 'no response'
+                });
                 
                 if (response && response.text) {
                     frameAnalyses.push({
