@@ -15,6 +15,27 @@ class GeminiMindmapGenerator {
     init() {
         this.setupEventListeners();
         this.loadHistory();
+        this.initializeModel();
+    }
+
+    async initializeModel() {
+        // Simulate model initialization
+        const modelStatus = document.getElementById('model-status');
+        const modelIcon = modelStatus.querySelector('i');
+        const modelText = modelStatus.querySelector('span');
+        
+        // Show initializing state
+        modelIcon.className = 'fas fa-circle text-warning';
+        modelText.textContent = 'Initializing...';
+        
+        // Simulate initialization delay
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Update to ready state
+        modelIcon.className = 'fas fa-circle text-success';
+        modelText.textContent = 'Ready';
+        
+        // Update processing status to ready
         this.updateStatus('ready');
     }
 
@@ -305,11 +326,15 @@ class GeminiMindmapGenerator {
     }
 
     renderMindmap(data) {
+        console.log('Rendering mindmap with data:', data);
+        
         const viewport = document.getElementById('mindmapViewport');
         viewport.innerHTML = '';
 
-        const width = viewport.clientWidth;
-        const height = viewport.clientHeight;
+        const width = viewport.clientWidth || 800;
+        const height = viewport.clientHeight || 600;
+
+        console.log('Viewport dimensions:', width, height);
 
         // Create SVG
         this.svg = d3.select(viewport)
@@ -337,6 +362,8 @@ class GeminiMindmapGenerator {
         const layout = this.createLayout(width, height);
         layout(root);
 
+        console.log('Root hierarchy:', root);
+
         // Create links
         const links = g.selectAll('.mindmap-link')
             .data(root.links())
@@ -345,7 +372,10 @@ class GeminiMindmapGenerator {
             .attr('class', 'mindmap-link')
             .attr('d', d3.linkHorizontal()
                 .x(d => d.y)
-                .y(d => d.x));
+                .y(d => d.x))
+            .attr('fill', 'none')
+            .attr('stroke', '#cbd5e1')
+            .attr('stroke-width', 2);
 
         // Create nodes
         const nodes = g.selectAll('.mindmap-node')
@@ -358,18 +388,24 @@ class GeminiMindmapGenerator {
         // Add circles to nodes
         nodes.append('circle')
             .attr('r', d => d.children ? 8 : 6)
-            .attr('fill', d => d.children ? '#6366f1' : '#8b5cf6');
+            .attr('fill', d => d.children ? '#6366f1' : '#8b5cf6')
+            .attr('stroke', '#ffffff')
+            .attr('stroke-width', 2);
 
         // Add text to nodes
         nodes.append('text')
             .attr('dy', d => d.children ? -12 : 12)
             .attr('text-anchor', d => d.children ? 'middle' : 'middle')
             .text(d => d.data.name)
-            .style('font-size', '10px')
-            .style('fill', '#374151');
+            .style('font-size', '12px')
+            .style('font-weight', '500')
+            .style('fill', '#374151')
+            .style('pointer-events', 'none');
 
         // Update stats
         this.updateStats(root.descendants().length, root.links().length);
+        
+        console.log('Mindmap rendered successfully');
     }
 
     createLayout(width, height) {
@@ -471,14 +507,26 @@ class GeminiMindmapGenerator {
     }
 
     showMindmap() {
+        console.log('Showing mindmap');
+        
+        // Hide welcome message and loading state
         document.getElementById('welcomeMessage').style.display = 'none';
         document.getElementById('loadingState').style.display = 'none';
-        document.getElementById('mindmapContainer').style.display = 'flex';
+        
+        // Show mindmap container
+        const mindmapContainer = document.getElementById('mindmapContainer');
+        mindmapContainer.style.display = 'flex';
+        mindmapContainer.style.flexDirection = 'column';
+        mindmapContainer.style.height = '100%';
+        
+        // Show controls
         document.getElementById('controlsSection').style.display = 'block';
         
         // Update mindmap title
         const title = document.getElementById('mindmapTitle');
         title.textContent = this.currentFile ? this.currentFile.name : 'Document Mindmap';
+        
+        console.log('Mindmap container displayed');
     }
 
     updateStatus(status) {

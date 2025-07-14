@@ -375,7 +375,6 @@ body {
 
 /* Main Content */
 .main-content {
-    background: var(--bg-primary);
     height: 100%;
     overflow: hidden;
 }
@@ -384,14 +383,15 @@ body {
     height: 100%;
     display: flex;
     flex-direction: column;
+    position: relative;
 }
 
 /* Welcome Message */
 .welcome-message {
-    flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
+    height: 100%;
     text-align: center;
     padding: 2rem;
 }
@@ -411,12 +411,13 @@ body {
     margin: 0 auto 2rem;
     color: white;
     font-size: 2rem;
+    box-shadow: var(--shadow-lg);
 }
 
 .welcome-content h2 {
     font-weight: 700;
-    color: var(--text-primary);
     margin-bottom: 1rem;
+    color: var(--text-primary);
 }
 
 .welcome-text {
@@ -438,14 +439,20 @@ body {
     align-items: center;
     gap: 0.75rem;
     padding: 1rem;
-    background: var(--bg-secondary);
+    background: var(--bg-primary);
     border-radius: var(--border-radius-sm);
     border: 1px solid var(--border-color);
+    transition: all 0.2s ease;
+}
+
+.feature-item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
 }
 
 .feature-item i {
-    font-size: 1.25rem;
     color: var(--primary-color);
+    font-size: 1.25rem;
 }
 
 .feature-item span {
@@ -455,10 +462,10 @@ body {
 
 /* Loading State */
 .loading-state {
-    flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
+    height: 100%;
     text-align: center;
     padding: 2rem;
 }
@@ -478,12 +485,13 @@ body {
     margin: 0 auto 2rem;
     color: white;
     font-size: 2rem;
+    box-shadow: var(--shadow-lg);
 }
 
 .loading-state h3 {
     font-weight: 600;
-    color: var(--text-primary);
     margin-bottom: 1rem;
+    color: var(--text-primary);
 }
 
 .loading-text {
@@ -492,8 +500,7 @@ body {
 }
 
 .progress-container {
-    max-width: 400px;
-    margin: 0 auto;
+    margin-top: 2rem;
 }
 
 .progress {
@@ -516,25 +523,29 @@ body {
 
 /* Mindmap Container */
 .mindmap-container {
-    flex: 1;
     display: flex;
     flex-direction: column;
     height: 100%;
+    background: var(--bg-primary);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
 }
 
 .mindmap-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     padding: 1.5rem;
     border-bottom: 1px solid var(--border-color);
     background: var(--bg-secondary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
 }
 
 .mindmap-title h4 {
-    font-weight: 600;
+    margin: 0;
     color: var(--text-primary);
-    margin-bottom: 0.25rem;
+    font-weight: 600;
 }
 
 .mindmap-stats {
@@ -549,7 +560,7 @@ body {
     font-size: 0.875rem;
     color: var(--text-secondary);
     background: var(--bg-primary);
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 0.75rem;
     border-radius: var(--border-radius-sm);
     border: 1px solid var(--border-color);
 }
@@ -560,45 +571,51 @@ body {
 
 .mindmap-viewport {
     flex: 1;
+    width: 100%;
+    height: 100%;
+    min-height: 400px;
     background: var(--bg-primary);
     position: relative;
     overflow: hidden;
 }
 
-/* D3.js Mindmap Styles */
+.mindmap-viewport svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
 .mindmap-node {
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .mindmap-node:hover {
-    filter: brightness(1.1);
+    transform: scale(1.1);
 }
 
 .mindmap-node circle {
-    stroke: white;
-    stroke-width: 2px;
+    transition: all 0.2s ease;
 }
 
 .mindmap-node text {
     font-family: 'Inter', sans-serif;
     font-size: 12px;
     font-weight: 500;
-    text-anchor: middle;
-    dominant-baseline: middle;
-    pointer-events: none;
+    fill: var(--text-primary);
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
 }
 
 .mindmap-link {
-    stroke: var(--border-color);
-    stroke-width: 2px;
     fill: none;
-    opacity: 0.6;
+    stroke: var(--border-color);
+    stroke-width: 2;
+    transition: all 0.2s ease;
 }
 
 .mindmap-link:hover {
     stroke: var(--primary-color);
-    opacity: 1;
+    stroke-width: 3;
 }
 
 /* Responsive Design */
