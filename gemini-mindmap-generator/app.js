@@ -277,72 +277,216 @@ class GeminiMindmapGenerator {
         
         const sampleData = {
             general: {
-                name: "Document Overview",
+                name: "Document Analysis",
                 children: [
                     {
-                        name: "Main Topics",
+                        name: "Core Themes",
                         children: [
-                            { name: "Introduction", value: 1 },
-                            { name: "Key Concepts", value: 1 },
-                            { name: "Methodology", value: 1 },
-                            { name: "Results", value: 1 },
-                            { name: "Conclusion", value: 1 }
+                            { name: "Machine Learning Applications", value: 1 },
+                            { name: "Data Processing Pipeline", value: 1 },
+                            { name: "Performance Optimization", value: 1 },
+                            { name: "Scalability Challenges", value: 1 },
+                            { name: "Real-time Processing", value: 1 }
                         ]
                     },
                     {
-                        name: "Supporting Elements",
+                        name: "Key Concepts",
                         children: [
-                            { name: "Background", value: 1 },
-                            { name: "Literature Review", value: 1 },
-                            { name: "Data Analysis", value: 1 },
-                            { name: "Discussion", value: 1 }
+                            { name: "Neural Networks", value: 1 },
+                            { name: "Feature Engineering", value: 1 },
+                            { name: "Model Training", value: 1 },
+                            { name: "Validation Metrics", value: 1 },
+                            { name: "Deployment Strategy", value: 1 }
+                        ]
+                    },
+                    {
+                        name: "Methodology",
+                        children: [
+                            { name: "Data Collection", value: 1 },
+                            { name: "Preprocessing Steps", value: 1 },
+                            { name: "Model Selection", value: 1 },
+                            { name: "Hyperparameter Tuning", value: 1 },
+                            { name: "Cross-validation", value: 1 }
+                        ]
+                    },
+                    {
+                        name: "Results & Outcomes",
+                        children: [
+                            { name: "Accuracy Metrics", value: 1 },
+                            { name: "Performance Benchmarks", value: 1 },
+                            { name: "Comparative Analysis", value: 1 },
+                            { name: "Error Analysis", value: 1 },
+                            { name: "Future Improvements", value: 1 }
                         ]
                     }
                 ]
             },
             technical: {
-                name: "Technical Analysis",
+                name: "Technical Deep Dive",
                 children: [
                     {
-                        name: "Technical Components",
+                        name: "Architecture Components",
                         children: [
-                            { name: "Architecture", value: 1 },
-                            { name: "Implementation", value: 1 },
-                            { name: "Algorithms", value: 1 },
-                            { name: "Data Structures", value: 1 },
-                            { name: "Performance", value: 1 }
+                            { name: "Input Layer Design", value: 1 },
+                            { name: "Hidden Layer Configuration", value: 1 },
+                            { name: "Activation Functions", value: 1 },
+                            { name: "Dropout Mechanisms", value: 1 },
+                            { name: "Output Layer Structure", value: 1 }
                         ]
                     },
                     {
-                        name: "Technical Details",
+                        name: "Implementation Details",
                         children: [
-                            { name: "Code Examples", value: 1 },
-                            { name: "System Design", value: 1 },
-                            { name: "Optimization", value: 1 },
-                            { name: "Testing", value: 1 }
+                            { name: "TensorFlow/Keras Setup", value: 1 },
+                            { name: "Data Pipeline Architecture", value: 1 },
+                            { name: "GPU Acceleration", value: 1 },
+                            { name: "Memory Optimization", value: 1 },
+                            { name: "Batch Processing", value: 1 }
+                        ]
+                    },
+                    {
+                        name: "Algorithms & Methods",
+                        children: [
+                            { name: "Gradient Descent Variants", value: 1 },
+                            { name: "Backpropagation", value: 1 },
+                            { name: "Regularization Techniques", value: 1 },
+                            { name: "Optimization Algorithms", value: 1 },
+                            { name: "Loss Function Selection", value: 1 }
+                        ]
+                    },
+                    {
+                        name: "Performance Analysis",
+                        children: [
+                            { name: "Computational Complexity", value: 1 },
+                            { name: "Memory Usage Patterns", value: 1 },
+                            { name: "Training Time Analysis", value: 1 },
+                            { name: "Inference Speed", value: 1 },
+                            { name: "Scalability Metrics", value: 1 }
                         ]
                     }
                 ]
             },
             business: {
-                name: "Business Insights",
+                name: "Business Intelligence",
                 children: [
                     {
-                        name: "Business Value",
+                        name: "Market Analysis",
                         children: [
-                            { name: "ROI Analysis", value: 1 },
-                            { name: "Market Impact", value: 1 },
-                            { name: "Competitive Advantage", value: 1 },
-                            { name: "Risk Assessment", value: 1 }
+                            { name: "Competitive Landscape", value: 1 },
+                            { name: "Market Size & Growth", value: 1 },
+                            { name: "Customer Segmentation", value: 1 },
+                            { name: "Pricing Strategy", value: 1 },
+                            { name: "Market Penetration", value: 1 }
                         ]
                     },
                     {
-                        name: "Strategic Elements",
+                        name: "ROI & Metrics",
                         children: [
-                            { name: "Business Model", value: 1 },
-                            { name: "Customer Value", value: 1 },
-                            { name: "Growth Potential", value: 1 },
-                            { name: "Implementation Plan", value: 1 }
+                            { name: "Cost-Benefit Analysis", value: 1 },
+                            { name: "Return on Investment", value: 1 },
+                            { name: "Time to Market", value: 1 },
+                            { name: "Customer Acquisition Cost", value: 1 },
+                            { name: "Lifetime Value", value: 1 }
+                        ]
+                    },
+                    {
+                        name: "Strategic Implementation",
+                        children: [
+                            { name: "Go-to-Market Strategy", value: 1 },
+                            { name: "Resource Allocation", value: 1 },
+                            { name: "Risk Management", value: 1 },
+                            { name: "Success Metrics", value: 1 },
+                            { name: "Scaling Plan", value: 1 }
+                        ]
+                    },
+                    {
+                        name: "Operational Impact",
+                        children: [
+                            { name: "Process Automation", value: 1 },
+                            { name: "Efficiency Gains", value: 1 },
+                            { name: "Quality Improvement", value: 1 },
+                            { name: "Cost Reduction", value: 1 },
+                            { name: "Employee Productivity", value: 1 }
+                        ]
+                    }
+                ]
+            },
+            academic: {
+                name: "Academic Research",
+                children: [
+                    {
+                        name: "Literature Review",
+                        children: [
+                            { name: "Previous Research", value: 1 },
+                            { name: "Gap Analysis", value: 1 },
+                            { name: "Theoretical Framework", value: 1 },
+                            { name: "Research Questions", value: 1 },
+                            { name: "Hypothesis Development", value: 1 }
+                        ]
+                    },
+                    {
+                        name: "Research Methodology",
+                        children: [
+                            { name: "Experimental Design", value: 1 },
+                            { name: "Data Collection Methods", value: 1 },
+                            { name: "Statistical Analysis", value: 1 },
+                            { name: "Validation Procedures", value: 1 },
+                            { name: "Ethical Considerations", value: 1 }
+                        ]
+                    },
+                    {
+                        name: "Findings & Analysis",
+                        children: [
+                            { name: "Statistical Results", value: 1 },
+                            { name: "Significance Testing", value: 1 },
+                            { name: "Effect Sizes", value: 1 },
+                            { name: "Confidence Intervals", value: 1 },
+                            { name: "Correlation Analysis", value: 1 }
+                        ]
+                    },
+                    {
+                        name: "Contributions & Impact",
+                        children: [
+                            { name: "Novel Contributions", value: 1 },
+                            { name: "Theoretical Implications", value: 1 },
+                            { name: "Practical Applications", value: 1 },
+                            { name: "Future Research Directions", value: 1 },
+                            { name: "Limitations & Constraints", value: 1 }
+                        ]
+                    }
+                ]
+            },
+            key_points: {
+                name: "Key Insights",
+                children: [
+                    {
+                        name: "Critical Findings",
+                        children: [
+                            { name: "Main Discovery", value: 1 },
+                            { name: "Breakthrough Result", value: 1 },
+                            { name: "Key Innovation", value: 1 },
+                            { name: "Core Achievement", value: 1 },
+                            { name: "Primary Outcome", value: 1 }
+                        ]
+                    },
+                    {
+                        name: "Essential Concepts",
+                        children: [
+                            { name: "Fundamental Principle", value: 1 },
+                            { name: "Core Methodology", value: 1 },
+                            { name: "Key Technique", value: 1 },
+                            { name: "Critical Approach", value: 1 },
+                            { name: "Main Strategy", value: 1 }
+                        ]
+                    },
+                    {
+                        name: "Action Items",
+                        children: [
+                            { name: "Immediate Next Steps", value: 1 },
+                            { name: "Priority Actions", value: 1 },
+                            { name: "Key Decisions", value: 1 },
+                            { name: "Critical Milestones", value: 1 },
+                            { name: "Success Factors", value: 1 }
                         ]
                     }
                 ]

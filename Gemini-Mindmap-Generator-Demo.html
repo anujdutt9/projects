@@ -73,17 +73,19 @@
         }
 
         .demo-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 2rem;
+            width: 100%;
+            height: calc(100vh - 150px);
+            margin: 0;
+            padding: 0;
         }
 
         .demo-section {
             background: var(--bg-primary);
-            border-radius: var(--border-radius-lg);
-            box-shadow: var(--shadow-lg);
-            margin-bottom: 2rem;
+            border-radius: 0;
+            box-shadow: none;
+            margin-bottom: 0;
             overflow: hidden;
+            height: 100%;
         }
 
         .demo-section-header {
@@ -106,7 +108,7 @@
         .demo-iframe-container {
             position: relative;
             width: 100%;
-            height: 800px;
+            height: 100%;
             background: var(--bg-primary);
         }
 
@@ -117,49 +119,6 @@
             border-radius: 0;
         }
 
-        .demo-actions {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            padding: 2rem;
-            background: var(--bg-secondary);
-            border-top: 1px solid var(--border-color);
-        }
-
-        .btn-demo {
-            padding: 0.75rem 1.5rem;
-            border-radius: var(--border-radius-sm);
-            font-weight: 500;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .btn-primary-demo {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            color: white;
-            border: none;
-        }
-
-        .btn-primary-demo:hover {
-            transform: translateY(-1px);
-            box-shadow: var(--shadow-md);
-            color: white;
-        }
-
-        .btn-outline-demo {
-            background: transparent;
-            color: var(--primary-color);
-            border: 2px solid var(--primary-color);
-        }
-
-        .btn-outline-demo:hover {
-            background: var(--primary-color);
-            color: white;
-        }
-
         @media (max-width: 768px) {
             .demo-container {
                 padding: 1rem;
@@ -167,11 +126,6 @@
 
             .demo-iframe-container {
                 height: 600px;
-            }
-
-            .demo-actions {
-                flex-direction: column;
-                align-items: center;
             }
         }
     </style>
@@ -197,24 +151,6 @@
         <div class="demo-section">
             <div class="demo-iframe-container">
                 <iframe src="gemini-mindmap-generator/index.html" class="demo-iframe"></iframe>
-            </div>
-        </div>
-
-        <!-- Demo Actions -->
-        <div class="demo-section">
-            <div class="demo-actions">
-                <a href="gemini-mindmap-generator/index.html" target="_blank" class="btn-demo btn-primary-demo">
-                    <i class="fas fa-external-link-alt"></i>
-                    Open Full Demo
-                </a>
-                <a href="https://github.com/yourusername/gemini-mindmap-generator" target="_blank" class="btn-demo btn-outline-demo">
-                    <i class="fab fa-github"></i>
-                    View Source Code
-                </a>
-                <a href="index.html" class="btn-demo btn-outline-demo">
-                    <i class="fas fa-arrow-left"></i>
-                    Back to Projects
-                </a>
             </div>
         </div>
     </div>
