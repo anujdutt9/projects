@@ -221,7 +221,7 @@ class GeminiMindmapGenerator {
         if (fileInput) {
             fileInput.addEventListener('change', (e) => {
                 if (e.target.files.length > 0) {
-                    this.handleFileSelect(e.target.files[0]);
+                    this.handleFileSelect(e);
                 }
             });
         }
@@ -300,30 +300,23 @@ class GeminiMindmapGenerator {
         }
     }
 
-    handleDragOver(e) {
-        e.preventDefault();
-        e.currentTarget.classList.add('dragover');
-    }
-
-    handleDragLeave(e) {
-        e.preventDefault();
-        e.currentTarget.classList.remove('dragover');
-    }
-
-    handleDrop(e) {
-        e.preventDefault();
-        e.currentTarget.classList.remove('dragover');
-        
-        const files = e.dataTransfer.files;
-        if (files.length > 0) {
-            this.processFile(files[0]);
-        }
-    }
-
     handleFileSelect(e) {
-        const files = e.target.files;
-        if (files.length > 0) {
-            this.processFile(files[0]);
+        let file;
+        
+        // Handle both event objects and direct File objects
+        if (e instanceof Event && e.target && e.target.files) {
+            // Called from file input change event
+            file = e.target.files[0];
+        } else if (e instanceof File) {
+            // Called directly with a File object (e.g., from drop event)
+            file = e;
+        } else {
+            console.error('Invalid argument passed to handleFileSelect:', e);
+            return;
+        }
+        
+        if (file) {
+            this.processFile(file);
         }
     }
 
