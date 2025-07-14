@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Mindmap Generator Demo - AI-Powered Document Analysis</title>
+    <meta name="description" content="Upload documents and generate interactive mindmaps using Gemini Nano AI">
+    <meta name="author" content="Anuj Dutt">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --secondary-color: #8b5cf6;
+            --accent-color: #06b6d4;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --dark-color: #1f2937;
+            --light-color: #f8fafc;
+            --border-color: #e2e8f0;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --text-muted: #9ca3af;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --border-radius: 12px;
+            --border-radius-sm: 8px;
+            --border-radius-lg: 16px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .demo-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 3rem 0;
+            text-align: center;
+        }
+
+        .demo-header h1 {
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .demo-header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .demo-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .demo-section {
+            background: var(--bg-primary);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+
+        .demo-section-header {
+            background: var(--bg-secondary);
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .demo-section-header h2 {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .demo-section-header p {
+            color: var(--text-secondary);
+            margin-bottom: 0;
+        }
+
+        .demo-iframe-container {
+            position: relative;
+            width: 100%;
+            height: 800px;
+            background: var(--bg-primary);
+        }
+
+        .demo-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 0;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            padding: 2rem;
+        }
+
+        .feature-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card h3 {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            margin-bottom: 0;
+        }
+
+        .tech-stack {
+            background: var(--bg-secondary);
+            padding: 2rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .tech-stack h3 {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .tech-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .tech-item {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .demo-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            padding: 2rem;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+        }
+
+        .btn-demo {
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--border-radius-sm);
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary-demo {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            border: none;
+        }
+
+        .btn-primary-demo:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+            color: white;
+        }
+
+        .btn-outline-demo {
+            background: transparent;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+        }
+
+        .btn-outline-demo:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .demo-container {
+                padding: 1rem;
+            }
+
+            .demo-iframe-container {
+                height: 600px;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+                padding: 1.5rem;
+            }
+
+            .demo-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Demo Header -->
+    <div class="demo-header">
+        <div class="container">
+            <h1>
+                <i class="fas fa-sitemap me-3"></i>
+                Gemini Mindmap Generator
+            </h1>
+            <p>
+                Upload any document and let AI analyze it to create an interactive mindmap. 
+                Discover connections, key concepts, and insights from your content using Gemini Nano.
+            </p>
+        </div>
+    </div>
+
+    <!-- Demo Container -->
+    <div class="demo-container">
+        <!-- Live Demo Section -->
+        <div class="demo-section">
+            <div class="demo-section-header">
+                <h2>
+                    <i class="fas fa-play-circle me-2"></i>
+                    Live Demo
+                </h2>
+                <p>Try the interactive mindmap generator below. Upload a document and watch AI create a structured mindmap.</p>
+            </div>
+            <div class="demo-iframe-container">
+                <iframe src="gemini-mindmap-generator/index.html" class="demo-iframe"></iframe>
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="demo-section">
+            <div class="demo-section-header">
+                <h2>
+                    <i class="fas fa-star me-2"></i>
+                    Key Features
+                </h2>
+                <p>Discover what makes this mindmap generator powerful and user-friendly.</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-upload"></i>
+                    </div>
+                    <h3>Multi-Format Support</h3>
+                    <p>Upload PDF, DOCX, and TXT files. The system extracts and analyzes content from various document formats.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3>AI-Powered Analysis</h3>
+                    <p>Gemini Nano analyzes document content to identify key concepts, relationships, and hierarchical structure.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-project-diagram"></i>
+                    </div>
+                    <h3>Interactive Mindmaps</h3>
+                    <p>Explore mindmaps with zoom, pan, and search functionality. Multiple layout options available.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-cog"></i>
+                    </div>
+                    <h3>Customizable Analysis</h3>
+                    <p>Choose analysis focus (general, technical, business, academic) and control mindmap complexity.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-download"></i>
+                    </div>
+                    <h3>Export Options</h3>
+                    <p>Export mindmaps as PNG or SVG files for use in presentations, reports, or further editing.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <h3>History & Persistence</h3>
+                    <p>Save and reload previous mindmaps. Your analysis history is preserved locally.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- How It Works Section -->
+        <div class="demo-section">
+            <div class="demo-section-header">
+                <h2>
+                    <i class="fas fa-cogs me-2"></i>
+                    How It Works
+                </h2>
+                <p>The technology behind the mindmap generation process.</p>
+            </div>
+            <div class="container py-4">
+                <div class="row">
+                    <div class="col-md-3 text-center mb-4">
+                        <div class="feature-icon mx-auto mb-3">
+                            <i class="fas fa-file-upload"></i>
+                        </div>
+                        <h4>1. Upload Document</h4>
+                        <p class="text-muted">Drag & drop or select your document (PDF, DOCX, TXT)</p>
+                    </div>
+                    <div class="col-md-3 text-center mb-4">
+                        <div class="feature-icon mx-auto mb-3">
+                            <i class="fas fa-file-text"></i>
+                        </div>
+                        <h4>2. Extract Text</h4>
+                        <p class="text-muted">System extracts readable text from your document</p>
+                    </div>
+                    <div class="col-md-3 text-center mb-4">
+                        <div class="feature-icon mx-auto mb-3">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <h4>3. AI Analysis</h4>
+                        <p class="text-muted">Gemini Nano analyzes content and creates structured mindmap data</p>
+                    </div>
+                    <div class="col-md-3 text-center mb-4">
+                        <div class="feature-icon mx-auto mb-3">
+                            <i class="fas fa-sitemap"></i>
+                        </div>
+                        <h4>4. Visualize</h4>
+                        <p class="text-muted">D3.js renders an interactive mindmap visualization</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Technology Stack -->
+        <div class="demo-section">
+            <div class="tech-stack">
+                <h3>
+                    <i class="fas fa-code me-2"></i>
+                    Technology Stack
+                </h3>
+                <div class="tech-items">
+                    <span class="tech-item">HTML5</span>
+                    <span class="tech-item">CSS3</span>
+                    <span class="tech-item">JavaScript (ES6+)</span>
+                    <span class="tech-item">D3.js</span>
+                    <span class="tech-item">Bootstrap 5</span>
+                    <span class="tech-item">Gemini Nano API</span>
+                    <span class="tech-item">Structured Output</span>
+                    <span class="tech-item">File API</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Demo Actions -->
+        <div class="demo-section">
+            <div class="demo-actions">
+                <a href="gemini-mindmap-generator/index.html" target="_blank" class="btn-demo btn-primary-demo">
+                    <i class="fas fa-external-link-alt"></i>
+                    Open Full Demo
+                </a>
+                <a href="https://github.com/yourusername/gemini-mindmap-generator" target="_blank" class="btn-demo btn-outline-demo">
+                    <i class="fab fa-github"></i>
+                    View Source Code
+                </a>
+                <a href="index.html" class="btn-demo btn-outline-demo">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Projects
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 

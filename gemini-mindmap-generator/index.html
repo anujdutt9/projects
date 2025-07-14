@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Gemini Mindmap Generator - AI-Powered Document Analysis</title>
+    <meta name="description" content="Upload documents and generate interactive mindmaps using Gemini Nano AI">
+    <meta name="author" content="Anuj Dutt">
+    <meta property="og:title" content="Gemini Mindmap Generator">
+    <meta property="og:description" content="AI-powered document analysis and mindmap generation">
+    <meta property="og:image" content="https://uploads.toptal.io/blog/image/443/toptal-blog-image-1407508081138.png">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- D3.js for mindmap visualization -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    
+    <link rel="stylesheet" href="styles.css?v=1.0">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-gradient fixed-top">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="#">
+                <i class="fas fa-sitemap me-2"></i>
+                <span>Gemini Mindmap Generator</span>
+            </a>
+            <div class="navbar-nav ms-auto">
+                <div class="nav-item">
+                    <span class="nav-link" id="model-status">
+                        <i class="fas fa-circle text-warning"></i>
+                        <span>Initializing...</span>
+                    </span>
+                </div>
+                <div class="nav-item">
+                    <span class="nav-link" id="processing-status">
+                        <i class="fas fa-brain text-muted"></i>
+                        <span>Ready</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container-fluid main-container">
+        <div class="row h-100">
+            <!-- Sidebar -->
+            <div class="col-md-4 col-lg-3 sidebar">
+                <div class="sidebar-content">
+                    <!-- Document Upload Section -->
+                    <div class="upload-section">
+                        <h5 class="section-title">
+                            <i class="fas fa-file-upload me-2"></i>
+                            Upload Document
+                        </h5>
+                        <div class="upload-area" id="uploadArea">
+                            <div class="upload-content">
+                                <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                                <p class="upload-text">Drag & drop document here or click to browse</p>
+                                <p class="upload-hint">Supports: PDF, DOCX, TXT</p>
+                            </div>
+                            <input type="file" id="fileInput" accept=".pdf,.docx,.txt" class="file-input">
+                        </div>
+                        
+                        <!-- File Info -->
+                        <div class="file-info" id="fileInfo" style="display: none;">
+                            <div class="file-item">
+                                <div class="file-icon">
+                                    <i class="fas fa-file-alt"></i>
+                                </div>
+                                <div class="file-details">
+                                    <div class="file-name" id="fileName"></div>
+                                    <div class="file-size" id="fileSize"></div>
+                                </div>
+                                <button class="file-remove" id="removeFile">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Analysis Settings -->
+                    <div class="settings-section">
+                        <h5 class="section-title">
+                            <i class="fas fa-cog me-2"></i>
+                            Analysis Settings
+                        </h5>
+                        
+                        <!-- Mindmap Style -->
+                        <div class="form-group mb-3">
+                            <label for="mindmapStyle" class="form-label small text-muted">Mindmap Style:</label>
+                            <select class="form-select form-select-sm" id="mindmapStyle">
+                                <option value="radial">Radial Layout</option>
+                                <option value="hierarchical">Hierarchical Tree</option>
+                                <option value="force">Force-Directed</option>
+                            </select>
+                        </div>
+
+                        <!-- Analysis Focus -->
+                        <div class="form-group mb-3">
+                            <label for="analysisFocus" class="form-label small text-muted">Analysis Focus:</label>
+                            <select class="form-select form-select-sm" id="analysisFocus">
+                                <option value="general">General Overview</option>
+                                <option value="technical">Technical Details</option>
+                                <option value="business">Business Insights</option>
+                                <option value="academic">Academic Analysis</option>
+                                <option value="key_points">Key Points Only</option>
+                            </select>
+                        </div>
+
+                        <!-- Node Limit -->
+                        <div class="form-group mb-3">
+                            <label for="nodeLimit" class="form-label small text-muted">
+                                Max Nodes: <span id="nodeLimitValue">20</span>
+                            </label>
+                            <input type="range" class="form-range" id="nodeLimit" 
+                                   min="5" max="50" step="5" value="20">
+                            <small class="form-text text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Controls mindmap complexity
+                            </small>
+                        </div>
+
+                        <!-- Generate Button -->
+                        <button class="btn btn-primary w-100 mb-3" id="generateBtn" disabled>
+                            <i class="fas fa-magic me-2"></i>
+                            Generate Mindmap
+                        </button>
+                    </div>
+
+                    <!-- Mindmap Controls -->
+                    <div class="controls-section" id="controlsSection" style="display: none;">
+                        <h5 class="section-title">
+                            <i class="fas fa-sliders-h me-2"></i>
+                            Mindmap Controls
+                        </h5>
+                        
+                        <div class="control-buttons">
+                            <button class="btn btn-outline-primary btn-sm mb-2" id="resetViewBtn">
+                                <i class="fas fa-home me-1"></i>
+                                Reset View
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm mb-2" id="expandAllBtn">
+                                <i class="fas fa-expand-alt me-1"></i>
+                                Expand All
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm mb-2" id="collapseAllBtn">
+                                <i class="fas fa-compress-alt me-1"></i>
+                                Collapse All
+                            </button>
+                            <button class="btn btn-outline-success btn-sm mb-2" id="exportBtn">
+                                <i class="fas fa-download me-1"></i>
+                                Export PNG
+                            </button>
+                            <button class="btn btn-outline-info btn-sm mb-2" id="exportSVGBtn">
+                                <i class="fas fa-code me-1"></i>
+                                Export SVG
+                            </button>
+                        </div>
+
+                        <!-- Search -->
+                        <div class="search-section mt-3">
+                            <div class="input-group input-group-sm">
+                                <input type="text" class="form-control" id="searchInput" 
+                                       placeholder="Search nodes...">
+                                <button class="btn btn-outline-secondary" id="searchBtn">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- History -->
+                    <div class="history-section">
+                        <h5 class="section-title">
+                            <i class="fas fa-history me-2"></i>
+                            Recent Mindmaps
+                        </h5>
+                        <div class="history-list" id="mindmapHistory">
+                            <!-- History items will be added here -->
+                        </div>
+                        <button class="btn btn-outline-secondary btn-sm w-100 mt-2" id="clearHistory">
+                            <i class="fas fa-trash me-1"></i>
+                            Clear History
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="col-md-8 col-lg-9 main-content">
+                <div class="content-container">
+                    <!-- Welcome Message -->
+                    <div class="welcome-message" id="welcomeMessage">
+                        <div class="welcome-content">
+                            <div class="welcome-icon">
+                                <i class="fas fa-sitemap"></i>
+                            </div>
+                            <h2>Welcome to Gemini Mindmap Generator</h2>
+                            <p class="welcome-text">
+                                Upload any document and let AI analyze it to create an interactive mindmap. 
+                                Discover connections, key concepts, and insights from your content.
+                            </p>
+                            <div class="features">
+                                <div class="feature-item">
+                                    <i class="fas fa-upload"></i>
+                                    <span>Document Upload</span>
+                                </div>
+                                <div class="feature-item">
+                                    <i class="fas fa-brain"></i>
+                                    <span>AI Analysis</span>
+                                </div>
+                                <div class="feature-item">
+                                    <i class="fas fa-project-diagram"></i>
+                                    <span>Interactive Mindmap</span>
+                                </div>
+                                <div class="feature-item">
+                                    <i class="fas fa-download"></i>
+                                    <span>Export Options</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Loading State -->
+                    <div class="loading-state" id="loadingState" style="display: none;">
+                        <div class="loading-content">
+                            <div class="loading-spinner">
+                                <i class="fas fa-cog fa-spin"></i>
+                            </div>
+                            <h3>Analyzing Document...</h3>
+                            <p class="loading-text">Gemini Nano is processing your document and creating a mindmap structure.</p>
+                            <div class="progress-container">
+                                <div class="progress">
+                                    <div class="progress-bar" id="analysisProgress" role="progressbar" style="width: 0%"></div>
+                                </div>
+                                <small class="progress-text" id="progressText">Initializing...</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mindmap Container -->
+                    <div class="mindmap-container" id="mindmapContainer" style="display: none;">
+                        <div class="mindmap-header">
+                            <div class="mindmap-title">
+                                <h4 id="mindmapTitle">Document Mindmap</h4>
+                                <small class="text-muted" id="mindmapMeta">Generated with Gemini Nano</small>
+                            </div>
+                            <div class="mindmap-stats">
+                                <span class="stat-item">
+                                    <i class="fas fa-circle"></i>
+                                    <span id="nodeCount">0</span> nodes
+                                </span>
+                                <span class="stat-item">
+                                    <i class="fas fa-link"></i>
+                                    <span id="linkCount">0</span> connections
+                                </span>
+                            </div>
+                        </div>
+                        <div class="mindmap-viewport" id="mindmapViewport">
+                            <!-- D3.js mindmap will be rendered here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="app.js?v=1.0"></script>
+</body>
+</html> 
