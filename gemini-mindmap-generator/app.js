@@ -901,6 +901,68 @@ IMPORTANT:
         this.nodeDetails.delete(nodeId);
     }
 
+    formatNodeText(text) {
+        // Truncate and format node text for better display
+        const maxLength = 20; // Maximum characters for node text
+        const words = text.split(' ');
+        
+        if (text.length <= maxLength) {
+            return text;
+        }
+        
+        // Try to keep complete words
+        let result = '';
+        for (let word of words) {
+            if ((result + ' ' + word).length <= maxLength) {
+                result += (result ? ' ' : '') + word;
+            } else {
+                break;
+            }
+        }
+        
+        // If no words fit, truncate with ellipsis
+        if (!result) {
+            result = text.substring(0, maxLength - 3) + '...';
+        } else if (result.length < text.length) {
+            result += '...';
+        }
+        
+        return result;
+    }
+
+    calculateNodeWidth(text, depth) {
+        // Calculate node width based on text length and depth
+        const baseWidth = 80;
+        const charWidth = 7; // Approximate width per character
+        const maxWidth = 200; // Maximum width for any node
+        
+        // Adjust width based on depth (deeper nodes can be slightly wider)
+        const depthMultiplier = 1 + (depth * 0.1);
+        const calculatedWidth = Math.max(baseWidth, text.length * charWidth * depthMultiplier);
+        
+        return Math.min(calculatedWidth, maxWidth);
+    }
+
+    calculateNodeFontSize(text, depth) {
+        // Calculate font size based on text length and depth
+        const baseSize = 11;
+        const minSize = 8;
+        const maxSize = 14;
+        
+        // Reduce font size for longer text
+        let fontSize = baseSize;
+        if (text.length > 15) {
+            fontSize = Math.max(minSize, baseSize - 2);
+        } else if (text.length > 10) {
+            fontSize = Math.max(minSize, baseSize - 1);
+        }
+        
+        // Slightly reduce font size for deeper nodes
+        fontSize = Math.max(minSize, fontSize - (depth * 0.5));
+        
+        return Math.min(fontSize, maxSize);
+    }
+
     renderMindmap(data) {
         console.log('=== Starting mindmap rendering ===');
         console.log('Input data:', data);
@@ -997,13 +1059,14 @@ IMPORTANT:
         // Add rectangles to nodes
         nodes.append('rect')
             .attr('width', d => {
-                const textLength = d.data.name.length;
-                return Math.max(80, textLength * 8);
+                const displayText = this.formatNodeText(d.data.name);
+                return this.calculateNodeWidth(displayText, d.depth);
             })
             .attr('height', d => d.children ? 40 : 32)
             .attr('x', d => {
-                const width = Math.max(80, d.data.name.length * 8);
-                return -width / 2;
+                const displayText = this.formatNodeText(d.data.name);
+                const rectWidth = this.calculateNodeWidth(displayText, d.depth);
+                return -rectWidth / 2;
             })
             .attr('y', d => {
                 const height = d.children ? 40 : 32;
@@ -1021,16 +1084,17 @@ IMPORTANT:
         nodes.append('text')
             .attr('text-anchor', 'middle')
             .attr('dominant-baseline', 'middle')
-            .text(d => d.data.name)
-            .style('font-size', d => {
-                const baseSize = Math.max(9, Math.min(12, Math.sqrt(width * height) / 100));
-                const textLength = d.data.name.length;
-                return Math.max(8, baseSize - (textLength > 10 ? 1 : 0));
-            })
+            .text(d => this.formatNodeText(d.data.name))
+            .style('font-size', d => this.calculateNodeFontSize(d.data.name, d.depth))
             .style('font-weight', '500')
             .style('fill', '#ffffff')
             .style('pointer-events', 'none')
             .style('text-shadow', '0 1px 2px rgba(0, 0, 0, 0.3)');
+
+        // Add tooltip for truncated text
+        nodes.filter(d => d.data.name.length > 20)
+            .append('title')
+            .text(d => d.data.name);
 
         // Add expand/collapse indicator (only for nodes with children)
         nodes.filter(d => d.children && d.children.length > 0)
@@ -1039,7 +1103,8 @@ IMPORTANT:
             .attr('text-anchor', 'end')
             .attr('dominant-baseline', 'middle')
             .attr('x', d => {
-                const rectWidth = Math.max(80, d.data.name.length * 8);
+                const displayText = this.formatNodeText(d.data.name);
+                const rectWidth = this.calculateNodeWidth(displayText, d.depth);
                 return rectWidth / 2 - 8; // Right-aligned with 8px padding
             })
             .attr('y', 0)
