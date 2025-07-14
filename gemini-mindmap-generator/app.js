@@ -921,7 +921,8 @@ IMPORTANT:
     }
 
     createLayout(width, height) {
-        const layoutStyle = document.querySelector('input[name="layout"]:checked').value;
+        const mindmapStyleSelect = document.getElementById('mindmapStyle');
+        const layoutStyle = mindmapStyleSelect ? mindmapStyleSelect.value : 'radial';
         console.log('Selected layout style:', layoutStyle);
         
         let layout;
@@ -939,7 +940,7 @@ IMPORTANT:
                     });
                 break;
                 
-            case 'horizontal':
+            case 'hierarchical':
                 layout = d3.tree()
                     .size([height - 100, width - 100])
                     .separation((a, b) => {
@@ -950,7 +951,7 @@ IMPORTANT:
                     });
                 break;
                 
-            case 'vertical':
+            case 'force':
                 layout = d3.tree()
                     .size([width - 100, height - 100])
                     .separation((a, b) => {
