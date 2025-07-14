@@ -9,6 +9,19 @@ class GeminiMindmapGenerator {
         this.links = [];
         this.history = [];
         
+        // RAG system for expandable nodes
+        this.embeddingModel = null;
+        this.documentChunks = [];
+        this.chunkEmbeddings = [];
+        this.isEmbeddingModelReady = false;
+        this.documentContent = '';
+        this.maxChunkSize = 500;
+        this.overlapSize = 50;
+        
+        // Expandable nodes state
+        this.expandedNodes = new Set();
+        this.nodeDetails = new Map();
+        
         this.init();
     }
 
@@ -16,70 +29,275 @@ class GeminiMindmapGenerator {
         this.setupEventListeners();
         this.loadHistory();
         this.initializeModel();
+        this.initializeEmbeddingModel();
+    }
+
+    async initializeEmbeddingModel() {
+        try {
+            console.log('Initializing embedding model...');
+            this.updateProcessingStatus('initializing', 'Loading RAG system...');
+            
+            // Load Universal Sentence Encoder
+            this.embeddingModel = await use.load();
+            this.isEmbeddingModelReady = true;
+            console.log('Embedding model ready');
+            this.updateProcessingStatus('ready', 'RAG Ready');
+        } catch (error) {
+            console.error('Error initializing embedding model:', error);
+            this.isEmbeddingModelReady = false;
+            this.updateProcessingStatus('error', 'RAG Error');
+        }
+    }
+
+    async processDocumentContent(text) {
+        this.documentContent = text;
+        console.log('Processing document content for RAG...');
+        
+        if (!this.isEmbeddingModelReady) {
+            console.warn('Embedding model not ready, skipping chunk processing');
+            return;
+        }
+
+        // Create document chunks
+        this.documentChunks = this.createDocumentChunks(text);
+        console.log(`Created ${this.documentChunks.length} chunks`);
+
+        // Generate embeddings
+        if (this.documentChunks.length > 0) {
+            await this.generateChunkEmbeddings();
+        }
+    }
+
+    createDocumentChunks(text) {
+        const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+        const chunks = [];
+        let currentChunk = '';
+        let chunkId = 0;
+
+        for (let i = 0; i < sentences.length; i++) {
+            const sentence = sentences[i].trim();
+            
+            if (currentChunk.length + sentence.length > this.maxChunkSize && currentChunk.length > 0) {
+                chunks.push({
+                    id: `chunk_${chunkId}`,
+                    content: currentChunk.trim(),
+                    chunkIndex: chunkId
+                });
+                
+                const overlapText = currentChunk.slice(-this.overlapSize);
+                currentChunk = overlapText + ' ' + sentence;
+                chunkId++;
+            } else {
+                currentChunk += (currentChunk ? '. ' : '') + sentence;
+            }
+        }
+        
+        if (currentChunk.trim().length > 0) {
+            chunks.push({
+                id: `chunk_${chunkId}`,
+                content: currentChunk.trim(),
+                chunkIndex: chunkId
+            });
+        }
+        
+        return chunks;
+    }
+
+    async generateChunkEmbeddings() {
+        try {
+            console.log('Generating embeddings for chunks...');
+            const chunkTexts = this.documentChunks.map(chunk => chunk.content);
+            const embeddings = await this.embeddingModel.embed(chunkTexts);
+            this.chunkEmbeddings = await embeddings.array();
+            console.log(`Generated embeddings for ${this.chunkEmbeddings.length} chunks`);
+        } catch (error) {
+            console.error('Error generating embeddings:', error);
+        }
+    }
+
+    async findRelevantChunks(query, topK = 3) {
+        if (!this.isEmbeddingModelReady || this.chunkEmbeddings.length === 0) {
+            console.warn('Embeddings not available, returning empty results');
+            return [];
+        }
+        
+        try {
+            const queryEmbedding = await this.embeddingModel.embed([query]);
+            const queryVector = await queryEmbedding.array();
+            
+            const similarities = this.chunkEmbeddings.map((chunkEmbedding, index) => {
+                const similarity = this.cosineSimilarity(queryVector[0], chunkEmbedding);
+                return {
+                    index,
+                    similarity,
+                    chunk: this.documentChunks[index]
+                };
+            });
+            
+            similarities.sort((a, b) => b.similarity - a.similarity);
+            const topChunks = similarities.slice(0, topK);
+            
+            console.log(`Found ${topChunks.length} relevant chunks for query: "${query}"`);
+            return topChunks;
+        } catch (error) {
+            console.error('Error in semantic search:', error);
+            return [];
+        }
+    }
+
+    cosineSimilarity(vecA, vecB) {
+        let dotProduct = 0;
+        let normA = 0;
+        let normB = 0;
+        
+        for (let i = 0; i < vecA.length; i++) {
+            dotProduct += vecA[i] * vecB[i];
+            normA += vecA[i] * vecA[i];
+            normB += vecB[i] * vecB[i];
+        }
+        
+        return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
     }
 
     async initializeModel() {
-        // Simulate model initialization
-        const modelStatus = document.getElementById('model-status');
-        const modelIcon = modelStatus.querySelector('i');
-        const modelText = modelStatus.querySelector('span');
+        console.log('=== Initializing Gemini Nano model ===');
         
-        // Show initializing state
-        modelIcon.className = 'fas fa-circle text-warning';
-        modelText.textContent = 'Initializing...';
-        
-        // Simulate initialization delay
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        // Update to ready state
-        modelIcon.className = 'fas fa-circle text-success';
-        modelText.textContent = 'Ready';
-        
-        // Update processing status to ready
-        this.updateStatus('ready');
+        try {
+            // Check if LanguageModel API is available
+            if (typeof LanguageModel === 'undefined') {
+                console.error('LanguageModel API not available');
+                this.updateStatus('error', 'Gemini Nano not available');
+                throw new Error('LanguageModel API not available. Please use Chrome with Gemini Nano support.');
+            }
+            
+            console.log('LanguageModel API is available');
+            
+            // Check model availability
+            const modelStatus = await LanguageModel.availability();
+            console.log('Model availability:', modelStatus);
+            
+            if (modelStatus === 'available') {
+                console.log('Gemini Nano is available');
+                this.updateStatus('ready', 'Ready');
+            } else {
+                console.log('Gemini Nano is not available:', modelStatus);
+                this.updateStatus('error', 'Gemini Nano not available');
+                throw new Error(`Gemini Nano is not available: ${modelStatus}`);
+            }
+            
+        } catch (error) {
+            console.error('Error initializing model:', error);
+            this.updateStatus('error', 'Model Error');
+            throw error;
+        }
     }
 
     setupEventListeners() {
-        // File upload
+        // File upload events
         const uploadArea = document.getElementById('uploadArea');
         const fileInput = document.getElementById('fileInput');
-        const removeFileBtn = document.getElementById('removeFile');
-
-        uploadArea.addEventListener('click', () => fileInput.click());
-        uploadArea.addEventListener('dragover', this.handleDragOver.bind(this));
-        uploadArea.addEventListener('dragleave', this.handleDragLeave.bind(this));
-        uploadArea.addEventListener('drop', this.handleDrop.bind(this));
-        fileInput.addEventListener('change', this.handleFileSelect.bind(this));
-        removeFileBtn.addEventListener('click', this.removeFile.bind(this));
-
-        // Settings
-        const nodeLimitSlider = document.getElementById('nodeLimit');
-        const nodeLimitValue = document.getElementById('nodeLimitValue');
-        nodeLimitSlider.addEventListener('input', (e) => {
-            nodeLimitValue.textContent = e.target.value;
-        });
-
-        // Generate button
+        const removeFile = document.getElementById('removeFile');
         const generateBtn = document.getElementById('generateBtn');
-        generateBtn.addEventListener('click', this.generateMindmap.bind(this));
+
+        if (uploadArea) {
+            uploadArea.addEventListener('click', () => fileInput.click());
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    this.handleFileSelect(files[0]);
+                }
+            });
+        }
+
+        if (fileInput) {
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    this.handleFileSelect(e.target.files[0]);
+                }
+            });
+        }
+
+        if (removeFile) {
+            removeFile.addEventListener('click', () => {
+                this.removeFile();
+            });
+        }
+
+        if (generateBtn) {
+            generateBtn.addEventListener('click', () => {
+                this.generateMindmap();
+            });
+        }
 
         // Mindmap controls
-        document.getElementById('resetViewBtn').addEventListener('click', this.resetView.bind(this));
-        document.getElementById('expandAllBtn').addEventListener('click', this.expandAll.bind(this));
-        document.getElementById('collapseAllBtn').addEventListener('click', this.collapseAll.bind(this));
-        document.getElementById('exportBtn').addEventListener('click', this.exportPNG.bind(this));
-        document.getElementById('exportSVGBtn').addEventListener('click', this.exportSVG.bind(this));
-
-        // Search
+        const resetViewBtn = document.getElementById('resetViewBtn');
+        const expandAllBtn = document.getElementById('expandAllBtn');
+        const collapseAllBtn = document.getElementById('collapseAllBtn');
+        const exportBtn = document.getElementById('exportBtn');
+        const exportSVGBtn = document.getElementById('exportSVGBtn');
         const searchBtn = document.getElementById('searchBtn');
-        const searchInput = document.getElementById('searchInput');
-        searchBtn.addEventListener('click', () => this.searchNodes(searchInput.value));
-        searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') this.searchNodes(searchInput.value);
-        });
+        const clearHistory = document.getElementById('clearHistory');
 
-        // History
-        document.getElementById('clearHistory').addEventListener('click', this.clearHistory.bind(this));
+        if (resetViewBtn) {
+            resetViewBtn.addEventListener('click', () => {
+                this.resetView();
+            });
+        }
+
+        if (expandAllBtn) {
+            expandAllBtn.addEventListener('click', () => {
+                this.expandAllNodes();
+            });
+        }
+
+        if (collapseAllBtn) {
+            collapseAllBtn.addEventListener('click', () => {
+                this.collapseAllNodes();
+            });
+        }
+
+        if (exportBtn) {
+            exportBtn.addEventListener('click', () => {
+                this.exportMindmap('png');
+            });
+        }
+
+        if (exportSVGBtn) {
+            exportSVGBtn.addEventListener('click', () => {
+                this.exportMindmap('svg');
+            });
+        }
+
+        if (searchBtn) {
+            searchBtn.addEventListener('click', () => {
+                this.searchNodes();
+            });
+        }
+
+        if (clearHistory) {
+            clearHistory.addEventListener('click', () => {
+                this.clearHistory();
+            });
+        }
+
+        // Node limit slider
+        const nodeLimit = document.getElementById('nodeLimit');
+        const nodeLimitValue = document.getElementById('nodeLimitValue');
+        
+        if (nodeLimit && nodeLimitValue) {
+            nodeLimit.addEventListener('input', (e) => {
+                nodeLimitValue.textContent = e.target.value;
+            });
+        }
     }
 
     handleDragOver(e) {
@@ -164,23 +382,28 @@ class GeminiMindmapGenerator {
 
         try {
             console.log('Step 1: Extracting text from file...');
+            this.updateProgress(10, 'Extracting text from document...');
             const text = await this.extractText(this.currentFile);
             console.log('Text extracted, length:', text.length);
             console.log('Text preview:', text.substring(0, 200) + '...');
 
             console.log('Step 2: Analyzing with Gemini...');
+            this.updateProgress(20, 'Preparing document for analysis...');
             const mindmapData = await this.analyzeWithGemini(text);
             console.log('Mindmap data received:', mindmapData);
 
             this.mindmapData = mindmapData;
             
             console.log('Step 3: Rendering mindmap...');
+            this.updateProgress(80, 'Rendering interactive mindmap...');
             this.renderMindmap(mindmapData);
             
             console.log('Step 4: Saving to history...');
+            this.updateProgress(90, 'Saving to history...');
             this.saveToHistory();
             
             console.log('Step 5: Showing mindmap...');
+            this.updateProgress(100, 'Complete!');
             this.showMindmap();
             
             console.log('=== Mindmap generation completed successfully ===');
@@ -219,6 +442,10 @@ class GeminiMindmapGenerator {
                     }
                     
                     console.log('Text extraction completed. Length:', text.length);
+                    
+                    // Process document content for RAG
+                    await this.processDocumentContent(text);
+                    
                     resolve(text);
                 } catch (error) {
                     console.error('Error in text extraction:', error);
@@ -243,8 +470,12 @@ class GeminiMindmapGenerator {
 
     async analyzeWithGemini(text) {
         console.log('=== Starting Gemini analysis ===');
-        // Simulate Gemini Nano API call with structured output
-        // In a real implementation, you'd call the actual Gemini API
+        
+        // Check if LanguageModel API is available
+        if (typeof LanguageModel === 'undefined') {
+            console.error('LanguageModel API not available');
+            throw new Error('LanguageModel API not available. Please use Chrome with Gemini Nano support.');
+        }
         
         const settings = {
             focus: document.getElementById('analysisFocus').value,
@@ -255,267 +486,257 @@ class GeminiMindmapGenerator {
         console.log('Analysis settings:', settings);
         console.log('Input text length:', text.length);
 
-        // Simulate API delay
-        console.log('Simulating progress...');
-        await this.simulateProgress();
+        try {
+            // Create a session with the LanguageModel
+            const session = await LanguageModel.create({
+                temperature: 0.3, // Lower temperature for more consistent structured output
+                topK: 40
+            });
 
-        // Generate structured mindmap data based on analysis focus
-        console.log('Generating structured mindmap data...');
-        const result = this.generateStructuredMindmap(text, settings);
-        console.log('Generated mindmap data:', result);
-        
-        return result;
+            // Create the prompt for mindmap generation
+            const prompt = this.createMindmapPrompt(text, settings);
+            console.log('Generated prompt:', prompt);
+
+            // Update progress
+            this.updateProgress(30, 'Analyzing document with Gemini Nano...');
+
+            // Generate the mindmap structure
+            const result = await session.generateContent(prompt);
+            const response = await result.response;
+            const mindmapText = response.text();
+            
+            console.log('Raw Gemini response:', mindmapText);
+
+            // Parse the structured mindmap data
+            const mindmapData = this.parseMindmapResponse(mindmapText, settings);
+            console.log('Parsed mindmap data:', mindmapData);
+
+            return mindmapData;
+
+        } catch (error) {
+            console.error('Error in Gemini analysis:', error);
+            throw new Error(`Gemini analysis failed: ${error.message}`);
+        }
     }
 
-    generateStructuredMindmap(text, settings) {
-        console.log('=== Generating structured mindmap ===');
-        console.log('Settings:', settings);
-        console.log('Text preview:', text.substring(0, 100) + '...');
+    createMindmapPrompt(text, settings) {
+        const focusDescriptions = {
+            general: "general overview with main themes and concepts",
+            technical: "technical details, implementation specifics, and technical architecture",
+            business: "business insights, market analysis, and strategic implications",
+            academic: "academic analysis, research methodology, and scholarly insights",
+            key_points: "key points and main takeaways only"
+        };
+
+        const focusDesc = focusDescriptions[settings.focus] || focusDescriptions.general;
+
+        return `You are an expert document analyst and mindmap creator. Analyze the following document and create a structured mindmap that represents the key concepts, themes, and relationships.
+
+# DOCUMENT CONTENT:
+${text.substring(0, 8000)}${text.length > 8000 ? '...' : ''}
+
+# ANALYSIS REQUIREMENTS:
+- Focus: ${focusDesc}
+- Maximum nodes: ${settings.nodeLimit}
+- Create a hierarchical structure with clear parent-child relationships
+- Use concise, descriptive node names (2-4 words each)
+- Ensure logical grouping and categorization
+- Include 3-5 main categories with 3-5 sub-nodes each
+
+# Guidelines:
+- Identify the central idea or theme of the document.
+- Extract and organize the main sections or arguments as first-level branches.
+- Include relevant subpoints, examples, or definitions as deeper branches.
+- Use clear and concise phrasing.
+- Omit unnecessary filler or repetitive content.
+
+OUTPUT FORMAT:
+Return ONLY a valid JSON object with this exact structure:
+{
+  "name": "Document Analysis",
+  "children": [
+    {
+      "name": "Category Name",
+      "children": [
+        {"name": "Sub-node 1", "value": 1},
+        {"name": "Sub-node 2", "value": 1}
+      ]
+    }
+  ]
+}
+
+IMPORTANT:
+- Return ONLY the JSON object, no additional text
+- Ensure the JSON is valid and properly formatted
+- Focus on the most important concepts from the document
+- Create meaningful relationships between nodes
+- Keep node names clear and descriptive
+- Limit the total number of nodes to ${settings.nodeLimit}`;
+    }
+
+    parseMindmapResponse(responseText, settings) {
+        console.log('Parsing Gemini response:', responseText);
         
-        // This is a demo implementation that generates structured mindmap data
-        // In a real implementation, this would come from Gemini Nano's structured output
-        
-        const sampleData = {
-            general: {
+        try {
+            // Clean the response text to extract JSON
+            let jsonText = responseText.trim();
+            
+            // Remove any markdown code blocks
+            if (jsonText.startsWith('```json')) {
+                jsonText = jsonText.substring(7);
+            }
+            if (jsonText.startsWith('```')) {
+                jsonText = jsonText.substring(3);
+            }
+            if (jsonText.endsWith('```')) {
+                jsonText = jsonText.substring(0, jsonText.length - 3);
+            }
+            
+            jsonText = jsonText.trim();
+            
+            // Parse the JSON
+            const mindmapData = JSON.parse(jsonText);
+            
+            // Validate the structure
+            if (!mindmapData.name || !mindmapData.children) {
+                throw new Error('Invalid mindmap structure');
+            }
+            
+            console.log('Successfully parsed mindmap data:', mindmapData);
+            return mindmapData;
+            
+        } catch (error) {
+            console.error('Error parsing mindmap response:', error);
+            console.log('Raw response that failed to parse:', responseText);
+            
+            // Return a minimal fallback structure if parsing fails
+            console.log('Using minimal fallback structure');
+            return {
                 name: "Document Analysis",
                 children: [
                     {
-                        name: "Core Themes",
+                        name: "Analysis Failed",
                         children: [
-                            { name: "Machine Learning Applications", value: 1 },
-                            { name: "Data Processing Pipeline", value: 1 },
-                            { name: "Performance Optimization", value: 1 },
-                            { name: "Scalability Challenges", value: 1 },
-                            { name: "Real-time Processing", value: 1 }
-                        ]
-                    },
-                    {
-                        name: "Key Concepts",
-                        children: [
-                            { name: "Neural Networks", value: 1 },
-                            { name: "Feature Engineering", value: 1 },
-                            { name: "Model Training", value: 1 },
-                            { name: "Validation Metrics", value: 1 },
-                            { name: "Deployment Strategy", value: 1 }
-                        ]
-                    },
-                    {
-                        name: "Methodology",
-                        children: [
-                            { name: "Data Collection", value: 1 },
-                            { name: "Preprocessing Steps", value: 1 },
-                            { name: "Model Selection", value: 1 },
-                            { name: "Hyperparameter Tuning", value: 1 },
-                            { name: "Cross-validation", value: 1 }
-                        ]
-                    },
-                    {
-                        name: "Results & Outcomes",
-                        children: [
-                            { name: "Accuracy Metrics", value: 1 },
-                            { name: "Performance Benchmarks", value: 1 },
-                            { name: "Comparative Analysis", value: 1 },
-                            { name: "Error Analysis", value: 1 },
-                            { name: "Future Improvements", value: 1 }
+                            { name: "Please try again", value: 1 }
                         ]
                     }
                 ]
-            },
-            technical: {
-                name: "Technical Deep Dive",
-                children: [
-                    {
-                        name: "Architecture Components",
-                        children: [
-                            { name: "Input Layer Design", value: 1 },
-                            { name: "Hidden Layer Configuration", value: 1 },
-                            { name: "Activation Functions", value: 1 },
-                            { name: "Dropout Mechanisms", value: 1 },
-                            { name: "Output Layer Structure", value: 1 }
-                        ]
-                    },
-                    {
-                        name: "Implementation Details",
-                        children: [
-                            { name: "TensorFlow/Keras Setup", value: 1 },
-                            { name: "Data Pipeline Architecture", value: 1 },
-                            { name: "GPU Acceleration", value: 1 },
-                            { name: "Memory Optimization", value: 1 },
-                            { name: "Batch Processing", value: 1 }
-                        ]
-                    },
-                    {
-                        name: "Algorithms & Methods",
-                        children: [
-                            { name: "Gradient Descent Variants", value: 1 },
-                            { name: "Backpropagation", value: 1 },
-                            { name: "Regularization Techniques", value: 1 },
-                            { name: "Optimization Algorithms", value: 1 },
-                            { name: "Loss Function Selection", value: 1 }
-                        ]
-                    },
-                    {
-                        name: "Performance Analysis",
-                        children: [
-                            { name: "Computational Complexity", value: 1 },
-                            { name: "Memory Usage Patterns", value: 1 },
-                            { name: "Training Time Analysis", value: 1 },
-                            { name: "Inference Speed", value: 1 },
-                            { name: "Scalability Metrics", value: 1 }
-                        ]
-                    }
-                ]
-            },
-            business: {
-                name: "Business Intelligence",
-                children: [
-                    {
-                        name: "Market Analysis",
-                        children: [
-                            { name: "Competitive Landscape", value: 1 },
-                            { name: "Market Size & Growth", value: 1 },
-                            { name: "Customer Segmentation", value: 1 },
-                            { name: "Pricing Strategy", value: 1 },
-                            { name: "Market Penetration", value: 1 }
-                        ]
-                    },
-                    {
-                        name: "ROI & Metrics",
-                        children: [
-                            { name: "Cost-Benefit Analysis", value: 1 },
-                            { name: "Return on Investment", value: 1 },
-                            { name: "Time to Market", value: 1 },
-                            { name: "Customer Acquisition Cost", value: 1 },
-                            { name: "Lifetime Value", value: 1 }
-                        ]
-                    },
-                    {
-                        name: "Strategic Implementation",
-                        children: [
-                            { name: "Go-to-Market Strategy", value: 1 },
-                            { name: "Resource Allocation", value: 1 },
-                            { name: "Risk Management", value: 1 },
-                            { name: "Success Metrics", value: 1 },
-                            { name: "Scaling Plan", value: 1 }
-                        ]
-                    },
-                    {
-                        name: "Operational Impact",
-                        children: [
-                            { name: "Process Automation", value: 1 },
-                            { name: "Efficiency Gains", value: 1 },
-                            { name: "Quality Improvement", value: 1 },
-                            { name: "Cost Reduction", value: 1 },
-                            { name: "Employee Productivity", value: 1 }
-                        ]
-                    }
-                ]
-            },
-            academic: {
-                name: "Academic Research",
-                children: [
-                    {
-                        name: "Literature Review",
-                        children: [
-                            { name: "Previous Research", value: 1 },
-                            { name: "Gap Analysis", value: 1 },
-                            { name: "Theoretical Framework", value: 1 },
-                            { name: "Research Questions", value: 1 },
-                            { name: "Hypothesis Development", value: 1 }
-                        ]
-                    },
-                    {
-                        name: "Research Methodology",
-                        children: [
-                            { name: "Experimental Design", value: 1 },
-                            { name: "Data Collection Methods", value: 1 },
-                            { name: "Statistical Analysis", value: 1 },
-                            { name: "Validation Procedures", value: 1 },
-                            { name: "Ethical Considerations", value: 1 }
-                        ]
-                    },
-                    {
-                        name: "Findings & Analysis",
-                        children: [
-                            { name: "Statistical Results", value: 1 },
-                            { name: "Significance Testing", value: 1 },
-                            { name: "Effect Sizes", value: 1 },
-                            { name: "Confidence Intervals", value: 1 },
-                            { name: "Correlation Analysis", value: 1 }
-                        ]
-                    },
-                    {
-                        name: "Contributions & Impact",
-                        children: [
-                            { name: "Novel Contributions", value: 1 },
-                            { name: "Theoretical Implications", value: 1 },
-                            { name: "Practical Applications", value: 1 },
-                            { name: "Future Research Directions", value: 1 },
-                            { name: "Limitations & Constraints", value: 1 }
-                        ]
-                    }
-                ]
-            },
-            key_points: {
-                name: "Key Insights",
-                children: [
-                    {
-                        name: "Critical Findings",
-                        children: [
-                            { name: "Main Discovery", value: 1 },
-                            { name: "Breakthrough Result", value: 1 },
-                            { name: "Key Innovation", value: 1 },
-                            { name: "Core Achievement", value: 1 },
-                            { name: "Primary Outcome", value: 1 }
-                        ]
-                    },
-                    {
-                        name: "Essential Concepts",
-                        children: [
-                            { name: "Fundamental Principle", value: 1 },
-                            { name: "Core Methodology", value: 1 },
-                            { name: "Key Technique", value: 1 },
-                            { name: "Critical Approach", value: 1 },
-                            { name: "Main Strategy", value: 1 }
-                        ]
-                    },
-                    {
-                        name: "Action Items",
-                        children: [
-                            { name: "Immediate Next Steps", value: 1 },
-                            { name: "Priority Actions", value: 1 },
-                            { name: "Key Decisions", value: 1 },
-                            { name: "Critical Milestones", value: 1 },
-                            { name: "Success Factors", value: 1 }
-                        ]
-                    }
-                ]
-            }
-        };
-
-        const result = sampleData[settings.focus] || sampleData.general;
-        console.log('Generated mindmap structure:', result);
-        console.log('Number of root children:', result.children ? result.children.length : 0);
-        
-        return result;
+            };
+        }
     }
 
-    async simulateProgress() {
+    updateProgress(percentage, message) {
         const progressBar = document.getElementById('analysisProgress');
         const progressText = document.getElementById('progressText');
-        const steps = [
-            { progress: 20, text: 'Extracting text from document...' },
-            { progress: 40, text: 'Analyzing content structure...' },
-            { progress: 60, text: 'Identifying key concepts...' },
-            { progress: 80, text: 'Creating mindmap hierarchy...' },
-            { progress: 100, text: 'Finalizing mindmap...' }
-        ];
-
-        for (const step of steps) {
-            progressBar.style.width = step.progress + '%';
-            progressText.textContent = step.text;
-            await new Promise(resolve => setTimeout(resolve, 800));
+        
+        if (progressBar) {
+            progressBar.style.width = `${percentage}%`;
+            progressBar.setAttribute('aria-valuenow', percentage);
         }
+        
+        if (progressText) {
+            progressText.textContent = message;
+        }
+        
+        console.log(`Progress: ${percentage}% - ${message}`);
+    }
+
+    getNodeColor(node) {
+        // Define a color palette for different node types
+        const colorPalette = {
+            // Root node - deep blue
+            root: '#1e40af',
+            // Parent nodes - various blues and purples
+            parent: ['#3b82f6', '#6366f1', '#8b5cf6', '#a855f7', '#7c3aed'],
+            // Child nodes - various colors based on content
+            child: ['#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#f97316', '#8b5a2b', '#6b7280', '#ec4899']
+        };
+
+        // Root node gets special color
+        if (!node.parent) {
+            return colorPalette.root;
+        }
+
+        // Parent nodes get colors from parent palette
+        if (node.children) {
+            const index = node.depth % colorPalette.parent.length;
+            return colorPalette.parent[index];
+        }
+
+        // Child nodes get colors based on their name/content
+        const childIndex = (node.data.name.length + node.depth) % colorPalette.child.length;
+        return colorPalette.child[childIndex];
+    }
+
+    async toggleNodeExpansion(event, node) {
+        const nodeId = node.data.name;
+        const isExpanded = this.expandedNodes.has(nodeId);
+        
+        if (isExpanded) {
+            // Collapse node
+            this.expandedNodes.delete(nodeId);
+            this.removeNodeDetails(nodeId);
+            this.renderMindmap(this.mindmapData);
+        } else {
+            // Expand node with loading state
+            this.expandedNodes.add(nodeId);
+            
+            // Show loading indicator
+            const expandIndicator = d3.select(event.target);
+            expandIndicator.text('⋯').style('font-size', '20px');
+            
+            try {
+                await this.loadNodeDetails(node);
+                this.renderMindmap(this.mindmapData);
+            } catch (error) {
+                console.error('Error expanding node:', error);
+                this.expandedNodes.delete(nodeId);
+                this.renderMindmap(this.mindmapData);
+            }
+        }
+    }
+
+    async loadNodeDetails(node) {
+        const nodeId = node.data.name;
+        
+        if (this.nodeDetails.has(nodeId)) {
+            return; // Already loaded
+        }
+        
+        try {
+            console.log(`Loading details for node: ${nodeId}`);
+            
+            // Use RAG to find relevant content
+            const relevantChunks = await this.findRelevantChunks(nodeId, 3);
+            
+            let details = '';
+            if (relevantChunks.length > 0) {
+                details = relevantChunks.map((chunk, index) => {
+                    return `<div class="chunk-content">
+                        <h6>Relevant Content ${index + 1}</h6>
+                        <p>${chunk.chunk.content}</p>
+                        <small class="similarity-score">Relevance: ${(chunk.similarity * 100).toFixed(1)}%</small>
+                    </div>`;
+                }).join('');
+            } else {
+                details = `<div class="no-content">
+                    <p>No specific content found for "${nodeId}". This node represents a general concept or category.</p>
+                </div>`;
+            }
+            
+            this.nodeDetails.set(nodeId, details);
+            console.log(`Details loaded for node: ${nodeId}`);
+            
+        } catch (error) {
+            console.error(`Error loading details for node ${nodeId}:`, error);
+            this.nodeDetails.set(nodeId, `<div class="error-content">
+                <p>Error loading content for "${nodeId}". Please try again.</p>
+            </div>`);
+        }
+    }
+
+    removeNodeDetails(nodeId) {
+        this.nodeDetails.delete(nodeId);
     }
 
     renderMindmap(data) {
@@ -593,57 +814,112 @@ class GeminiMindmapGenerator {
 
         console.log('Links created:', links.size());
 
-        // Create nodes
+        // Create nodes with expanded content
         const nodes = g.selectAll('.mindmap-node')
             .data(root.descendants())
             .enter()
             .append('g')
             .attr('class', 'mindmap-node')
-            .attr('transform', d => `translate(${d.y},${d.x})`);
+            .attr('transform', d => {
+                // Calculate expanded offset based on node depth and expansion state
+                let expandedOffset = 0;
+                if (this.expandedNodes.has(d.data.name)) {
+                    // Increase offset for deeper nodes to prevent overlap
+                    expandedOffset = 80 + (d.depth * 20);
+                }
+                return `translate(${d.y},${d.x + expandedOffset})`;
+            });
 
         console.log('Nodes created:', nodes.size());
 
-        // Add circles to nodes
-        nodes.append('circle')
-            .attr('r', d => d.children ? 8 : 6)
-            .attr('fill', d => d.children ? '#6366f1' : '#8b5cf6')
+        // Add rectangles to nodes
+        nodes.append('rect')
+            .attr('width', d => {
+                const textLength = d.data.name.length;
+                return Math.max(80, textLength * 8);
+            })
+            .attr('height', d => d.children ? 40 : 32)
+            .attr('x', d => {
+                const width = Math.max(80, d.data.name.length * 8);
+                return -width / 2;
+            })
+            .attr('y', d => {
+                const height = d.children ? 40 : 32;
+                return -height / 2;
+            })
+            .attr('rx', 6)
+            .attr('ry', 6)
+            .attr('fill', d => this.getNodeColor(d))
             .attr('stroke', '#ffffff')
             .attr('stroke-width', 2)
             .style('cursor', 'pointer')
-            .on('click', (event, d) => this.toggleNodeDetails(event, d));
+            .on('click', (event, d) => this.toggleNodeExpansion(event, d));
 
-        // Add text to nodes with better positioning
+        // Add text inside the rectangles
         nodes.append('text')
-            .attr('dy', d => {
-                // Position text based on node type and layout
-                if (d.children) {
-                    return d.y < width / 2 ? -15 : 15; // Top or bottom based on position
-                } else {
-                    return d.y < width / 2 ? -12 : 12; // Top or bottom based on position
-                }
-            })
-            .attr('text-anchor', d => {
-                // Anchor text based on position to avoid overlap
-                if (d.y < width / 3) return 'start';
-                if (d.y > width * 2 / 3) return 'end';
-                return 'middle';
-            })
-            .attr('dx', d => {
-                // Offset text horizontally to avoid overlap
-                if (d.y < width / 3) return 10;
-                if (d.y > width * 2 / 3) return -10;
-                return 0;
-            })
+            .attr('text-anchor', 'middle')
+            .attr('dominant-baseline', 'middle')
             .text(d => d.data.name)
-            .style('font-size', '11px')
+            .style('font-size', d => {
+                const baseSize = Math.max(9, Math.min(12, Math.sqrt(width * height) / 100));
+                const textLength = d.data.name.length;
+                return Math.max(8, baseSize - (textLength > 10 ? 1 : 0));
+            })
             .style('font-weight', '500')
-            .style('fill', '#374151')
+            .style('fill', '#ffffff')
             .style('pointer-events', 'none')
-            .style('text-shadow', '0 1px 2px rgba(255, 255, 255, 0.8)');
+            .style('text-shadow', '0 1px 2px rgba(0, 0, 0, 0.3)');
 
-        // Add expandable content tooltips
-        nodes.append('title')
-            .text(d => this.getNodeDetails(d));
+        // Add expand/collapse indicator
+        nodes.append('text')
+            .attr('class', 'expand-indicator')
+            .attr('text-anchor', 'middle')
+            .attr('dominant-baseline', 'middle')
+            .attr('dy', d => (d.children ? 40 : 32) / 2 + 20)
+            .text(d => this.expandedNodes.has(d.data.name) ? '−' : '+')
+            .style('font-size', '16px')
+            .style('font-weight', 'bold')
+            .style('fill', '#6366f1')
+            .style('cursor', 'pointer')
+            .style('pointer-events', 'all')
+            .on('click', (event, d) => this.toggleNodeExpansion(event, d));
+
+        // Add expanded content for expanded nodes
+        const expandedNodes = nodes.filter(d => this.expandedNodes.has(d.data.name));
+        
+        expandedNodes.each((d, i, nodes) => {
+            const nodeGroup = d3.select(nodes[i]);
+            const nodeId = d.data.name;
+            const details = this.nodeDetails.get(nodeId) || '';
+            
+            if (details) {
+                // Calculate dynamic positioning based on node depth
+                const xOffset = -150;
+                const yOffset = 40 + (d.depth * 10);
+                const width = 300;
+                const height = Math.min(200, 120 + (d.depth * 20));
+                
+                // Create foreign object for HTML content
+                const foreignObject = nodeGroup.append('foreignObject')
+                    .attr('x', xOffset)
+                    .attr('y', yOffset)
+                    .attr('width', width)
+                    .attr('height', height);
+                
+                foreignObject.append('xhtml:div')
+                    .attr('class', 'node-details')
+                    .style('background', 'white')
+                    .style('border', '1px solid #e2e8f0')
+                    .style('border-radius', '8px')
+                    .style('padding', '12px')
+                    .style('box-shadow', '0 4px 12px rgba(0,0,0,0.15)')
+                    .style('font-size', '12px')
+                    .style('line-height', '1.4')
+                    .style('max-height', `${height}px`)
+                    .style('overflow-y', 'auto')
+                    .html(details);
+            }
+        });
 
         // Update stats
         this.updateStats(root.descendants().length, root.links().length);
@@ -654,20 +930,59 @@ class GeminiMindmapGenerator {
     }
 
     createLayout(width, height) {
-        const style = document.getElementById('mindmapStyle').value;
+        const layoutStyle = document.querySelector('input[name="layout"]:checked').value;
+        console.log('Selected layout style:', layoutStyle);
         
-        switch (style) {
-            case 'hierarchical':
-                return d3.tree().size([height - 100, width - 200])
-                    .separation((a, b) => (a.parent == b.parent ? 1.2 : 2) / a.depth);
-            case 'force':
-                return d3.tree().size([height - 100, width - 200])
-                    .separation((a, b) => (a.parent == b.parent ? 1.5 : 2.5) / a.depth);
+        let layout;
+        
+        switch (layoutStyle) {
             case 'radial':
+                layout = d3.tree()
+                    .size([height - 100, width - 100])
+                    .separation((a, b) => {
+                        // Increase separation for expanded nodes
+                        const aExpanded = this.expandedNodes.has(a.data.name);
+                        const bExpanded = this.expandedNodes.has(b.data.name);
+                        const baseSeparation = (a.parent === b.parent ? 1.2 : 1.5);
+                        return baseSeparation + (aExpanded || bExpanded ? 0.3 : 0);
+                    });
+                break;
+                
+            case 'horizontal':
+                layout = d3.tree()
+                    .size([height - 100, width - 100])
+                    .separation((a, b) => {
+                        const aExpanded = this.expandedNodes.has(a.data.name);
+                        const bExpanded = this.expandedNodes.has(b.data.name);
+                        const baseSeparation = (a.parent === b.parent ? 1.2 : 1.5);
+                        return baseSeparation + (aExpanded || bExpanded ? 0.3 : 0);
+                    });
+                break;
+                
+            case 'vertical':
+                layout = d3.tree()
+                    .size([width - 100, height - 100])
+                    .separation((a, b) => {
+                        const aExpanded = this.expandedNodes.has(a.data.name);
+                        const bExpanded = this.expandedNodes.has(b.data.name);
+                        const baseSeparation = (a.parent === b.parent ? 1.2 : 1.5);
+                        return baseSeparation + (aExpanded || bExpanded ? 0.3 : 0);
+                    });
+                break;
+                
             default:
-                return d3.tree().size([360, Math.min(width, height) / 2 - 150])
-                    .separation((a, b) => (a.parent == b.parent ? 1.5 : 2.5) / a.depth);
+                layout = d3.tree()
+                    .size([height - 100, width - 100])
+                    .separation((a, b) => {
+                        const aExpanded = this.expandedNodes.has(a.data.name);
+                        const bExpanded = this.expandedNodes.has(b.data.name);
+                        const baseSeparation = (a.parent === b.parent ? 1.2 : 1.5);
+                        return baseSeparation + (aExpanded || bExpanded ? 0.3 : 0);
+                    });
         }
+        
+        console.log('Layout created with style:', layoutStyle);
+        return layout;
     }
 
     updateStats(nodeCount, linkCount) {
@@ -677,11 +992,74 @@ class GeminiMindmapGenerator {
 
     resetView() {
         if (this.svg) {
-            this.svg.transition().duration(750).call(
-                d3.zoom().transform,
-                d3.zoomIdentity
-            );
+            this.svg.transition()
+                .duration(750)
+                .call(d3.zoom().transform, d3.zoomIdentity);
         }
+    }
+
+    exportMindmap(format) {
+        if (!this.svg) {
+            this.showError('No mindmap to export');
+            return;
+        }
+
+        try {
+            if (format === 'svg') {
+                // Export as SVG
+                const svgData = new XMLSerializer().serializeToString(this.svg.node());
+                const blob = new Blob([svgData], { type: 'image/svg+xml' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'mindmap.svg';
+                a.click();
+                URL.revokeObjectURL(url);
+            } else {
+                // Export as PNG
+                const svgData = new XMLSerializer().serializeToString(this.svg.node());
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+                
+                img.onload = () => {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+                    
+                    canvas.toBlob((blob) => {
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'mindmap.png';
+                        a.click();
+                        URL.revokeObjectURL(url);
+                    });
+                };
+                
+                img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+            }
+        } catch (error) {
+            console.error('Export error:', error);
+            this.showError('Export failed');
+        }
+    }
+
+    searchNodes() {
+        const searchInput = document.getElementById('searchInput');
+        const query = searchInput ? searchInput.value.trim() : '';
+        
+        if (!query || !this.svg) return;
+        
+        // Highlight matching nodes
+        const nodes = this.svg.selectAll('.mindmap-node');
+        nodes.select('rect').style('stroke', (d) => {
+            const nodeName = d.data.name.toLowerCase();
+            return nodeName.includes(query.toLowerCase()) ? '#ff6b6b' : '#ffffff';
+        }).style('stroke-width', (d) => {
+            const nodeName = d.data.name.toLowerCase();
+            return nodeName.includes(query.toLowerCase()) ? 4 : 2;
+        });
     }
 
     expandAll() {
@@ -692,55 +1070,6 @@ class GeminiMindmapGenerator {
     collapseAll() {
         // Implementation for collapsing all nodes
         console.log('Collapse all nodes');
-    }
-
-    searchNodes(query) {
-        if (!query.trim()) return;
-        
-        // Implementation for searching nodes
-        console.log('Searching for:', query);
-    }
-
-    exportPNG() {
-        if (!this.svg) return;
-        
-        const svgData = new XMLSerializer().serializeToString(this.svg.node());
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        const img = new Image();
-        
-        const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-        const url = URL.createObjectURL(svgBlob);
-        
-        img.onload = () => {
-            canvas.width = this.svg.node().clientWidth;
-            canvas.height = this.svg.node().clientHeight;
-            ctx.drawImage(img, 0, 0);
-            
-            const link = document.createElement('a');
-            link.download = 'mindmap.png';
-            link.href = canvas.toDataURL();
-            link.click();
-            
-            URL.revokeObjectURL(url);
-        };
-        
-        img.src = url;
-    }
-
-    exportSVG() {
-        if (!this.svg) return;
-        
-        const svgData = new XMLSerializer().serializeToString(this.svg.node());
-        const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-        const url = URL.createObjectURL(svgBlob);
-        
-        const link = document.createElement('a');
-        link.download = 'mindmap.svg';
-        link.href = url;
-        link.click();
-        
-        URL.revokeObjectURL(url);
     }
 
     showLoading() {
@@ -795,24 +1124,63 @@ class GeminiMindmapGenerator {
         console.log('=== Mindmap display completed ===');
     }
 
-    updateStatus(status) {
+    updateStatus(status, message = null) {
+        const modelStatus = document.getElementById('model-status');
+        if (modelStatus) {
+            const modelIcon = modelStatus.querySelector('i');
+            const modelText = modelStatus.querySelector('span');
+            
+            if (modelIcon && modelText) {
+                modelIcon.className = 'fas fa-circle';
+                
+                switch (status) {
+                    case 'initializing':
+                        modelIcon.classList.add('text-warning');
+                        modelText.textContent = message || 'Initializing...';
+                        break;
+                    case 'ready':
+                        modelIcon.classList.add('text-success');
+                        modelText.textContent = message || 'Ready';
+                        break;
+                    case 'processing':
+                        modelIcon.classList.add('text-info');
+                        modelText.textContent = message || 'Processing...';
+                        break;
+                    case 'error':
+                        modelIcon.classList.add('text-danger');
+                        modelText.textContent = message || 'Error';
+                        break;
+                    default:
+                        modelIcon.classList.add('text-muted');
+                        modelText.textContent = message || 'Unknown';
+                }
+            }
+        }
+    }
+
+    updateProcessingStatus(status, message) {
         const statusElement = document.getElementById('processing-status');
-        const icon = statusElement.querySelector('i');
-        const text = statusElement.querySelector('span');
-        
-        switch (status) {
-            case 'ready':
-                icon.className = 'fas fa-brain text-success';
-                text.textContent = 'Ready';
-                break;
-            case 'processing':
-                icon.className = 'fas fa-cog fa-spin text-warning';
-                text.textContent = 'Processing...';
-                break;
-            case 'error':
-                icon.className = 'fas fa-exclamation-triangle text-danger';
-                text.textContent = 'Error';
-                break;
+        if (statusElement) {
+            const icon = statusElement.querySelector('i');
+            const text = statusElement.querySelector('span');
+            
+            if (icon && text) {
+                icon.className = 'fas';
+                switch (status) {
+                    case 'initializing':
+                        icon.classList.add('fa-spinner', 'fa-spin', 'text-warning');
+                        break;
+                    case 'ready':
+                        icon.classList.add('fa-brain', 'text-success');
+                        break;
+                    case 'error':
+                        icon.classList.add('fa-exclamation-triangle', 'text-danger');
+                        break;
+                    default:
+                        icon.classList.add('fa-brain', 'text-muted');
+                }
+                text.textContent = message;
+            }
         }
     }
 
@@ -955,9 +1323,46 @@ class GeminiMindmapGenerator {
             });
         }
     }
+
+    async expandAllNodes() {
+        if (!this.mindmapData) return;
+        
+        console.log('Expanding all nodes...');
+        const allNodes = this.getAllNodes(this.mindmapData);
+        
+        for (const node of allNodes) {
+            if (!this.expandedNodes.has(node.name)) {
+                this.expandedNodes.add(node.name);
+                await this.loadNodeDetails({ data: { name: node.name } });
+            }
+        }
+        
+        this.renderMindmap(this.mindmapData);
+    }
+
+    collapseAllNodes() {
+        console.log('Collapsing all nodes...');
+        this.expandedNodes.clear();
+        this.nodeDetails.clear();
+        this.renderMindmap(this.mindmapData);
+    }
+
+    getAllNodes(data) {
+        const nodes = [];
+        
+        function traverse(node) {
+            nodes.push({ name: node.name });
+            if (node.children) {
+                node.children.forEach(traverse);
+            }
+        }
+        
+        traverse(data);
+        return nodes;
+    }
 }
 
-// Initialize the application when DOM is loaded
+// Initialize the application
 document.addEventListener('DOMContentLoaded', () => {
     new GeminiMindmapGenerator();
 }); 
