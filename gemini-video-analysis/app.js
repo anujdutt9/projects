@@ -236,7 +236,34 @@ class VideoAnalysisApp {
             'video/mp4', 'video/webm', 'video/ogg', 'video/quicktime',
             'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/m4a', 'audio/aac'
         ];
-        return validTypes.includes(file.type);
+        
+        console.log('File validation:', {
+            name: file.name,
+            type: file.type,
+            size: file.size
+        });
+        
+        // Check MIME type first
+        if (validTypes.includes(file.type)) {
+            console.log('File type validated by MIME type:', file.type);
+            return true;
+        }
+        
+        // Fallback: check file extension
+        const fileName = file.name.toLowerCase();
+        const validExtensions = [
+            '.mp4', '.webm', '.ogg', '.mov', '.qt',
+            '.mp3', '.wav', '.m4a', '.aac'
+        ];
+        
+        const hasValidExtension = validExtensions.some(ext => fileName.endsWith(ext));
+        if (hasValidExtension) {
+            console.log('File type validated by extension:', fileName);
+            return true;
+        }
+        
+        console.log('File type validation failed for:', file.name);
+        return false;
     }
 
     // Display media player
