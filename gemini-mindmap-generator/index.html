@@ -34,20 +34,6 @@
             <a class="navbar-brand d-flex align-items-center" href="#">
                 <i class="fas fa-sitemap me-2"></i>
             </a>
-            <div class="navbar-nav ms-auto">
-                <div class="nav-item">
-                    <span class="nav-link" id="model-status">
-                        <i class="fas fa-circle text-warning"></i>
-                        <span>Initializing...</span>
-                    </span>
-                </div>
-                <div class="nav-item">
-                    <span class="nav-link" id="processing-status">
-                        <i class="fas fa-brain text-muted"></i>
-                        <span>Ready</span>
-                    </span>
-                </div>
-            </div>
         </div>
     </nav>
 
@@ -234,6 +220,16 @@
                                     <span id="linkCount">0</span> connections
                                 </span>
                             </div>
+                            <div class="mindmap-status">
+                                <span class="status-item" id="model-status">
+                                    <i class="fas fa-circle text-warning"></i>
+                                    <span>Initializing...</span>
+                                </span>
+                                <span class="status-item" id="processing-status">
+                                    <i class="fas fa-brain text-muted"></i>
+                                    <span>Ready</span>
+                                </span>
+                            </div>
                         </div>
                         <div class="mindmap-viewport" id="mindmapViewport">
                             <!-- D3.js mindmap will be rendered here -->
@@ -268,6 +264,16 @@
                                     <i class="fas fa-download"></i>
                                     <span>Export Options</span>
                                 </div>
+                            </div>
+                            <div class="welcome-status">
+                                <span class="status-item" id="model-status-welcome">
+                                    <i class="fas fa-circle text-warning"></i>
+                                    <span>Initializing...</span>
+                                </span>
+                                <span class="status-item" id="processing-status-welcome">
+                                    <i class="fas fa-brain text-muted"></i>
+                                    <span>Ready</span>
+                                </span>
                             </div>
                         </div>
                     </div>

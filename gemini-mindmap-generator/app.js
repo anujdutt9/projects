@@ -1118,10 +1118,16 @@ IMPORTANT:
     }
 
     updateStatus(status, message = null) {
+        // Update status in mindmap header
         const modelStatus = document.getElementById('model-status');
-        if (modelStatus) {
-            const modelIcon = modelStatus.querySelector('i');
-            const modelText = modelStatus.querySelector('span');
+        // Update status in welcome message
+        const modelStatusWelcome = document.getElementById('model-status-welcome');
+        
+        const statusElements = [modelStatus, modelStatusWelcome].filter(Boolean);
+        
+        statusElements.forEach(statusElement => {
+            const modelIcon = statusElement.querySelector('i');
+            const modelText = statusElement.querySelector('span');
             
             if (modelIcon && modelText) {
                 modelIcon.className = 'fas fa-circle';
@@ -1148,14 +1154,20 @@ IMPORTANT:
                         modelText.textContent = message || 'Unknown';
                 }
             }
-        }
+        });
     }
 
     updateProcessingStatus(status, message) {
+        // Update status in mindmap header
         const statusElement = document.getElementById('processing-status');
-        if (statusElement) {
-            const icon = statusElement.querySelector('i');
-            const text = statusElement.querySelector('span');
+        // Update status in welcome message
+        const statusElementWelcome = document.getElementById('processing-status-welcome');
+        
+        const statusElements = [statusElement, statusElementWelcome].filter(Boolean);
+        
+        statusElements.forEach(element => {
+            const icon = element.querySelector('i');
+            const text = element.querySelector('span');
             
             if (icon && text) {
                 icon.className = 'fas';
@@ -1174,7 +1186,7 @@ IMPORTANT:
                 }
                 text.textContent = message;
             }
-        }
+        });
     }
 
     showError(message) {
