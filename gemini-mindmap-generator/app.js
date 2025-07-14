@@ -421,14 +421,10 @@ class GeminiMindmapGenerator {
                     
                     if (file.type === 'application/pdf') {
                         console.log('Processing PDF file...');
-                        // For now, we'll use a placeholder for PDF processing
-                        // In a production environment, you'd integrate PDF.js for proper text extraction
-                        text = 'PDF processing requires additional libraries. Please convert your PDF to text format or use a text document for now. For proper PDF support, the application would need to integrate PDF.js library for text extraction from PDF files.';
+                        text = await this.extractPDFText(e.target.result);
                     } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
                         console.log('Processing DOCX file...');
-                        // For now, we'll use a placeholder for DOCX processing
-                        // In a production environment, you'd integrate mammoth.js for proper text extraction
-                        text = 'DOCX processing requires additional libraries. Please convert your DOCX to text format or use a text document for now. For proper DOCX support, the application would need to integrate mammoth.js library for text extraction from Word documents.';
+                        text = await this.extractDOCXText(e.target.result);
                     } else if (file.type === 'text/plain') {
                         console.log('Processing text file...');
                         text = e.target.result;
@@ -466,6 +462,98 @@ class GeminiMindmapGenerator {
                 reader.readAsArrayBuffer(file);
             }
         });
+    }
+
+    async extractPDFText(arrayBuffer) {
+        try {
+            console.log('Attempting PDF text extraction...');
+            
+            // Convert ArrayBuffer to Uint8Array
+            const uint8Array = new Uint8Array(arrayBuffer);
+            
+            // Look for text content in PDF (simple approach)
+            const decoder = new TextDecoder('utf-8');
+            const pdfString = decoder.decode(uint8Array);
+            
+            // Extract text content from PDF structure
+            // This is a simplified approach - for production, use PDF.js
+            const textMatches = pdfString.match(/\(([^)]+)\)/g);
+            let extractedText = '';
+            
+            if (textMatches) {
+                extractedText = textMatches
+                    .map(match => match.slice(1, -1)) // Remove parentheses
+                    .filter(text => text.length > 3 && !text.match(/^[0-9\s]+$/)) // Filter meaningful text
+                    .join(' ');
+            }
+            
+            // If no text found with regex, try alternative approach
+            if (!extractedText || extractedText.length < 100) {
+                console.log('Regex extraction failed, trying alternative method...');
+                
+                // Look for text between BT and ET markers (PDF text objects)
+                const textObjects = pdfString.match(/BT[\s\S]*?ET/g);
+                if (textObjects) {
+                    extractedText = textObjects
+                        .map(obj => obj.replace(/BT|ET/g, ''))
+                        .join(' ')
+                        .replace(/[^\w\s.,!?-]/g, ' ') // Clean up special characters
+                        .replace(/\s+/g, ' ')
+                        .trim();
+                }
+            }
+            
+            // If still no text, provide a helpful message
+            if (!extractedText || extractedText.length < 50) {
+                console.log('PDF text extraction limited - using fallback');
+                extractedText = 'PDF text extraction was limited. The document may be image-based or have complex formatting. For better results, consider converting the PDF to text format or using a document with selectable text.';
+            }
+            
+            console.log('PDF extraction result length:', extractedText.length);
+            return extractedText;
+            
+        } catch (error) {
+            console.error('Error extracting PDF text:', error);
+            throw new Error('Failed to extract text from PDF. Please try a text file or convert your PDF to text format.');
+        }
+    }
+
+    async extractDOCXText(arrayBuffer) {
+        try {
+            console.log('Attempting DOCX text extraction...');
+            
+            // Convert ArrayBuffer to Uint8Array
+            const uint8Array = new Uint8Array(arrayBuffer);
+            
+            // Look for XML content in DOCX (simplified approach)
+            const decoder = new TextDecoder('utf-8');
+            const docxString = decoder.decode(uint8Array);
+            
+            // Extract text from XML-like content
+            const textMatches = docxString.match(/<w:t[^>]*>([^<]+)<\/w:t>/g);
+            let extractedText = '';
+            
+            if (textMatches) {
+                extractedText = textMatches
+                    .map(match => match.replace(/<[^>]+>/g, '')) // Remove XML tags
+                    .join(' ')
+                    .replace(/\s+/g, ' ')
+                    .trim();
+            }
+            
+            // If no text found, provide a helpful message
+            if (!extractedText || extractedText.length < 50) {
+                console.log('DOCX text extraction limited - using fallback');
+                extractedText = 'DOCX text extraction was limited. For better results, consider converting the document to text format or using a plain text file.';
+            }
+            
+            console.log('DOCX extraction result length:', extractedText.length);
+            return extractedText;
+            
+        } catch (error) {
+            console.error('Error extracting DOCX text:', error);
+            throw new Error('Failed to extract text from DOCX. Please try a text file or convert your document to text format.');
+        }
     }
 
     cleanText(text) {
