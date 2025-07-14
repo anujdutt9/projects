@@ -786,44 +786,37 @@ Please provide a detailed answer that references specific frames and timestamps 
             
             console.log('Sending Q&A prompt to Gemini:', content[0].value.substring(0, 200) + '...');
             
-            // Use streaming response
-            const response = await this.analysisSession.prompt([
+            // Use streaming response like RAG Chat
+            console.log('Starting streaming response...');
+            
+            // Get streaming response
+            const stream = this.analysisSession.promptStreaming([
                 {
                     role: 'user',
                     content: content
                 }
-            ], {
-                stream: true
-            });
-            
-            console.log('Q&A streaming response:', response);
-            console.log('Response type:', typeof response);
-            console.log('Response keys:', response ? Object.keys(response) : 'no response');
+            ]);
             
             let fullResponse = '';
+            let chunkCount = 0;
             
-            if (response && response.stream) {
-                // Handle streaming response
-                for await (const chunk of response.stream) {
-                    console.log('Stream chunk:', chunk);
-                    if (chunk && chunk.text) {
-                        fullResponse += chunk.text;
-                        this.updateLastAIMessage(fullResponse);
-                    }
+            console.log('Processing stream chunks...');
+            
+            for await (const chunk of stream) {
+                chunkCount++;
+                fullResponse += chunk;
+                
+                // Update the message with current content
+                this.updateLastAIMessage(fullResponse);
+                
+                // Log progress every 10 chunks
+                if (chunkCount % 10 === 0) {
+                    console.log(`Processed ${chunkCount} chunks, response length: ${fullResponse.length}`);
                 }
-            } else if (response && typeof response === 'string') {
-                // Handle direct string response
-                fullResponse = response;
-            } else if (response && response.text) {
-                // Handle response with text property
-                fullResponse = response.text;
-            } else {
-                console.error('Unexpected response format:', response);
-                this.updateLastAIMessage('I apologize, but I couldn\'t generate a response. Please try asking your question again.');
-                return;
             }
             
-            console.log('Full response collected:', fullResponse);
+            console.log(`Streaming completed: ${chunkCount} chunks, ${fullResponse.length} characters`);
+            console.log('Full response:', fullResponse);
             
             if (fullResponse.trim()) {
                 // Final update with formatted response
