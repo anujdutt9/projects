@@ -608,17 +608,42 @@ class GeminiMindmapGenerator {
             .attr('r', d => d.children ? 8 : 6)
             .attr('fill', d => d.children ? '#6366f1' : '#8b5cf6')
             .attr('stroke', '#ffffff')
-            .attr('stroke-width', 2);
+            .attr('stroke-width', 2)
+            .style('cursor', 'pointer')
+            .on('click', (event, d) => this.toggleNodeDetails(event, d));
 
-        // Add text to nodes
+        // Add text to nodes with better positioning
         nodes.append('text')
-            .attr('dy', d => d.children ? -12 : 12)
-            .attr('text-anchor', d => d.children ? 'middle' : 'middle')
+            .attr('dy', d => {
+                // Position text based on node type and layout
+                if (d.children) {
+                    return d.y < width / 2 ? -15 : 15; // Top or bottom based on position
+                } else {
+                    return d.y < width / 2 ? -12 : 12; // Top or bottom based on position
+                }
+            })
+            .attr('text-anchor', d => {
+                // Anchor text based on position to avoid overlap
+                if (d.y < width / 3) return 'start';
+                if (d.y > width * 2 / 3) return 'end';
+                return 'middle';
+            })
+            .attr('dx', d => {
+                // Offset text horizontally to avoid overlap
+                if (d.y < width / 3) return 10;
+                if (d.y > width * 2 / 3) return -10;
+                return 0;
+            })
             .text(d => d.data.name)
-            .style('font-size', '12px')
+            .style('font-size', '11px')
             .style('font-weight', '500')
             .style('fill', '#374151')
-            .style('pointer-events', 'none');
+            .style('pointer-events', 'none')
+            .style('text-shadow', '0 1px 2px rgba(255, 255, 255, 0.8)');
+
+        // Add expandable content tooltips
+        nodes.append('title')
+            .text(d => this.getNodeDetails(d));
 
         // Update stats
         this.updateStats(root.descendants().length, root.links().length);
@@ -633,13 +658,15 @@ class GeminiMindmapGenerator {
         
         switch (style) {
             case 'hierarchical':
-                return d3.tree().size([height, width - 160]);
+                return d3.tree().size([height - 100, width - 200])
+                    .separation((a, b) => (a.parent == b.parent ? 1.2 : 2) / a.depth);
             case 'force':
-                return d3.tree().size([height, width - 160]);
+                return d3.tree().size([height - 100, width - 200])
+                    .separation((a, b) => (a.parent == b.parent ? 1.5 : 2.5) / a.depth);
             case 'radial':
             default:
-                return d3.tree().size([360, Math.min(width, height) / 2 - 120])
-                    .separation((a, b) => (a.parent == b.parent ? 1 : 2) / a.depth);
+                return d3.tree().size([360, Math.min(width, height) / 2 - 150])
+                    .separation((a, b) => (a.parent == b.parent ? 1.5 : 2.5) / a.depth);
         }
     }
 
@@ -859,6 +886,74 @@ class GeminiMindmapGenerator {
         this.history = [];
         this.saveHistory();
         this.renderHistory();
+    }
+
+    getNodeDetails(node) {
+        // Generate relevant content for each node based on its name and type
+        const details = {
+            'Machine Learning Applications': 'Applications of ML in real-world scenarios including image recognition, natural language processing, and predictive analytics.',
+            'Data Processing Pipeline': 'End-to-end data processing workflow from raw data ingestion to model-ready datasets.',
+            'Neural Networks': 'Deep learning architectures including feedforward, convolutional, and recurrent neural networks.',
+            'Feature Engineering': 'Process of creating, transforming, and selecting features to improve model performance.',
+            'Model Training': 'Supervised and unsupervised learning approaches with optimization techniques.',
+            'Validation Metrics': 'Performance evaluation metrics including accuracy, precision, recall, and F1-score.',
+            'Architecture Components': 'Neural network layer configurations, activation functions, and connectivity patterns.',
+            'Implementation Details': 'Technical implementation specifics including frameworks, libraries, and deployment strategies.',
+            'Algorithms & Methods': 'Machine learning algorithms including gradient descent, backpropagation, and regularization.',
+            'Performance Analysis': 'Computational complexity, memory usage, and scalability considerations.',
+            'Market Analysis': 'Competitive landscape analysis, market trends, and opportunity identification.',
+            'ROI & Metrics': 'Return on investment calculations, cost-benefit analysis, and business metrics.',
+            'Strategic Implementation': 'Go-to-market strategies, resource allocation, and risk management approaches.',
+            'Literature Review': 'Previous research analysis, gap identification, and theoretical framework development.',
+            'Research Methodology': 'Experimental design, data collection methods, and statistical analysis approaches.',
+            'Findings & Analysis': 'Statistical results, significance testing, and correlation analysis outcomes.',
+            'Critical Findings': 'Key discoveries and breakthrough results from the analysis.',
+            'Essential Concepts': 'Fundamental principles and core methodologies central to the topic.',
+            'Action Items': 'Immediate next steps and priority actions for implementation.'
+        };
+
+        return details[node.data.name] || `Detailed information about ${node.data.name}. Click to expand for more details.`;
+    }
+
+    toggleNodeDetails(event, node) {
+        // Create or update a tooltip with detailed information
+        const tooltip = d3.select('body').select('.node-tooltip');
+        
+        if (tooltip.empty()) {
+            // Create new tooltip
+            const newTooltip = d3.select('body')
+                .append('div')
+                .attr('class', 'node-tooltip')
+                .style('position', 'absolute')
+                .style('background', 'white')
+                .style('border', '1px solid #ccc')
+                .style('border-radius', '8px')
+                .style('padding', '12px')
+                .style('box-shadow', '0 4px 12px rgba(0,0,0,0.15)')
+                .style('max-width', '300px')
+                .style('z-index', '1000')
+                .style('font-size', '14px')
+                .style('line-height', '1.4');
+
+            newTooltip.html(`
+                <h6 style="margin: 0 0 8px 0; color: #374151; font-weight: 600;">${node.data.name}</h6>
+                <p style="margin: 0; color: #6b7280;">${this.getNodeDetails(node)}</p>
+                <div style="margin-top: 8px; font-size: 12px; color: #9ca3af;">
+                    Click anywhere to close
+                </div>
+            `);
+
+            // Position tooltip
+            newTooltip
+                .style('left', (event.pageX + 10) + 'px')
+                .style('top', (event.pageY - 10) + 'px');
+
+            // Close tooltip on click
+            d3.select('body').on('click.tooltip', () => {
+                newTooltip.remove();
+                d3.select('body').on('click.tooltip', null);
+            });
+        }
     }
 }
 
