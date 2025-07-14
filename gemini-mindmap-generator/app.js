@@ -152,28 +152,50 @@ class GeminiMindmapGenerator {
     }
 
     async generateMindmap() {
-        if (!this.currentFile) return;
+        console.log('=== Starting mindmap generation ===');
+        if (!this.currentFile) {
+            console.error('No file selected');
+            return;
+        }
 
+        console.log('File selected:', this.currentFile.name, this.currentFile.type);
         this.showLoading();
         this.updateStatus('processing');
 
         try {
+            console.log('Step 1: Extracting text from file...');
             const text = await this.extractText(this.currentFile);
+            console.log('Text extracted, length:', text.length);
+            console.log('Text preview:', text.substring(0, 200) + '...');
+
+            console.log('Step 2: Analyzing with Gemini...');
             const mindmapData = await this.analyzeWithGemini(text);
+            console.log('Mindmap data received:', mindmapData);
+
             this.mindmapData = mindmapData;
+            
+            console.log('Step 3: Rendering mindmap...');
             this.renderMindmap(mindmapData);
+            
+            console.log('Step 4: Saving to history...');
             this.saveToHistory();
+            
+            console.log('Step 5: Showing mindmap...');
             this.showMindmap();
+            
+            console.log('=== Mindmap generation completed successfully ===');
         } catch (error) {
             console.error('Error generating mindmap:', error);
             this.showError('Failed to generate mindmap. Please try again.');
         } finally {
+            console.log('Step 6: Cleaning up...');
             this.hideLoading();
             this.updateStatus('ready');
         }
     }
 
     async extractText(file) {
+        console.log('Extracting text from file:', file.name, file.type);
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             
@@ -182,34 +204,45 @@ class GeminiMindmapGenerator {
                     let text = '';
                     
                     if (file.type === 'application/pdf') {
+                        console.log('Processing PDF file...');
                         // For PDF, we'll use a simple text extraction
                         // In a real implementation, you'd use PDF.js
                         text = 'PDF content extraction would go here. For demo purposes, using sample text.';
                     } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+                        console.log('Processing DOCX file...');
                         // For DOCX, we'll use a simple text extraction
                         // In a real implementation, you'd use mammoth.js
                         text = 'DOCX content extraction would go here. For demo purposes, using sample text.';
                     } else {
+                        console.log('Processing text file...');
                         text = e.target.result;
                     }
                     
+                    console.log('Text extraction completed. Length:', text.length);
                     resolve(text);
                 } catch (error) {
+                    console.error('Error in text extraction:', error);
                     reject(error);
                 }
             };
             
-            reader.onerror = reject;
+            reader.onerror = (error) => {
+                console.error('FileReader error:', error);
+                reject(error);
+            };
             
             if (file.type === 'text/plain') {
+                console.log('Reading as text...');
                 reader.readAsText(file);
             } else {
+                console.log('Reading as ArrayBuffer...');
                 reader.readAsArrayBuffer(file);
             }
         });
     }
 
     async analyzeWithGemini(text) {
+        console.log('=== Starting Gemini analysis ===');
         // Simulate Gemini Nano API call with structured output
         // In a real implementation, you'd call the actual Gemini API
         
@@ -219,14 +252,26 @@ class GeminiMindmapGenerator {
             style: document.getElementById('mindmapStyle').value
         };
 
+        console.log('Analysis settings:', settings);
+        console.log('Input text length:', text.length);
+
         // Simulate API delay
+        console.log('Simulating progress...');
         await this.simulateProgress();
 
         // Generate structured mindmap data based on analysis focus
-        return this.generateStructuredMindmap(text, settings);
+        console.log('Generating structured mindmap data...');
+        const result = this.generateStructuredMindmap(text, settings);
+        console.log('Generated mindmap data:', result);
+        
+        return result;
     }
 
     generateStructuredMindmap(text, settings) {
+        console.log('=== Generating structured mindmap ===');
+        console.log('Settings:', settings);
+        console.log('Text preview:', text.substring(0, 100) + '...');
+        
         // This is a demo implementation that generates structured mindmap data
         // In a real implementation, this would come from Gemini Nano's structured output
         
@@ -304,7 +349,11 @@ class GeminiMindmapGenerator {
             }
         };
 
-        return sampleData[settings.focus] || sampleData.general;
+        const result = sampleData[settings.focus] || sampleData.general;
+        console.log('Generated mindmap structure:', result);
+        console.log('Number of root children:', result.children ? result.children.length : 0);
+        
+        return result;
     }
 
     async simulateProgress() {
@@ -326,15 +375,25 @@ class GeminiMindmapGenerator {
     }
 
     renderMindmap(data) {
-        console.log('Rendering mindmap with data:', data);
+        console.log('=== Starting mindmap rendering ===');
+        console.log('Input data:', data);
         
         const viewport = document.getElementById('mindmapViewport');
+        console.log('Viewport element:', viewport);
+        
+        if (!viewport) {
+            console.error('Viewport element not found!');
+            return;
+        }
+        
         viewport.innerHTML = '';
 
         const width = viewport.clientWidth || 800;
         const height = viewport.clientHeight || 600;
 
         console.log('Viewport dimensions:', width, height);
+        console.log('Viewport clientWidth:', viewport.clientWidth);
+        console.log('Viewport clientHeight:', viewport.clientHeight);
 
         // Create SVG
         this.svg = d3.select(viewport)
@@ -342,6 +401,8 @@ class GeminiMindmapGenerator {
             .attr('width', width)
             .attr('height', height)
             .attr('viewBox', [0, 0, width, height]);
+
+        console.log('SVG created:', this.svg.node());
 
         // Create zoom behavior
         const zoom = d3.zoom()
@@ -354,15 +415,24 @@ class GeminiMindmapGenerator {
 
         // Create main group
         const g = this.svg.append('g');
+        console.log('Main group created');
 
         // Convert hierarchical data to D3 format
         const root = d3.hierarchy(data);
+        console.log('D3 hierarchy created:', root);
+        console.log('Root data:', root.data);
+        console.log('Root children:', root.children);
         
         // Create layout based on selected style
         const layout = this.createLayout(width, height);
+        console.log('Layout created:', layout);
+        
         layout(root);
+        console.log('Layout applied to root');
 
-        console.log('Root hierarchy:', root);
+        console.log('Root after layout:', root);
+        console.log('Root descendants:', root.descendants());
+        console.log('Root links:', root.links());
 
         // Create links
         const links = g.selectAll('.mindmap-link')
@@ -377,6 +447,8 @@ class GeminiMindmapGenerator {
             .attr('stroke', '#cbd5e1')
             .attr('stroke-width', 2);
 
+        console.log('Links created:', links.size());
+
         // Create nodes
         const nodes = g.selectAll('.mindmap-node')
             .data(root.descendants())
@@ -384,6 +456,8 @@ class GeminiMindmapGenerator {
             .append('g')
             .attr('class', 'mindmap-node')
             .attr('transform', d => `translate(${d.y},${d.x})`);
+
+        console.log('Nodes created:', nodes.size());
 
         // Add circles to nodes
         nodes.append('circle')
@@ -405,7 +479,9 @@ class GeminiMindmapGenerator {
         // Update stats
         this.updateStats(root.descendants().length, root.links().length);
         
-        console.log('Mindmap rendered successfully');
+        console.log('=== Mindmap rendering completed ===');
+        console.log('Final node count:', root.descendants().length);
+        console.log('Final link count:', root.links().length);
     }
 
     createLayout(width, height) {
@@ -507,26 +583,45 @@ class GeminiMindmapGenerator {
     }
 
     showMindmap() {
-        console.log('Showing mindmap');
+        console.log('=== Showing mindmap ===');
         
         // Hide welcome message and loading state
-        document.getElementById('welcomeMessage').style.display = 'none';
-        document.getElementById('loadingState').style.display = 'none';
+        const welcomeMessage = document.getElementById('welcomeMessage');
+        const loadingState = document.getElementById('loadingState');
+        const mindmapContainer = document.getElementById('mindmapContainer');
+        
+        console.log('Welcome message element:', welcomeMessage);
+        console.log('Loading state element:', loadingState);
+        console.log('Mindmap container element:', mindmapContainer);
+        
+        if (welcomeMessage) welcomeMessage.style.display = 'none';
+        if (loadingState) loadingState.style.display = 'none';
         
         // Show mindmap container
-        const mindmapContainer = document.getElementById('mindmapContainer');
-        mindmapContainer.style.display = 'flex';
-        mindmapContainer.style.flexDirection = 'column';
-        mindmapContainer.style.height = '100%';
+        if (mindmapContainer) {
+            mindmapContainer.style.display = 'flex';
+            mindmapContainer.style.flexDirection = 'column';
+            mindmapContainer.style.height = '100%';
+            console.log('Mindmap container displayed');
+        } else {
+            console.error('Mindmap container not found!');
+        }
         
         // Show controls
-        document.getElementById('controlsSection').style.display = 'block';
+        const controlsSection = document.getElementById('controlsSection');
+        if (controlsSection) {
+            controlsSection.style.display = 'block';
+            console.log('Controls section displayed');
+        }
         
         // Update mindmap title
         const title = document.getElementById('mindmapTitle');
-        title.textContent = this.currentFile ? this.currentFile.name : 'Document Mindmap';
+        if (title) {
+            title.textContent = this.currentFile ? this.currentFile.name : 'Document Mindmap';
+            console.log('Mindmap title updated:', title.textContent);
+        }
         
-        console.log('Mindmap container displayed');
+        console.log('=== Mindmap display completed ===');
     }
 
     updateStatus(status) {
