@@ -423,18 +423,19 @@ class GeminiMindmapGenerator {
                         console.log('Processing PDF file...');
                         // For PDF, we'll use a simple text extraction
                         // In a real implementation, you'd use PDF.js
-                        text = 'PDF content extraction would go here. For demo purposes, using sample text.';
+                        text = 'This is a sample PDF document about machine learning and artificial intelligence. The document discusses various topics including neural networks, deep learning, data processing, and model training. It covers implementation details, performance optimization, and real-world applications. The content includes information about TensorFlow, PyTorch, and other frameworks used in modern AI development.';
                     } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
                         console.log('Processing DOCX file...');
                         // For DOCX, we'll use a simple text extraction
                         // In a real implementation, you'd use mammoth.js
-                        text = 'DOCX content extraction would go here. For demo purposes, using sample text.';
+                        text = 'This is a sample DOCX document about business intelligence and data analytics. The document covers market analysis, ROI calculations, strategic implementation, and operational impact. It discusses customer segmentation, pricing strategies, and competitive landscape analysis. The content includes information about business metrics, cost-benefit analysis, and go-to-market strategies.';
                     } else {
                         console.log('Processing text file...');
                         text = e.target.result;
                     }
                     
                     console.log('Text extraction completed. Length:', text.length);
+                    console.log('Text preview:', text.substring(0, 200) + '...');
                     
                     // Process document content for RAG
                     await this.processDocumentContent(text);
@@ -696,13 +697,17 @@ IMPORTANT:
         
         try {
             console.log(`Loading details for node: ${nodeId}`);
+            console.log('Document chunks available:', this.documentChunks.length);
+            console.log('Embedding model ready:', this.isEmbeddingModelReady);
             
             // Use RAG to find relevant content
             const relevantChunks = await this.findRelevantChunks(nodeId, 3);
+            console.log(`Found ${relevantChunks.length} relevant chunks for "${nodeId}"`);
             
             let details = '';
             if (relevantChunks.length > 0) {
                 details = relevantChunks.map((chunk, index) => {
+                    console.log(`Chunk ${index + 1} for "${nodeId}":`, chunk.chunk.content.substring(0, 100) + '...');
                     return `<div class="chunk-content">
                         <h6>Relevant Content ${index + 1}</h6>
                         <p>${chunk.chunk.content}</p>
@@ -710,8 +715,10 @@ IMPORTANT:
                     </div>`;
                 }).join('');
             } else {
+                console.log(`No relevant chunks found for "${nodeId}"`);
                 details = `<div class="no-content">
                     <p>No specific content found for "${nodeId}". This node represents a general concept or category.</p>
+                    <small>Available chunks: ${this.documentChunks.length}</small>
                 </div>`;
             }
             
@@ -722,6 +729,7 @@ IMPORTANT:
             console.error(`Error loading details for node ${nodeId}:`, error);
             this.nodeDetails.set(nodeId, `<div class="error-content">
                 <p>Error loading content for "${nodeId}". Please try again.</p>
+                <small>Error: ${error.message}</small>
             </div>`);
         }
     }
@@ -861,18 +869,24 @@ IMPORTANT:
             .style('pointer-events', 'none')
             .style('text-shadow', '0 1px 2px rgba(0, 0, 0, 0.3)');
 
-        // Add expand/collapse indicator
-        nodes.append('text')
+        // Add expand/collapse indicator (only for nodes with children)
+        nodes.filter(d => d.children && d.children.length > 0)
+            .append('text')
             .attr('class', 'expand-indicator')
-            .attr('text-anchor', 'middle')
+            .attr('text-anchor', 'end')
             .attr('dominant-baseline', 'middle')
-            .attr('dy', d => (d.children ? 40 : 32) / 2 + 20)
+            .attr('x', d => {
+                const rectWidth = Math.max(80, d.data.name.length * 8);
+                return rectWidth / 2 - 8; // Right-aligned with 8px padding
+            })
+            .attr('y', 0)
             .text(d => this.expandedNodes.has(d.data.name) ? '−' : '+')
-            .style('font-size', '16px')
+            .style('font-size', '14px')
             .style('font-weight', 'bold')
-            .style('fill', '#6366f1')
+            .style('fill', '#ffffff')
             .style('cursor', 'pointer')
             .style('pointer-events', 'all')
+            .style('text-shadow', '0 1px 2px rgba(0, 0, 0, 0.5)')
             .on('click', (event, d) => this.toggleNodeExpansion(event, d));
 
         // Add expanded content for expanded nodes

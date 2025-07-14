@@ -655,11 +655,11 @@ body {
 
 .mindmap-node {
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: transform 0.3s ease;
 }
 
 .mindmap-node:hover {
-    transform: scale(1.05);
+    transform: scale(1.02);
 }
 
 .mindmap-node rect {
@@ -670,7 +670,6 @@ body {
 .mindmap-node:hover rect {
     filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.25));
     stroke-width: 3;
-    transform: scale(1.02);
 }
 
 .mindmap-node text {
@@ -700,12 +699,13 @@ body {
 
 /* Expandable Node Styles */
 .expand-indicator {
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
+    opacity: 0.8;
 }
 
 .expand-indicator:hover {
-    fill: #4f46e5 !important;
-    transform: scale(1.2);
+    opacity: 1;
+    transform: scale(1.1);
 }
 
 .node-details {
@@ -797,10 +797,6 @@ body {
 }
 
 /* Animation for expanding nodes */
-.mindmap-node {
-    transition: transform 0.3s ease;
-}
-
 .mindmap-node.expanded {
     transform: translateY(60px);
 }
