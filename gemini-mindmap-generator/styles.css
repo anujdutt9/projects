@@ -658,15 +658,15 @@ body {
 
 .mindmap-node {
     cursor: pointer;
-    transition: transform 0.3s ease;
+    transition: none;
 }
 
 .mindmap-node:hover {
-    transform: scale(1.02);
+    /* Removed transform to prevent vibration */
 }
 
 .mindmap-node rect {
-    transition: all 0.2s ease;
+    transition: none;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
 }
 
@@ -708,21 +708,22 @@ body {
 
 .expand-indicator:hover {
     opacity: 1;
-    transform: scale(1.1);
+    /* Removed transform to prevent vibration */
 }
 
 .node-details {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: white;
+    background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
     border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    font-size: 12px;
-    line-height: 1.4;
-    max-height: 200px;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    font-size: 13px;
+    line-height: 1.5;
+    max-height: 250px;
     overflow-y: auto;
     z-index: 1000;
+    backdrop-filter: blur(10px);
 }
 
 .node-details::-webkit-scrollbar {
@@ -744,9 +745,17 @@ body {
 }
 
 .chunk-content {
-    margin-bottom: 12px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid #f1f5f9;
+    margin-bottom: 16px;
+    padding: 12px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.7);
+    border-left: 3px solid #6366f1;
+    transition: all 0.2s ease;
+}
+
+.chunk-content:hover {
+    background: rgba(255, 255, 255, 0.9);
+    transform: translateX(2px);
 }
 
 .chunk-content:last-child {
@@ -755,53 +764,64 @@ body {
 }
 
 .chunk-content h6 {
-    margin: 0 0 6px 0;
-    font-size: 11px;
+    margin: 0 0 8px 0;
+    font-size: 12px;
     font-weight: 600;
-    color: #374151;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    color: #1e40af;
+    letter-spacing: 0.3px;
 }
 
 .chunk-content p {
-    margin: 0 0 4px 0;
-    font-size: 11px;
-    color: #4b5563;
-    line-height: 1.3;
+    margin: 0 0 6px 0;
+    font-size: 12px;
+    color: #374151;
+    line-height: 1.4;
+    font-style: italic;
 }
 
 .similarity-score {
-    font-size: 10px;
-    color: #6b7280;
-    font-style: italic;
+    font-size: 11px;
+    color: #6366f1;
+    font-weight: 500;
+    background: rgba(99, 102, 241, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: inline-block;
 }
 
 .no-content {
     text-align: center;
-    padding: 16px;
+    padding: 20px;
     color: #6b7280;
-    font-style: italic;
+    background: rgba(107, 114, 128, 0.05);
+    border-radius: 8px;
+    border: 1px dashed #d1d5db;
 }
 
 .no-content p {
     margin: 0;
-    font-size: 11px;
+    font-size: 12px;
+    line-height: 1.4;
 }
 
 .error-content {
     text-align: center;
-    padding: 16px;
+    padding: 20px;
     color: #dc2626;
-    font-size: 11px;
+    font-size: 12px;
+    background: rgba(220, 38, 38, 0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(220, 38, 38, 0.2);
 }
 
 .error-content p {
     margin: 0;
+    line-height: 1.4;
 }
 
 /* Animation for expanding nodes */
 .mindmap-node.expanded {
-    transform: translateY(60px);
+    /* Removed transform to prevent vibration - positioning handled by foreignObject */
 }
 
 /* Ensure expanded content doesn't overlap */

@@ -421,18 +421,24 @@ class GeminiMindmapGenerator {
                     
                     if (file.type === 'application/pdf') {
                         console.log('Processing PDF file...');
-                        // For PDF, we'll use a simple text extraction
-                        // In a real implementation, you'd use PDF.js
-                        text = 'This is a sample PDF document about machine learning and artificial intelligence. The document discusses various topics including neural networks, deep learning, data processing, and model training. It covers implementation details, performance optimization, and real-world applications. The content includes information about TensorFlow, PyTorch, and other frameworks used in modern AI development.';
+                        // For now, we'll use a placeholder for PDF processing
+                        // In a production environment, you'd integrate PDF.js for proper text extraction
+                        text = 'PDF processing requires additional libraries. Please convert your PDF to text format or use a text document for now. For proper PDF support, the application would need to integrate PDF.js library for text extraction from PDF files.';
                     } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
                         console.log('Processing DOCX file...');
-                        // For DOCX, we'll use a simple text extraction
-                        // In a real implementation, you'd use mammoth.js
-                        text = 'This is a sample DOCX document about business intelligence and data analytics. The document covers market analysis, ROI calculations, strategic implementation, and operational impact. It discusses customer segmentation, pricing strategies, and competitive landscape analysis. The content includes information about business metrics, cost-benefit analysis, and go-to-market strategies.';
-                    } else {
+                        // For now, we'll use a placeholder for DOCX processing
+                        // In a production environment, you'd integrate mammoth.js for proper text extraction
+                        text = 'DOCX processing requires additional libraries. Please convert your DOCX to text format or use a text document for now. For proper DOCX support, the application would need to integrate mammoth.js library for text extraction from Word documents.';
+                    } else if (file.type === 'text/plain') {
                         console.log('Processing text file...');
                         text = e.target.result;
+                    } else {
+                        console.log('Unsupported file type, attempting text extraction...');
+                        text = e.target.result;
                     }
+                    
+                    // Clean and normalize the text
+                    text = this.cleanText(text);
                     
                     console.log('Text extraction completed. Length:', text.length);
                     console.log('Text preview:', text.substring(0, 200) + '...');
@@ -462,6 +468,17 @@ class GeminiMindmapGenerator {
         });
     }
 
+    cleanText(text) {
+        // Clean and normalize the extracted text
+        return text
+            .replace(/\r\n/g, '\n') // Normalize line endings
+            .replace(/\r/g, '\n') // Handle old Mac line endings
+            .replace(/\n{3,}/g, '\n\n') // Remove excessive line breaks
+            .replace(/\t/g, ' ') // Replace tabs with spaces
+            .replace(/\s{2,}/g, ' ') // Normalize multiple spaces
+            .trim(); // Remove leading/trailing whitespace
+    }
+
     async analyzeWithGemini(text) {
         console.log('=== Starting Gemini analysis ===');
         
@@ -483,7 +500,7 @@ class GeminiMindmapGenerator {
         try {
             // Create a session with the LanguageModel
             const session = await LanguageModel.create({
-                temperature: 0.3, // Lower temperature for more consistent structured output
+                temperature: 0.7, // Higher temperature for more creative and detailed analysis
                 topK: 40
             });
 
@@ -513,56 +530,74 @@ class GeminiMindmapGenerator {
 
     createMindmapPrompt(text, settings) {
         const focusDescriptions = {
-            general: "general overview with main themes and concepts",
-            technical: "technical details, implementation specifics, and technical architecture",
-            business: "business insights, market analysis, and strategic implications",
-            academic: "academic analysis, research methodology, and scholarly insights",
-            key_points: "key points and main takeaways only"
+            general: "comprehensive analysis covering main themes, concepts, arguments, and key insights",
+            technical: "detailed technical analysis including implementation details, architecture, methodologies, and technical specifications",
+            business: "business-focused analysis covering market insights, strategic implications, business models, and competitive analysis",
+            academic: "scholarly analysis including research methodology, theoretical frameworks, findings, and academic implications",
+            key_points: "essential key points, main takeaways, and critical insights only"
         };
 
         const focusDesc = focusDescriptions[settings.focus] || focusDescriptions.general;
 
-        return `You are an expert document analyst and mindmap creator. Analyze the following document and create a structured mindmap that represents the key concepts, themes, and relationships.
+        return `You are an expert document analyst and mindmap creator with deep expertise in information architecture and knowledge organization. Your task is to create a comprehensive, well-structured mindmap that captures the essence and complexity of the document.
 
 # DOCUMENT CONTENT:
-${text.substring(0, 8000)}${text.length > 8000 ? '...' : ''}
+${text.substring(0, 12000)}${text.length > 12000 ? '...' : ''}
 
 # ANALYSIS REQUIREMENTS:
 - Focus: ${focusDesc}
 - Maximum nodes: ${settings.nodeLimit}
 - Create a hierarchical structure with clear parent-child relationships
-- Use concise, descriptive node names (2-4 words each)
+- Use descriptive, meaningful node names (3-6 words each)
 - Ensure logical grouping and categorization
-- Include 3-5 main categories with 3-5 sub-nodes each
+- Include 4-6 main categories with 3-6 sub-nodes each
+- Add depth with third-level nodes where appropriate
 
-# Guidelines:
-- Identify the central idea or theme of the document.
-- Extract and organize the main sections or arguments as first-level branches.
-- Include relevant subpoints, examples, or definitions as deeper branches.
-- Use clear and concise phrasing.
-- Omit unnecessary filler or repetitive content.
+# ANALYSIS GUIDELINES:
+1. **Central Theme Identification**: Identify the core theme, main argument, or primary focus of the document
+2. **Structural Analysis**: Break down the document into logical sections, themes, or arguments
+3. **Concept Extraction**: Extract key concepts, ideas, methodologies, findings, or insights
+4. **Relationship Mapping**: Identify connections, dependencies, and relationships between concepts
+5. **Hierarchical Organization**: Organize information from general to specific, abstract to concrete
+6. **Comprehensive Coverage**: Ensure all major aspects of the document are represented
 
-OUTPUT FORMAT:
+# QUALITY REQUIREMENTS:
+- Create meaningful, descriptive node names that clearly convey the concept
+- Group related concepts logically under appropriate parent nodes
+- Include both broad themes and specific details
+- Maintain balance between breadth and depth
+- Ensure the mindmap tells a coherent story about the document
+- Focus on the most important and relevant information
+- Avoid redundant or overly generic nodes
+
+# OUTPUT FORMAT:
 Return ONLY a valid JSON object with this exact structure:
 {
   "name": "Document Analysis",
   "children": [
     {
-      "name": "Category Name",
+      "name": "Main Category Name",
       "children": [
-        {"name": "Sub-node 1", "value": 1},
-        {"name": "Sub-node 2", "value": 1}
+        {
+          "name": "Sub-category or Concept",
+          "children": [
+            {"name": "Specific Detail or Point", "value": 1},
+            {"name": "Another Specific Detail", "value": 1}
+          ]
+        },
+        {"name": "Direct Sub-node", "value": 1}
       ]
     }
   ]
 }
 
 IMPORTANT:
-- Return ONLY the JSON object, no additional text
+- Return ONLY the JSON object, no additional text or explanations
 - Ensure the JSON is valid and properly formatted
-- Focus on the most important concepts from the document
-- Create meaningful relationships between nodes
-- Keep node names clear and descriptive
+- Create a rich, detailed mindmap that captures the document's complexity
+- Use specific, descriptive names for all nodes
+- Include multiple levels of detail where appropriate
+- Focus on creating meaningful insights and connections
 - Limit the total number of nodes to ${settings.nodeLimit}`;
     }
 
@@ -708,17 +743,21 @@ IMPORTANT:
             if (relevantChunks.length > 0) {
                 details = relevantChunks.map((chunk, index) => {
                     console.log(`Chunk ${index + 1} for "${nodeId}":`, chunk.chunk.content.substring(0, 100) + '...');
+                    
+                    // Create a personalized summary of the chunk
+                    const summary = this.createPersonalizedSummary(chunk.chunk.content, nodeId, index + 1);
+                    
                     return `<div class="chunk-content">
-                        <h6>Relevant Content ${index + 1}</h6>
-                        <p>${chunk.chunk.content}</p>
-                        <small class="similarity-score">Relevance: ${(chunk.similarity * 100).toFixed(1)}%</small>
+                        <h6>💡 Key Insight ${index + 1}</h6>
+                        <p>${summary}</p>
+                        <small class="similarity-score">📊 Relevance: ${(chunk.similarity * 100).toFixed(1)}%</small>
                     </div>`;
                 }).join('');
             } else {
                 console.log(`No relevant chunks found for "${nodeId}"`);
                 details = `<div class="no-content">
-                    <p>No specific content found for "${nodeId}". This node represents a general concept or category.</p>
-                    <small>Available chunks: ${this.documentChunks.length}</small>
+                    <p>🤔 I couldn't find specific content for "${nodeId}" in your document. This might be a general concept or category that spans across multiple sections.</p>
+                    <small>📄 Available content sections: ${this.documentChunks.length}</small>
                 </div>`;
             }
             
@@ -728,10 +767,46 @@ IMPORTANT:
         } catch (error) {
             console.error(`Error loading details for node ${nodeId}:`, error);
             this.nodeDetails.set(nodeId, `<div class="error-content">
-                <p>Error loading content for "${nodeId}". Please try again.</p>
-                <small>Error: ${error.message}</small>
+                <p>❌ Oops! I had trouble loading content for "${nodeId}". Please try expanding this node again.</p>
+                <small>🔧 Error: ${error.message}</small>
             </div>`);
         }
+    }
+
+    createPersonalizedSummary(content, nodeName, chunkIndex) {
+        // Create a more personal, conversational summary
+        const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 0);
+        
+        if (sentences.length === 0) {
+            return `This section discusses ${nodeName.toLowerCase()} in your document.`;
+        }
+        
+        // Take the first 2-3 meaningful sentences
+        const meaningfulSentences = sentences
+            .filter(s => s.trim().length > 20) // Filter out very short sentences
+            .slice(0, 3);
+        
+        if (meaningfulSentences.length === 0) {
+            return `Here's what your document says about ${nodeName.toLowerCase()}: ${content}`;
+        }
+        
+        // Create a conversational summary
+        let summary = '';
+        
+        if (meaningfulSentences.length === 1) {
+            summary = `Your document explains that ${meaningfulSentences[0].toLowerCase()}`;
+        } else if (meaningfulSentences.length === 2) {
+            summary = `First, ${meaningfulSentences[0].toLowerCase()} Additionally, ${meaningfulSentences[1].toLowerCase()}`;
+        } else {
+            summary = `Your document covers several aspects: ${meaningfulSentences[0].toLowerCase()} It also mentions that ${meaningfulSentences[1].toLowerCase()} Finally, ${meaningfulSentences[2].toLowerCase()}`;
+        }
+        
+        // Add a personal touch based on content length
+        if (content.length > 200) {
+            summary += ` This is one of the more detailed sections in your document about ${nodeName.toLowerCase()}.`;
+        }
+        
+        return summary;
     }
 
     removeNodeDetails(nodeId) {
