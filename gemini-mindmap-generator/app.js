@@ -494,10 +494,7 @@ class GeminiMindmapGenerator {
             this.updateProgress(30, 'Analyzing document with Gemini Nano...');
 
             // Generate the mindmap structure
-            const result = await session.prompt(prompt);
-            console.log('Result:', result);
-            const response = await result.response;
-            const mindmapText = response;
+            const mindmapText = await session.prompt(prompt);
             
             console.log('Raw Gemini response:', mindmapText);
 
