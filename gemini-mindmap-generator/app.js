@@ -466,56 +466,65 @@ class GeminiMindmapGenerator {
 
     async extractPDFText(arrayBuffer) {
         try {
-            console.log('Attempting PDF text extraction...');
+            console.log('Attempting PDF text extraction with PDF.js...');
             
-            // Convert ArrayBuffer to Uint8Array
-            const uint8Array = new Uint8Array(arrayBuffer);
-            
-            // Look for text content in PDF (simple approach)
-            const decoder = new TextDecoder('utf-8');
-            const pdfString = decoder.decode(uint8Array);
-            
-            // Extract text content from PDF structure
-            // This is a simplified approach - for production, use PDF.js
-            const textMatches = pdfString.match(/\(([^)]+)\)/g);
-            let extractedText = '';
-            
-            if (textMatches) {
-                extractedText = textMatches
-                    .map(match => match.slice(1, -1)) // Remove parentheses
-                    .filter(text => text.length > 3 && !text.match(/^[0-9\s]+$/)) // Filter meaningful text
-                    .join(' ');
+            // Load PDF.js library dynamically
+            if (typeof pdfjsLib === 'undefined') {
+                await this.loadPDFJS();
             }
             
-            // If no text found with regex, try alternative approach
-            if (!extractedText || extractedText.length < 100) {
-                console.log('Regex extraction failed, trying alternative method...');
-                
-                // Look for text between BT and ET markers (PDF text objects)
-                const textObjects = pdfString.match(/BT[\s\S]*?ET/g);
-                if (textObjects) {
-                    extractedText = textObjects
-                        .map(obj => obj.replace(/BT|ET/g, ''))
-                        .join(' ')
-                        .replace(/[^\w\s.,!?-]/g, ' ') // Clean up special characters
-                        .replace(/\s+/g, ' ')
-                        .trim();
-                }
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            let fullText = '';
+            
+            console.log(`PDF loaded successfully. Pages: ${pdf.numPages}`);
+            
+            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                console.log(`Processing page ${pageNum}/${pdf.numPages}...`);
+                const page = await pdf.getPage(pageNum);
+                const textContent = await page.getTextContent();
+                const pageText = textContent.items.map(item => item.str).join(' ');
+                fullText += pageText + '\n';
             }
             
-            // If still no text, provide a helpful message
+            const extractedText = fullText.trim();
+            console.log('PDF extraction completed. Length:', extractedText.length);
+            console.log('Text preview:', extractedText.substring(0, 200) + '...');
+            
             if (!extractedText || extractedText.length < 50) {
-                console.log('PDF text extraction limited - using fallback');
-                extractedText = 'PDF text extraction was limited. The document may be image-based or have complex formatting. For better results, consider converting the PDF to text format or using a document with selectable text.';
+                console.log('PDF text extraction limited - may be image-based');
+                return 'PDF text extraction was limited. The document may be image-based or have complex formatting. For better results, consider converting the PDF to text format or using a document with selectable text.';
             }
             
-            console.log('PDF extraction result length:', extractedText.length);
             return extractedText;
             
         } catch (error) {
             console.error('Error extracting PDF text:', error);
             throw new Error('Failed to extract text from PDF. Please try a text file or convert your PDF to text format.');
         }
+    }
+
+    async loadPDFJS() {
+        return new Promise((resolve, reject) => {
+            if (typeof pdfjsLib !== 'undefined') {
+                console.log('PDF.js already loaded');
+                resolve();
+                return;
+            }
+            
+            console.log('Loading PDF.js library...');
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+            script.onload = () => {
+                console.log('PDF.js library loaded successfully');
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                resolve();
+            };
+            script.onerror = (error) => {
+                console.error('Failed to load PDF.js library:', error);
+                reject(new Error('Failed to load PDF.js library'));
+            };
+            document.head.appendChild(script);
+        });
     }
 
     async extractDOCXText(arrayBuffer) {
