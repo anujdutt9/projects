@@ -495,8 +495,9 @@ class GeminiMindmapGenerator {
 
             // Generate the mindmap structure
             const result = await session.prompt(prompt);
+            console.log('Result:', result);
             const response = await result.response;
-            const mindmapText = response.text();
+            const mindmapText = response;
             
             console.log('Raw Gemini response:', mindmapText);
 
