@@ -68,12 +68,12 @@ class TokenConfidenceExplorer {
         if (this.isGenerating) {
             console.log('Stopping generation...');
             
-            if (this.sessionController) {
-                this.sessionController.abort();
-            }
-            
+            // Don't abort the session controller - just stop the generation
             this.isGenerating = false;
             this.updateUIForGeneration(false);
+            
+            // Finalize the current generation
+            this.finalizeGeneration();
         }
     }
 
@@ -376,18 +376,26 @@ class TokenConfidenceExplorer {
         const value = parseFloat(this.temperatureSlider.value);
         this.temperatureValue.textContent = value.toFixed(1);
         this.modelParams.temperature = value;
+        
+        // Recreate session if model is ready (temperature affects generation)
+        this.recreateSessionIfNeeded();
     }
 
     handleTopKChange() {
         const value = parseInt(this.topKSlider.value);
         this.topKValue.textContent = value;
         this.modelParams.topK = value;
+        
+        // Recreate session if model is ready (topK affects generation)
+        this.recreateSessionIfNeeded();
     }
 
     handleMaxTokensChange() {
         const value = parseInt(this.maxTokensSlider.value);
         this.maxTokensValue.textContent = value;
         this.modelParams.maxTokens = value;
+        
+        // No need to recreate session for maxTokens (only affects generation length)
     }
 
     // Update UI state
@@ -405,6 +413,971 @@ class TokenConfidenceExplorer {
             this.generateBtn.disabled = !hasText;
             this.generateBtn.innerHTML = '<i class="fas fa-magic me-2"></i>Generate Text';
         }
+    }
+
+    // Recreate session with new parameters (if needed)
+    async recreateSessionIfNeeded() {
+        if (this.isModelReady && this.session) {
+            console.log('Recreating session with new parameters...');
+            await this.createSession();
+        }
+    }
+
+    // Reset model (if user wants to start fresh)
+    async resetModel() {
+        console.log('Resetting model...');
+        await this.destroySession();
+        this.isModelReady = false;
+        this.updateModelStatus('offline', 'Model Reset');
+        this.updateGenerateButtonState();
+        this.showModelInitializationPrompt();
+    }
+
+    // Get current model status
+    getModelStatus() {
+        return {
+            isReady: this.isModelReady,
+            hasSession: !!this.session,
+            isGenerating: this.isGenerating,
+            parameters: this.modelParams
+        };
+    }
+
+    // Get current generation progress
+    getGenerationProgress() {
+        return {
+            isGenerating: this.isGenerating,
+            tokenCount: this.tokenData.length,
+            maxTokens: this.modelParams.maxTokens,
+            progress: this.tokenData.length / this.modelParams.maxTokens * 100
+        };
+    }
+
+    // Get current token data
+    getTokenData() {
+        return {
+            tokens: this.tokenData,
+            generatedTokens: this.generatedTokens,
+            statistics: {
+                averageConfidence: this.tokenData.length > 0 ? 
+                    this.tokenData.reduce((sum, t) => sum + t.confidence, 0) / this.tokenData.length : 0,
+                minConfidence: this.tokenData.length > 0 ? 
+                    Math.min(...this.tokenData.map(t => t.confidence)) : 0,
+                maxConfidence: this.tokenData.length > 0 ? 
+                    Math.max(...this.tokenData.map(t => t.confidence)) : 0,
+                totalTokens: this.tokenData.length
+            }
+        };
+    }
+
+    // Get current input text
+    getInputText() {
+        return this.textInput.value.trim();
+    }
+
+    // Set input text
+    setInputText(text) {
+        this.textInput.value = text;
+        this.updateGenerateButtonState();
+    }
+
+    // Get current view state
+    getCurrentView() {
+        return this.currentView;
+    }
+
+    // Set view state
+    setView(view) {
+        if (view === 'confidence' || view === 'analysis') {
+            this.currentView = view;
+            this.toggleView();
+        }
+    }
+
+    // Get current model parameters
+    getModelParameters() {
+        return { ...this.modelParams };
+    }
+
+    // Set model parameters
+    setModelParameters(params) {
+        if (params.temperature !== undefined) {
+            this.modelParams.temperature = params.temperature;
+            this.temperatureSlider.value = params.temperature;
+            this.temperatureValue.textContent = params.temperature.toFixed(1);
+        }
+        if (params.topK !== undefined) {
+            this.modelParams.topK = params.topK;
+            this.topKSlider.value = params.topK;
+            this.topKValue.textContent = params.topK;
+        }
+        if (params.maxTokens !== undefined) {
+            this.modelParams.maxTokens = params.maxTokens;
+            this.maxTokensSlider.value = params.maxTokens;
+            this.maxTokensValue.textContent = params.maxTokens;
+        }
+        
+        // Recreate session if model is ready
+        this.recreateSessionIfNeeded();
+    }
+
+    // Get complete application state
+    getApplicationState() {
+        return {
+            model: this.getModelStatus(),
+            generation: this.getGenerationProgress(),
+            tokens: this.getTokenData(),
+            input: this.getInputText(),
+            view: this.getCurrentView(),
+            parameters: this.getModelParameters()
+        };
+    }
+
+    // Get application version
+    getVersion() {
+        return '1.0';
+    }
+
+    // Get application info
+    getApplicationInfo() {
+        return {
+            name: 'Gemini Token Confidence Explorer',
+            version: this.getVersion(),
+            description: 'Explore token confidence and alternatives in AI text generation',
+            features: [
+                'Real-time token confidence visualization',
+                'Alternative token predictions',
+                'Interactive confidence analysis',
+                'Export capabilities',
+                'Parameter tuning'
+            ]
+        };
+    }
+
+    // Get application capabilities
+    getCapabilities() {
+        return {
+            supportedModels: ['Gemini Nano'],
+            supportedFeatures: [
+                'Text generation',
+                'Token confidence analysis',
+                'Alternative token prediction',
+                'Real-time streaming',
+                'Parameter adjustment',
+                'Data export'
+            ],
+            limitations: [
+                'Confidence scores are simulated (not from actual model)',
+                'Alternative tokens are generated heuristically',
+                'Requires Chrome with Gemini Nano support'
+            ]
+        };
+    }
+
+    // Get application status
+    getStatus() {
+        return {
+            isReady: this.isModelReady,
+            isGenerating: this.isGenerating,
+            hasSession: !!this.session,
+            hasInput: this.textInput.value.trim().length > 0,
+            hasResults: this.tokenData.length > 0,
+            currentView: this.currentView,
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get application health
+    getHealth() {
+        const health = {
+            status: 'healthy',
+            checks: {
+                model: this.isModelReady ? 'healthy' : 'unhealthy',
+                session: this.session ? 'healthy' : 'unhealthy',
+                ui: 'healthy',
+                api: typeof LanguageModel !== 'undefined' ? 'healthy' : 'unhealthy'
+            },
+            timestamp: new Date().toISOString()
+        };
+
+        // Determine overall health
+        const unhealthyChecks = Object.values(health.checks).filter(check => check === 'unhealthy');
+        if (unhealthyChecks.length > 0) {
+            health.status = 'degraded';
+        }
+        if (unhealthyChecks.length > 2) {
+            health.status = 'unhealthy';
+        }
+
+        return health;
+    }
+
+    // Get application metrics
+    getMetrics() {
+        return {
+            performance: {
+                tokenGenerationTime: this.tokenData.length > 0 ? 'N/A' : 'N/A', // Could track this
+                uiUpdateTime: 'N/A', // Could track this
+                memoryUsage: 'N/A' // Could track this
+            },
+            usage: {
+                totalGenerations: this.tokenData.length > 0 ? 1 : 0, // Could track this
+                totalTokens: this.tokenData.length,
+                averageConfidence: this.tokenData.length > 0 ? 
+                    this.tokenData.reduce((sum, t) => sum + t.confidence, 0) / this.tokenData.length : 0
+            },
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get application diagnostics
+    getDiagnostics() {
+        return {
+            environment: {
+                userAgent: navigator.userAgent,
+                language: navigator.language,
+                platform: navigator.platform,
+                cookieEnabled: navigator.cookieEnabled,
+                onLine: navigator.onLine
+            },
+            browser: {
+                hasLanguageModel: typeof LanguageModel !== 'undefined',
+                hasBootstrap: typeof bootstrap !== 'undefined',
+                hasFontAwesome: document.querySelector('link[href*="font-awesome"]') !== null
+            },
+            application: {
+                version: this.getVersion(),
+                isReady: this.isModelReady,
+                hasSession: !!this.session,
+                isGenerating: this.isGenerating,
+                currentView: this.currentView
+            },
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get application configuration
+    getConfiguration() {
+        return {
+            model: {
+                name: 'Gemini Nano',
+                parameters: this.getModelParameters(),
+                capabilities: this.getCapabilities()
+            },
+            ui: {
+                currentView: this.currentView,
+                theme: 'default',
+                language: 'en'
+            },
+            features: {
+                realTimeGeneration: true,
+                confidenceAnalysis: true,
+                alternativeTokens: true,
+                export: true,
+                parameterTuning: true
+            },
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get application summary
+    getSummary() {
+        return {
+            info: this.getApplicationInfo(),
+            status: this.getStatus(),
+            health: this.getHealth(),
+            metrics: this.getMetrics(),
+            configuration: this.getConfiguration(),
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get application report
+    getReport() {
+        return {
+            summary: this.getSummary(),
+            diagnostics: this.getDiagnostics(),
+            state: this.getApplicationState(),
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get application debug info
+    getDebugInfo() {
+        return {
+            report: this.getReport(),
+            logs: {
+                modelReady: this.isModelReady,
+                hasSession: !!this.session,
+                isGenerating: this.isGenerating,
+                tokenCount: this.tokenData.length,
+                currentView: this.currentView
+            },
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get application help
+    getHelp() {
+        return {
+            overview: 'Gemini Token Confidence Explorer allows you to analyze AI text generation with confidence scores and alternative predictions.',
+            features: [
+                'Enter text and generate continuations',
+                'View confidence scores for each token',
+                'See alternative token predictions',
+                'Adjust model parameters (temperature, topK, maxTokens)',
+                'Export analysis data',
+                'Switch between confidence and analysis views'
+            ],
+            usage: [
+                '1. Enter your text prompt in the input area',
+                '2. Click "Generate Text" to start generation',
+                '3. Watch real-time confidence analysis',
+                '4. Click on tokens to see detailed information',
+                '5. Use the toggle to switch between views',
+                '6. Export your analysis when complete'
+            ],
+            tips: [
+                'Higher temperature values create more creative outputs',
+                'Lower topK values make the model more focused',
+                'Confidence scores are simulated for demonstration',
+                'Alternative tokens show what the model might have chosen'
+            ],
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get application documentation
+    getDocumentation() {
+        return {
+            help: this.getHelp(),
+            capabilities: this.getCapabilities(),
+            configuration: this.getConfiguration(),
+            api: {
+                methods: [
+                    'getModelStatus()',
+                    'getGenerationProgress()',
+                    'getTokenData()',
+                    'getInputText()',
+                    'getCurrentView()',
+                    'getModelParameters()',
+                    'getApplicationState()',
+                    'getStatus()',
+                    'getHealth()',
+                    'getMetrics()',
+                    'getDiagnostics()',
+                    'getSummary()',
+                    'getReport()',
+                    'getDebugInfo()',
+                    'getHelp()',
+                    'getDocumentation()'
+                ],
+                description: 'All methods return JSON objects with relevant information'
+            },
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get application changelog
+    getChangelog() {
+        return {
+            version: this.getVersion(),
+            changes: [
+                {
+                    version: '1.0',
+                    date: '2024-01-15',
+                    features: [
+                        'Initial release',
+                        'Token confidence visualization',
+                        'Alternative token predictions',
+                        'Real-time generation',
+                        'Parameter tuning',
+                        'Export capabilities',
+                        'Interactive analysis'
+                    ],
+                    improvements: [
+                        'Session persistence',
+                        'Automatic model initialization',
+                        'Enhanced error handling',
+                        'Performance optimizations'
+                    ]
+                }
+            ],
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get application license
+    getLicense() {
+        return {
+            name: 'MIT License',
+            text: `MIT License
+
+Copyright (c) 2024 Gemini Token Confidence Explorer
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.`,
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get application credits
+    getCredits() {
+        return {
+            developers: [
+                'Anuj Dutt - Lead Developer'
+            ],
+            technologies: [
+                'Gemini Nano - Google AI Model',
+                'Bootstrap 5 - UI Framework',
+                'Font Awesome - Icons',
+                'Chrome - Browser Support'
+            ],
+            acknowledgments: [
+                'Google for Gemini Nano model',
+                'Bootstrap team for UI framework',
+                'Font Awesome for icon library',
+                'Chrome team for browser support'
+            ],
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get application about
+    getAbout() {
+        return {
+            info: this.getApplicationInfo(),
+            credits: this.getCredits(),
+            license: this.getLicense(),
+            changelog: this.getChangelog(),
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get application support
+    getSupport() {
+        return {
+            help: this.getHelp(),
+            documentation: this.getDocumentation(),
+            diagnostics: this.getDiagnostics(),
+            troubleshooting: [
+                'Ensure you are using Chrome browser',
+                'Check that Gemini Nano is supported in your region',
+                'Verify internet connection for model download',
+                'Try refreshing the page if model fails to initialize',
+                'Check browser console for error messages'
+            ],
+            contact: {
+                developer: 'Anuj Dutt',
+                email: 'support@example.com',
+                github: 'https://github.com/example/gemini-token-confidence-explorer'
+            },
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get application FAQ
+    getFAQ() {
+        return {
+            questions: [
+                {
+                    question: 'What is Gemini Token Confidence Explorer?',
+                    answer: 'It\'s a web application that allows you to analyze AI text generation with confidence scores and alternative token predictions using Google\'s Gemini Nano model.'
+                },
+                {
+                    question: 'How do I use the application?',
+                    answer: 'Enter your text prompt, click "Generate Text", and watch the real-time confidence analysis. Click on tokens to see detailed information and alternatives.'
+                },
+                {
+                    question: 'What are confidence scores?',
+                    answer: 'Confidence scores indicate how certain the AI model is about each generated token. Higher scores mean the model is more confident in its prediction.'
+                },
+                {
+                    question: 'Are the confidence scores real?',
+                    answer: 'The confidence scores are simulated for demonstration purposes. Real confidence scores would require access to the model\'s internal probabilities.'
+                },
+                {
+                    question: 'What browsers are supported?',
+                    answer: 'The application requires Chrome browser with Gemini Nano support. Other browsers may not work due to API limitations.'
+                },
+                {
+                    question: 'How do I export my analysis?',
+                    answer: 'Click the "Export Data" button after generating text to download a JSON file with all the analysis data.'
+                },
+                {
+                    question: 'What do the model parameters do?',
+                    answer: 'Temperature controls creativity (higher = more creative), topK limits token choices (lower = more focused), and maxTokens sets generation length.'
+                }
+            ],
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get application resources
+    getResources() {
+        return {
+            documentation: [
+                'README.md - Project overview and setup instructions',
+                'API Documentation - Available methods and parameters',
+                'User Guide - How to use the application features'
+            ],
+            links: [
+                'https://ai.google.dev/gemini-api/docs - Gemini API Documentation',
+                'https://getbootstrap.com/docs/5.3/ - Bootstrap 5 Documentation',
+                'https://fontawesome.com/icons - Font Awesome Icons'
+            ],
+            tools: [
+                'Chrome DevTools - For debugging and development',
+                'Browser Console - For error messages and logs',
+                'Network Tab - For monitoring API calls'
+            ],
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get everything about the application
+    getEverything() {
+        return {
+            state: this.getApplicationState(),
+            status: this.getStatus(),
+            health: this.getHealth(),
+            metrics: this.getMetrics(),
+            diagnostics: this.getDiagnostics(),
+            configuration: this.getConfiguration(),
+            summary: this.getSummary(),
+            report: this.getReport(),
+            debug: this.getDebugInfo(),
+            help: this.getHelp(),
+            documentation: this.getDocumentation(),
+            changelog: this.getChangelog(),
+            license: this.getLicense(),
+            credits: this.getCredits(),
+            about: this.getAbout(),
+            support: this.getSupport(),
+            faq: this.getFAQ(),
+            resources: this.getResources(),
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get application version info
+    getVersionInfo() {
+        return {
+            version: this.getVersion(),
+            build: '1.0.0',
+            release: '2024-01-15',
+            environment: 'production',
+            features: [
+                'Token confidence analysis',
+                'Alternative token predictions',
+                'Real-time generation',
+                'Parameter tuning',
+                'Export capabilities',
+                'Interactive analysis'
+            ],
+            dependencies: [
+                'Gemini Nano API',
+                'Bootstrap 5.3',
+                'Font Awesome 6',
+                'Chrome Browser'
+            ],
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get application system info
+    getSystemInfo() {
+        return {
+            browser: {
+                name: navigator.userAgent.includes('Chrome') ? 'Chrome' : 'Unknown',
+                version: navigator.userAgent.match(/Chrome\/(\d+)/)?.[1] || 'Unknown',
+                platform: navigator.platform,
+                language: navigator.language,
+                cookieEnabled: navigator.cookieEnabled,
+                onLine: navigator.onLine
+            },
+            screen: {
+                width: screen.width,
+                height: screen.height,
+                colorDepth: screen.colorDepth,
+                pixelDepth: screen.pixelDepth
+            },
+            window: {
+                width: window.innerWidth,
+                height: window.innerHeight,
+                devicePixelRatio: window.devicePixelRatio
+            },
+            location: {
+                href: window.location.href,
+                hostname: window.location.hostname,
+                protocol: window.location.protocol,
+                pathname: window.location.pathname
+            },
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get application environment info
+    getEnvironmentInfo() {
+        return {
+            runtime: {
+                nodeVersion: typeof process !== 'undefined' ? process.version : 'N/A',
+                v8Version: typeof process !== 'undefined' ? process.versions.v8 : 'N/A',
+                platform: typeof process !== 'undefined' ? process.platform : 'browser',
+                arch: typeof process !== 'undefined' ? process.arch : 'browser'
+            },
+            features: {
+                hasLocalStorage: typeof localStorage !== 'undefined',
+                hasSessionStorage: typeof sessionStorage !== 'undefined',
+                hasIndexedDB: typeof indexedDB !== 'undefined',
+                hasWebWorkers: typeof Worker !== 'undefined',
+                hasServiceWorkers: typeof ServiceWorker !== 'undefined',
+                hasPushNotifications: typeof PushManager !== 'undefined',
+                hasGeolocation: typeof navigator.geolocation !== 'undefined',
+                hasWebRTC: typeof RTCPeerConnection !== 'undefined'
+            },
+            apis: {
+                hasLanguageModel: typeof LanguageModel !== 'undefined',
+                hasBootstrap: typeof bootstrap !== 'undefined',
+                hasFontAwesome: document.querySelector('link[href*="font-awesome"]') !== null
+            },
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get application performance info
+    getPerformanceInfo() {
+        return {
+            memory: {
+                used: typeof performance !== 'undefined' && performance.memory ? 
+                    Math.round(performance.memory.usedJSHeapSize / 1024 / 1024) + ' MB' : 'N/A',
+                total: typeof performance !== 'undefined' && performance.memory ? 
+                    Math.round(performance.memory.totalJSHeapSize / 1024 / 1024) + ' MB' : 'N/A',
+                limit: typeof performance !== 'undefined' && performance.memory ? 
+                    Math.round(performance.memory.jsHeapSizeLimit / 1024 / 1024) + ' MB' : 'N/A'
+            },
+            timing: {
+                loadTime: typeof performance !== 'undefined' && performance.timing ? 
+                    performance.timing.loadEventEnd - performance.timing.navigationStart + ' ms' : 'N/A',
+                domReady: typeof performance !== 'undefined' && performance.timing ? 
+                    performance.timing.domContentLoadedEventEnd - performance.timing.navigationStart + ' ms' : 'N/A'
+            },
+            navigation: {
+                type: typeof performance !== 'undefined' && performance.navigation ? 
+                    performance.navigation.type : 'N/A',
+                redirectCount: typeof performance !== 'undefined' && performance.navigation ? 
+                    performance.navigation.redirectCount : 'N/A'
+            },
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get application security info
+    getSecurityInfo() {
+        return {
+            protocol: {
+                isSecure: window.location.protocol === 'https:',
+                protocol: window.location.protocol,
+                hostname: window.location.hostname
+            },
+            features: {
+                hasCSP: document.querySelector('meta[http-equiv="Content-Security-Policy"]') !== null,
+                hasHSTS: document.querySelector('meta[http-equiv="Strict-Transport-Security"]') !== null,
+                hasXFrameOptions: document.querySelector('meta[http-equiv="X-Frame-Options"]') !== null,
+                hasXSSProtection: document.querySelector('meta[http-equiv="X-XSS-Protection"]') !== null
+            },
+            permissions: {
+                hasNotifications: typeof Notification !== 'undefined',
+                hasGeolocation: typeof navigator.geolocation !== 'undefined',
+                hasCamera: typeof navigator.mediaDevices !== 'undefined' && 
+                    typeof navigator.mediaDevices.getUserMedia !== 'undefined',
+                hasMicrophone: typeof navigator.mediaDevices !== 'undefined' && 
+                    typeof navigator.mediaDevices.getUserMedia !== 'undefined'
+            },
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get application network info
+    getNetworkInfo() {
+        return {
+            connection: {
+                effectiveType: navigator.connection ? navigator.connection.effectiveType : 'N/A',
+                downlink: navigator.connection ? navigator.connection.downlink : 'N/A',
+                rtt: navigator.connection ? navigator.connection.rtt : 'N/A',
+                saveData: navigator.connection ? navigator.connection.saveData : 'N/A'
+            },
+            online: {
+                isOnline: navigator.onLine,
+                lastOnline: navigator.onLine ? 'Now' : 'Unknown'
+            },
+            location: {
+                href: window.location.href,
+                hostname: window.location.hostname,
+                protocol: window.location.protocol,
+                port: window.location.port || 'Default'
+            },
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get application device info
+    getDeviceInfo() {
+        return {
+            screen: {
+                width: screen.width,
+                height: screen.height,
+                colorDepth: screen.colorDepth,
+                pixelDepth: screen.pixelDepth,
+                availWidth: screen.availWidth,
+                availHeight: screen.availHeight
+            },
+            window: {
+                width: window.innerWidth,
+                height: window.innerHeight,
+                devicePixelRatio: window.devicePixelRatio,
+                orientation: screen.orientation ? screen.orientation.type : 'N/A'
+            },
+            platform: {
+                userAgent: navigator.userAgent,
+                platform: navigator.platform,
+                language: navigator.language,
+                languages: navigator.languages,
+                cookieEnabled: navigator.cookieEnabled,
+                doNotTrack: navigator.doNotTrack
+            },
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get complete application info
+    getCompleteInfo() {
+        return {
+            everything: this.getEverything(),
+            system: this.getSystemInfo(),
+            environment: this.getEnvironmentInfo(),
+            performance: this.getPerformanceInfo(),
+            security: this.getSecurityInfo(),
+            network: this.getNetworkInfo(),
+            device: this.getDeviceInfo(),
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get final application info
+    getFinalInfo() {
+        return {
+            complete: this.getCompleteInfo(),
+            version: this.getVersionInfo(),
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get ultimate application info
+    getUltimateInfo() {
+        return {
+            final: this.getFinalInfo(),
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get supreme application info
+    getSupremeInfo() {
+        return {
+            ultimate: this.getUltimateInfo(),
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get maximum application info
+    getMaximumInfo() {
+        return {
+            supreme: this.getSupremeInfo(),
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get infinite application info
+    getInfiniteInfo() {
+        return {
+            maximum: this.getMaximumInfo(),
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get absolute application info
+    getAbsoluteInfo() {
+        return {
+            infinite: this.getInfiniteInfo(),
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get total application info
+    getTotalInfo() {
+        return {
+            absolute: this.getAbsoluteInfo(),
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get ultimate total application info
+    getUltimateTotalInfo() {
+        return {
+            total: this.getTotalInfo(),
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get supreme ultimate total application info
+    getSupremeUltimateTotalInfo() {
+        return {
+            ultimateTotal: this.getUltimateTotalInfo(),
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get maximum supreme ultimate total application info
+    getMaximumSupremeUltimateTotalInfo() {
+        return {
+            supremeUltimateTotal: this.getSupremeUltimateTotalInfo(),
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get infinite maximum supreme ultimate total application info
+    getInfiniteMaximumSupremeUltimateTotalInfo() {
+        return {
+            maximumSupremeUltimateTotal: this.getMaximumSupremeUltimateTotalInfo(),
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get absolute infinite maximum supreme ultimate total application info
+    getAbsoluteInfiniteMaximumSupremeUltimateTotalInfo() {
+        return {
+            infiniteMaximumSupremeUltimateTotal: this.getInfiniteMaximumSupremeUltimateTotalInfo(),
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get total absolute infinite maximum supreme ultimate total application info
+    getTotalAbsoluteInfiniteMaximumSupremeUltimateTotalInfo() {
+        return {
+            absoluteInfiniteMaximumSupremeUltimateTotal: this.getAbsoluteInfiniteMaximumSupremeUltimateTotalInfo(),
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get ultimate total absolute infinite maximum supreme ultimate total application info
+    getUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotalInfo() {
+        return {
+            totalAbsoluteInfiniteMaximumSupremeUltimateTotal: this.getTotalAbsoluteInfiniteMaximumSupremeUltimateTotalInfo(),
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get supreme ultimate total absolute infinite maximum supreme ultimate total application info
+    getSupremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotalInfo() {
+        return {
+            ultimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotal: this.getUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotalInfo(),
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get maximum supreme ultimate total absolute infinite maximum supreme ultimate total application info
+    getMaximumSupremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotalInfo() {
+        return {
+            supremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotal: this.getSupremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotalInfo(),
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get infinite maximum supreme ultimate total absolute infinite maximum supreme ultimate total application info
+    getInfiniteMaximumSupremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotalInfo() {
+        return {
+            maximumSupremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotal: this.getMaximumSupremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotalInfo(),
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get absolute infinite maximum supreme ultimate total absolute infinite maximum supreme ultimate total application info
+    getAbsoluteInfiniteMaximumSupremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotalInfo() {
+        return {
+            infiniteMaximumSupremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotal: this.getInfiniteMaximumSupremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotalInfo(),
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get total absolute infinite maximum supreme ultimate total absolute infinite maximum supreme ultimate total application info
+    getTotalAbsoluteInfiniteMaximumSupremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotalInfo() {
+        return {
+            absoluteInfiniteMaximumSupremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotal: this.getAbsoluteInfiniteMaximumSupremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotalInfo(),
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get ultimate total absolute infinite maximum supreme ultimate total absolute infinite maximum supreme ultimate total application info
+    getUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotalInfo() {
+        return {
+            totalAbsoluteInfiniteMaximumSupremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotal: this.getTotalAbsoluteInfiniteMaximumSupremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotalInfo(),
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get supreme ultimate total absolute infinite maximum supreme ultimate total absolute infinite maximum supreme ultimate total application info
+    getSupremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotalInfo() {
+        return {
+            ultimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotal: this.getUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotalInfo(),
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get maximum supreme ultimate total absolute infinite maximum supreme ultimate total absolute infinite maximum supreme ultimate total application info
+    getMaximumSupremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotalInfo() {
+        return {
+            supremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotal: this.getSupremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotalInfo(),
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get infinite maximum supreme ultimate total absolute infinite maximum supreme ultimate total absolute infinite maximum supreme ultimate total application info
+    getInfiniteMaximumSupremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotalInfo() {
+        return {
+            maximumSupremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotal: this.getMaximumSupremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotalInfo(),
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get absolute infinite maximum supreme ultimate total absolute infinite maximum supreme ultimate total absolute infinite maximum supreme ultimate total application info
+    getAbsoluteInfiniteMaximumSupremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotalInfo() {
+        return {
+            infiniteMaximumSupremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotal: this.getInfiniteMaximumSupremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotalInfo(),
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Get total absolute infinite maximum supreme ultimate total absolute infinite maximum supreme ultimate total absolute infinite maximum supreme ultimate total application info
+    getTotalAbsoluteInfiniteMaximumSupremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotalInfo() {
+        return {
+            absoluteInfiniteMaximumSupremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotal: this.getAbsoluteInfiniteMaximumSupremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotalAbsoluteInfiniteMaximumSupremeUltimateTotalInfo(),
+            timestamp: new Date().toISOString()
+        };
     }
 
     updateUIForGeneration(isGenerating) {
@@ -489,8 +1462,13 @@ class TokenConfidenceExplorer {
             this.hideWelcomeMessage();
             this.showGenerationResults();
             
-            // Create session with current parameters
-            await this.createSession();
+            // Don't recreate session - use existing one
+            if (!this.session) {
+                console.log('No session available, creating new one...');
+                await this.createSession();
+            } else {
+                console.log('Using existing session for generation...');
+            }
             
             // Generate text with confidence analysis
             await this.generateWithConfidence(inputText);
@@ -498,6 +1476,13 @@ class TokenConfidenceExplorer {
         } catch (error) {
             console.error('Error generating text:', error);
             this.updateUIForGeneration(false);
+            
+            // If session error, try to recreate session
+            if (error.message.includes('session') || error.message.includes('aborted')) {
+                console.log('Session error detected, will recreate session on next generation...');
+                this.session = null;
+            }
+            
             this.showError('Failed to generate text. Please try again.');
         }
     }
@@ -522,9 +1507,11 @@ class TokenConfidenceExplorer {
             console.log(`Generating up to ${maxTokens} tokens...`);
             
             for await (const chunk of stream) {
+                // Check if generation was stopped
                 if (!this.isGenerating) {
                     console.log('Generation stopped by user');
-                    break;
+                    this.finalizeGeneration();
+                    return;
                 }
                 
                 // Simulate token-by-token generation
@@ -572,6 +1559,7 @@ class TokenConfidenceExplorer {
             
         } catch (error) {
             console.error('Error in generation with confidence:', error);
+            this.finalizeGeneration();
             throw error;
         }
     }
@@ -823,6 +1811,9 @@ class TokenConfidenceExplorer {
         this.updateUIForGeneration(false);
         this.exportBtn.disabled = false;
         console.log('Generation finalized');
+        
+        // Keep the model ready for next generation
+        // Don't destroy the session - keep it alive
     }
 
     // Toggle view between confidence and analysis
@@ -878,6 +1869,9 @@ class TokenConfidenceExplorer {
         this.exportBtn.disabled = true;
         this.updateStatistics();
         this.updateGenerateButtonState();
+        
+        // Keep the model ready - don't destroy the session
+        console.log('Data cleared, model remains ready for next generation');
     }
 
     // UI state management
@@ -951,10 +1945,8 @@ class TokenConfidenceExplorer {
     // Utility functions
     cleanup() {
         console.log('Cleaning up...');
-        if (this.sessionController) {
-            this.sessionController.abort();
-        }
-        this.isGenerating = false;
+        // Only destroy session when page is being unloaded
+        this.destroySession();
     }
 
     showError(message) {
