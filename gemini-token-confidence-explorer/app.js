@@ -377,8 +377,7 @@ class TokenConfidenceExplorer {
         this.temperatureValue.textContent = value.toFixed(1);
         this.modelParams.temperature = value;
         
-        // Recreate session if model is ready (temperature affects generation)
-        this.recreateSessionIfNeeded();
+        // Parameters will be applied during generation, no need to recreate session
     }
 
     handleTopKChange() {
@@ -386,8 +385,7 @@ class TokenConfidenceExplorer {
         this.topKValue.textContent = value;
         this.modelParams.topK = value;
         
-        // Recreate session if model is ready (topK affects generation)
-        this.recreateSessionIfNeeded();
+        // Parameters will be applied during generation, no need to recreate session
     }
 
     handleMaxTokensChange() {
