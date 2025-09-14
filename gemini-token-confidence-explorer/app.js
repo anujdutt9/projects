@@ -189,6 +189,9 @@ class TokenConfidenceExplorer {
             clearTimeout(timeoutId);
         } catch (error) {
             clearTimeout(timeoutId);
+            // Reset button state on error
+            this.generateBtn.disabled = false;
+            this.generateBtn.innerHTML = '<i class="fas fa-play me-2"></i>Initialize Model';
             throw error;
         }
     }
@@ -211,27 +214,53 @@ class TokenConfidenceExplorer {
             // Directly create the model without checking availability first
             // This prevents the auto-download issue
             console.log('Creating model session directly...');
-            this.showLoadingModal('Downloading Gemini Model', 'Please wait while we download the AI model...');
+            this.showLoadingModal('Initializing Gemini Model', 'Please wait while we set up the AI model...');
             this.loadingProgress.style.display = 'block';
             
             this.session = await LanguageModel.create({
                 signal: this.sessionController.signal,
                 monitor: (m) => {
+                    let downloadComplete = false;
+                    let hasProgress = false;
+                    
                     m.addEventListener("downloadprogress", (e) => {
+                        hasProgress = true;
                         const progress = (e.loaded / e.total * 100).toFixed(1);
                         this.updateLoadingProgress(progress);
                         this.loadingMessage.textContent = `Downloading model: ${progress}%`;
+                        
+                        // Fallback: if progress reaches 100%, assume download is complete
+                        if (parseFloat(progress) >= 100 && !downloadComplete) {
+                            downloadComplete = true;
+                            setTimeout(() => {
+                                this.loadingMessage.textContent = 'Initializing model...';
+                                this.loadingProgress.style.display = 'none';
+                            }, 500); // Small delay to show 100%
+                        }
                     });
                     
                     m.addEventListener("downloadcomplete", () => {
+                        downloadComplete = true;
                         this.loadingMessage.textContent = 'Initializing model...';
                         this.loadingProgress.style.display = 'none';
                     });
+                    
+                    // If no download progress after 2 seconds, assume model is already available
+                    setTimeout(() => {
+                        if (!hasProgress && !downloadComplete) {
+                            this.loadingMessage.textContent = 'Model already available, initializing...';
+                            this.loadingProgress.style.display = 'none';
+                        }
+                    }, 2000);
                 }
             });
             
             console.log('Model created successfully');
-            this.finalizeModelInitialization();
+            
+            // Add a small delay to ensure the model is fully ready
+            setTimeout(() => {
+                this.finalizeModelInitialization();
+            }, 1000);
 
         } catch (error) {
             console.error('Error initializing model:', error);
@@ -259,11 +288,18 @@ class TokenConfidenceExplorer {
         console.log('Model initialization successful!');
         this.isModelReady = true;
         this.updateModelStatus('online', 'Model Ready');
-        this.hideLoadingModal();
+        
+        // Hide loading modal with a small delay to ensure smooth transition
+        setTimeout(() => {
+            this.hideLoadingModal();
+        }, 500);
         
         // Reset button state
         this.generateBtn.disabled = false;
         this.updateGenerateButtonState();
+        
+        // Show success message
+        this.showSuccess('Model initialized successfully! You can now generate text.');
         
         console.log('Application ready for use');
     }
@@ -831,13 +867,21 @@ class TokenConfidenceExplorer {
         if (modalElement) {
             modalElement.classList.remove('show');
             modalElement.style.display = 'none';
+            modalElement.setAttribute('aria-hidden', 'true');
+            modalElement.removeAttribute('aria-modal');
         }
         
         document.body.classList.remove('modal-open');
-        const backdrop = document.querySelector('.modal-backdrop');
-        if (backdrop) {
-            backdrop.remove();
-        }
+        document.body.style.paddingRight = '';
+        document.body.style.overflow = '';
+        
+        // Remove all modal backdrops
+        const backdrops = document.querySelectorAll('.modal-backdrop');
+        backdrops.forEach(backdrop => backdrop.remove());
+        
+        // Force remove any remaining modal-related elements
+        const remainingBackdrops = document.querySelectorAll('.modal-backdrop');
+        remainingBackdrops.forEach(backdrop => backdrop.remove());
     }
 
     updateLoadingProgress(progress) {
