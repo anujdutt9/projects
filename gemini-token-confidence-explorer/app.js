@@ -20,7 +20,7 @@ class TokenConfidenceExplorer {
         
         this.initializeElements();
         this.bindEvents();
-        this.initializeModel();
+        this.showModelInitializationPrompt();
     }
 
     // Session Management
@@ -146,6 +146,24 @@ class TokenConfidenceExplorer {
         window.addEventListener('beforeunload', () => {
             this.cleanup();
         });
+    }
+
+    // Show model initialization prompt
+    showModelInitializationPrompt() {
+        this.updateModelStatus('offline', 'Click "Initialize Model" to start');
+        this.updateGenerateButtonState();
+        
+        // Add click handler to initialize model
+        this.generateBtn.addEventListener('click', this.initializeModelOnUserGesture.bind(this), { once: true });
+    }
+
+    // Initialize the Gemini model (called on user gesture)
+    async initializeModelOnUserGesture() {
+        // Remove the one-time event listener
+        this.generateBtn.removeEventListener('click', this.initializeModelOnUserGesture);
+        
+        // Now initialize the model
+        await this.initializeModel();
     }
 
     // Initialize the Gemini model
@@ -291,10 +309,15 @@ class TokenConfidenceExplorer {
         const hasText = this.textInput.value.trim().length > 0;
         const isReady = this.isModelReady && hasText && !this.isGenerating;
         
-        this.generateBtn.disabled = !isReady;
-        this.generateBtn.innerHTML = this.isGenerating ? 
-            '<i class="fas fa-stop me-2"></i>Stop Generation' : 
-            '<i class="fas fa-magic me-2"></i>Generate Text';
+        this.generateBtn.disabled = false; // Always enabled for user gesture
+        
+        if (this.isGenerating) {
+            this.generateBtn.innerHTML = '<i class="fas fa-stop me-2"></i>Stop Generation';
+        } else if (!this.isModelReady) {
+            this.generateBtn.innerHTML = '<i class="fas fa-play me-2"></i>Initialize Model';
+        } else {
+            this.generateBtn.innerHTML = '<i class="fas fa-magic me-2"></i>Generate Text';
+        }
     }
 
     updateUIForGeneration(isGenerating) {
@@ -354,7 +377,12 @@ class TokenConfidenceExplorer {
     async generateText() {
         const inputText = this.textInput.value.trim();
         
-        if (!inputText || !this.isModelReady) {
+        // If model is not ready, this will be handled by the initialization flow
+        if (!this.isModelReady) {
+            return;
+        }
+        
+        if (!inputText) {
             return;
         }
 

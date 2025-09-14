@@ -65,18 +65,18 @@
                                 id="textInput" 
                                 class="form-control" 
                                 rows="6" 
-                                placeholder="Type your text here... The AI will continue from where you leave off."
+                                placeholder="Type your text here... Click 'Initialize Model' first, then 'Generate Text' to continue your text with confidence analysis."
                             ></textarea>
                             <small class="form-text text-muted">
                                 <i class="fas fa-info-circle me-1"></i>
-                                The AI will generate 20 new tokens to continue your text
+                                First click "Initialize Model", then the AI will generate tokens to continue your text
                             </small>
                         </div>
                         
                         <div class="d-flex gap-2 mb-3">
-                            <button class="btn btn-primary flex-fill" id="generateBtn" disabled>
-                                <i class="fas fa-magic me-2"></i>
-                                Generate Text
+                            <button class="btn btn-primary flex-fill" id="generateBtn">
+                                <i class="fas fa-play me-2"></i>
+                                Initialize Model
                             </button>
                             <button class="btn btn-outline-secondary" id="clearBtn">
                                 <i class="fas fa-trash me-2"></i>
@@ -186,7 +186,7 @@
                             </div>
                             <h3>Welcome to Token Confidence Explorer</h3>
                             <p class="welcome-text">
-                                Enter your text prompt and click "Generate Text" to see how the AI continues your text 
+                                Enter your text prompt and click "Initialize Model" to start. Then click "Generate Text" to see how the AI continues your text 
                                 with real-time confidence analysis for each token.
                             </p>
                             <div class="features-preview">
