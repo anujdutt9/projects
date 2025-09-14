@@ -153,17 +153,44 @@ class TokenConfidenceExplorer {
         this.updateModelStatus('offline', 'Click "Initialize Model" to start');
         this.updateGenerateButtonState();
         
+        // Ensure the button is always clickable
+        this.generateBtn.disabled = false;
+        
         // Add click handler to initialize model
         this.generateBtn.addEventListener('click', this.initializeModelOnUserGesture.bind(this), { once: true });
     }
 
     // Initialize the Gemini model (called on user gesture)
     async initializeModelOnUserGesture() {
+        // Prevent multiple initialization attempts
+        if (this.isModelReady || this.isGenerating) {
+            return;
+        }
+        
         // Remove the one-time event listener
         this.generateBtn.removeEventListener('click', this.initializeModelOnUserGesture);
         
-        // Now initialize the model
-        await this.initializeModel();
+        // Update button state to show we're initializing
+        this.generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Initializing...';
+        this.generateBtn.disabled = true;
+        
+        // Add timeout to prevent button from being stuck
+        const timeoutId = setTimeout(() => {
+            if (!this.isModelReady) {
+                this.generateBtn.disabled = false;
+                this.generateBtn.innerHTML = '<i class="fas fa-play me-2"></i>Initialize Model';
+                this.showError('Initialization timed out. Please try again.');
+            }
+        }, 30000); // 30 second timeout
+        
+        try {
+            // Now initialize the model
+            await this.initializeModel();
+            clearTimeout(timeoutId);
+        } catch (error) {
+            clearTimeout(timeoutId);
+            throw error;
+        }
     }
 
     // Initialize the Gemini model
@@ -181,72 +208,29 @@ class TokenConfidenceExplorer {
             // Create new AbortController
             this.sessionController = new AbortController();
             
-            // Check model availability
-            try {
-                const modelStatus = await LanguageModel.availability();
-                console.log('Model status:', modelStatus);
-            } catch (availabilityError) {
-                console.error('Error checking model availability:', availabilityError);
-                // Fallback: try to create the model directly
-                this.showLoadingModal('Initializing Gemini Model', 'Please wait while we set up the AI model...');
-                this.loadingProgress.style.display = 'block';
-                
-                this.session = await LanguageModel.create({
-                    signal: this.sessionController.signal,
-                    monitor: (m) => {
-                        m.addEventListener("downloadprogress", (e) => {
-                            const progress = (e.loaded / e.total * 100).toFixed(1);
-                            this.updateLoadingProgress(progress);
-                            this.loadingMessage.textContent = `Downloading model: ${progress}%`;
-                        });
-                        
-                        m.addEventListener("downloadcomplete", () => {
-                            this.loadingMessage.textContent = 'Initializing model...';
-                            this.loadingProgress.style.display = 'none';
-                        });
-                    }
-                });
-                console.log('Model created successfully via fallback');
-                this.finalizeModelInitialization();
-                return;
-            }
+            // Directly create the model without checking availability first
+            // This prevents the auto-download issue
+            console.log('Creating model session directly...');
+            this.showLoadingModal('Downloading Gemini Model', 'Please wait while we download the AI model...');
+            this.loadingProgress.style.display = 'block';
             
-            const modelStatus = await LanguageModel.availability();
+            this.session = await LanguageModel.create({
+                signal: this.sessionController.signal,
+                monitor: (m) => {
+                    m.addEventListener("downloadprogress", (e) => {
+                        const progress = (e.loaded / e.total * 100).toFixed(1);
+                        this.updateLoadingProgress(progress);
+                        this.loadingMessage.textContent = `Downloading model: ${progress}%`;
+                    });
+                    
+                    m.addEventListener("downloadcomplete", () => {
+                        this.loadingMessage.textContent = 'Initializing model...';
+                        this.loadingProgress.style.display = 'none';
+                    });
+                }
+            });
             
-            if (modelStatus === "downloadable") {
-                console.log('Model needs to be downloaded');
-                this.showLoadingModal('Downloading Gemini Model', 'Please wait while we download the AI model...');
-                this.loadingProgress.style.display = 'block';
-                
-                this.session = await LanguageModel.create({
-                    signal: this.sessionController.signal,
-                    monitor: (m) => {
-                        m.addEventListener("downloadprogress", (e) => {
-                            const progress = (e.loaded / e.total * 100).toFixed(1);
-                            this.updateLoadingProgress(progress);
-                            this.loadingMessage.textContent = `Downloading model: ${progress}%`;
-                        });
-                        
-                        m.addEventListener("downloadcomplete", () => {
-                            this.loadingMessage.textContent = 'Initializing model...';
-                            this.loadingProgress.style.display = 'none';
-                        });
-                    }
-                });
-                console.log('Model download and creation completed');
-            } else if (modelStatus === "available") {
-                console.log('Model is already available, loading...');
-                this.showLoadingModal('Loading Gemini Model', 'Please wait while we initialize the AI model...');
-                this.loadingProgress.style.display = 'none';
-                
-                this.session = await LanguageModel.create({
-                    signal: this.sessionController.signal
-                });
-                console.log('Model session created successfully');
-            } else {
-                throw new Error(`Model status unknown: ${modelStatus}`);
-            }
-
+            console.log('Model created successfully');
             this.finalizeModelInitialization();
 
         } catch (error) {
@@ -254,9 +238,15 @@ class TokenConfidenceExplorer {
             this.updateModelStatus('offline', 'Model Error');
             this.hideLoadingModal();
             
+            // Reset button state on error
+            this.generateBtn.disabled = false;
+            this.generateBtn.innerHTML = '<i class="fas fa-play me-2"></i>Initialize Model';
+            
             let errorMessage = 'Failed to initialize Gemini model. ';
             if (error.message.includes('LanguageModel API not available')) {
                 errorMessage += 'Please ensure you are using Chrome with Gemini Nano support.';
+            } else if (error.message.includes('Requires a user gesture')) {
+                errorMessage += 'Please click the "Initialize Model" button to start.';
             } else {
                 errorMessage += 'Please refresh the page and try again.';
             }
@@ -270,7 +260,11 @@ class TokenConfidenceExplorer {
         this.isModelReady = true;
         this.updateModelStatus('online', 'Model Ready');
         this.hideLoadingModal();
+        
+        // Reset button state
+        this.generateBtn.disabled = false;
         this.updateGenerateButtonState();
+        
         console.log('Application ready for use');
     }
 
