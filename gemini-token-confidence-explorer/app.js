@@ -20,7 +20,7 @@ class TokenConfidenceExplorer {
         
         this.initializeElements();
         this.bindEvents();
-        this.showModelInitializationPrompt();
+        this.checkModelAvailability();
     }
 
     // Session Management
@@ -148,13 +148,51 @@ class TokenConfidenceExplorer {
         });
     }
 
+    // Check if model is already available
+    async checkModelAvailability() {
+        try {
+            // Check if LanguageModel API is available
+            if (typeof LanguageModel === 'undefined') {
+                this.showModelInitializationPrompt();
+                return;
+            }
+
+            console.log('Checking model availability...');
+            this.updateModelStatus('loading', 'Checking model availability...');
+            
+            // Update button to show we're checking
+            this.generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Checking Model...';
+            this.generateBtn.disabled = true;
+            
+            // Check model availability without triggering download
+            const modelStatus = await LanguageModel.availability();
+            console.log('Model status:', modelStatus);
+            
+            if (modelStatus === 'available') {
+                console.log('Model is already available, initializing automatically...');
+                this.updateModelStatus('loading', 'Model available, initializing...');
+                await this.initializeModel();
+            } else if (modelStatus === 'downloadable') {
+                console.log('Model needs to be downloaded, showing initialization prompt...');
+                this.showModelInitializationPrompt();
+            } else {
+                console.log('Unknown model status, showing initialization prompt...');
+                this.showModelInitializationPrompt();
+            }
+        } catch (error) {
+            console.error('Error checking model availability:', error);
+            // If availability check fails, show initialization prompt
+            this.showModelInitializationPrompt();
+        }
+    }
+
     // Show model initialization prompt
     showModelInitializationPrompt() {
         this.updateModelStatus('offline', 'Click "Initialize Model" to start');
-        this.updateGenerateButtonState();
         
-        // Ensure the button is always clickable
+        // Set button state for initialization
         this.generateBtn.disabled = false;
+        this.generateBtn.innerHTML = '<i class="fas fa-play me-2"></i>Initialize Model';
         
         // Add click handler to initialize model
         this.generateBtn.addEventListener('click', this.initializeModelOnUserGesture.bind(this), { once: true });
@@ -211,10 +249,28 @@ class TokenConfidenceExplorer {
             // Create new AbortController
             this.sessionController = new AbortController();
             
-            // Directly create the model without checking availability first
-            // This prevents the auto-download issue
-            console.log('Creating model session directly...');
-            this.showLoadingModal('Initializing Gemini Model', 'Please wait while we set up the AI model...');
+            // Check if model is already available
+            const modelStatus = await LanguageModel.availability();
+            console.log('Model status during initialization:', modelStatus);
+            
+            if (modelStatus === 'available') {
+                // Model is already available, create session directly
+                console.log('Model is available, creating session directly...');
+                this.loadingMessage.textContent = 'Model available, creating session...';
+                this.loadingProgress.style.display = 'none';
+                
+                this.session = await LanguageModel.create({
+                    signal: this.sessionController.signal
+                });
+                
+                console.log('Model session created successfully');
+                this.finalizeModelInitialization();
+                return;
+            }
+            
+            // Model needs to be downloaded
+            console.log('Model needs to be downloaded, starting download...');
+            this.showLoadingModal('Downloading Gemini Model', 'Please wait while we download the AI model...');
             this.loadingProgress.style.display = 'block';
             
             this.session = await LanguageModel.create({
@@ -339,13 +395,14 @@ class TokenConfidenceExplorer {
         const hasText = this.textInput.value.trim().length > 0;
         const isReady = this.isModelReady && hasText && !this.isGenerating;
         
-        this.generateBtn.disabled = false; // Always enabled for user gesture
-        
         if (this.isGenerating) {
+            this.generateBtn.disabled = false;
             this.generateBtn.innerHTML = '<i class="fas fa-stop me-2"></i>Stop Generation';
         } else if (!this.isModelReady) {
+            this.generateBtn.disabled = false;
             this.generateBtn.innerHTML = '<i class="fas fa-play me-2"></i>Initialize Model';
         } else {
+            this.generateBtn.disabled = !hasText;
             this.generateBtn.innerHTML = '<i class="fas fa-magic me-2"></i>Generate Text';
         }
     }

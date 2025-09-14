@@ -65,18 +65,18 @@
                                 id="textInput" 
                                 class="form-control" 
                                 rows="6" 
-                                placeholder="Type your text here... Click 'Initialize Model' first, then 'Generate Text' to continue your text with confidence analysis."
+                                placeholder="Type your text here... The model will initialize automatically if available, or click 'Initialize Model' to download it first."
                             ></textarea>
                             <small class="form-text text-muted">
                                 <i class="fas fa-info-circle me-1"></i>
-                                First click "Initialize Model", then the AI will generate tokens to continue your text
+                                The model will initialize automatically if already downloaded, or click "Initialize Model" to download it
                             </small>
                         </div>
                         
                         <div class="d-flex gap-2 mb-3">
-                            <button class="btn btn-primary flex-fill" id="generateBtn">
-                                <i class="fas fa-play me-2"></i>
-                                Initialize Model
+                            <button class="btn btn-primary flex-fill" id="generateBtn" disabled>
+                                <i class="fas fa-spinner fa-spin me-2"></i>
+                                Checking Model...
                             </button>
                             <button class="btn btn-outline-secondary" id="clearBtn">
                                 <i class="fas fa-trash me-2"></i>
@@ -186,8 +186,8 @@
                             </div>
                             <h3>Welcome to Token Confidence Explorer</h3>
                             <p class="welcome-text">
-                                Enter your text prompt and click "Initialize Model" to start. Then click "Generate Text" to see how the AI continues your text 
-                                with real-time confidence analysis for each token.
+                                The AI model will initialize automatically if already downloaded. If not, click "Initialize Model" to download it first. 
+                                Then enter your text prompt and click "Generate Text" to see how the AI continues your text with real-time confidence analysis.
                             </p>
                             <div class="features-preview">
                                 <div class="feature-preview">
